@@ -24,6 +24,7 @@ class User extends Model implements AuthenticatableContract,
      * @var string
      */
     protected $table = 'tblUser';
+    protected  $primaryKey = "UserID";
 
     /**
      * The attributes that are mass assignable.
@@ -37,7 +38,7 @@ class User extends Model implements AuthenticatableContract,
      *
      * @var array
      */
-    protected $hidden = ['password', 'remember_token'];
+    protected $hidden = ['password', 'api_token'];
 
     /**
      * Get the identifier that will be stored in the subject claim of the JWT

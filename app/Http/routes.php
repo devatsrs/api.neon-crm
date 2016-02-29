@@ -24,6 +24,8 @@ $api->version('v1', function ($api) {
 			$api->delete('dogs/{id}', 'DogsController@destroy');
 			$api->put('dogs/{id}', 'DogsController@update');
 
+			$api->get('account/balance/{id}', 'AccountController@balance');
+
 		});
 
 	});
