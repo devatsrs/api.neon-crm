@@ -15,6 +15,7 @@ $api->version('v1', function ($api) {
 		//$api->group( [ 'protected' => true, 'middleware' => 'jwt.refresh' ], function ($api) {
 		$api->group( [ 'middleware' => 'jwt.refresh' ], function ($api) {
 
+			//token validation
 			$api->get('users/me', 'AuthController@me');
 			$api->get('validate_token', 'AuthController@validateToken');
 			
@@ -24,7 +25,20 @@ $api->version('v1', function ($api) {
 			$api->delete('dogs/{id}', 'DogsController@destroy');
 			$api->put('dogs/{id}', 'DogsController@update');
 
-			$api->get('account/balance/{id}', 'AccountController@balance');
+			// account credit
+			$api->get('account/get_credit', 'AccountController@GetCredit');
+			$api->post('account/update_credit', 'AccountController@UpdateCredit');
+			$api->delete('account/delete_credit', 'AccountController@DeleteCredit');
+
+			// account temp credit
+			$api->get('account/get_credit', 'AccountController@GetTempCredit');
+			$api->post('account/update_temp_credit', 'AccountController@UpdateTempCredit');
+			$api->delete('account/delete_temp_credit', 'AccountController@DeleteTempCredit');
+
+			// account threshold credit
+			$api->get('account/get_account_threshold', 'AccountController@GetAccountThreshold');
+			$api->post('account/update_account_threshold', 'AccountController@UpdateAccountThreshold');
+			$api->delete('account/delete_temp_credit', 'AccountController@DeleteAccountThreshold');
 
 		});
 
