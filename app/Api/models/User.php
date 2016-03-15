@@ -1,10 +1,12 @@
 <?php
 
-namespace App;
+namespace Api\Model;
 
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 use Tymon\JWTAuth\Contracts\JWTSubject;
+use Tymon\JWTAuth\Facades\JWTAuth;
+use Tymon\JWTAuth\Exceptions\JWTException;
 use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Foundation\Auth\Access\Authorizable;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
@@ -56,5 +58,13 @@ class User extends Model implements AuthenticatableContract,
      */
     public function getJWTCustomClaims() {
         return [];
+    }
+
+    public static function get_companyID(){
+        return JWTAuth::User()->CompanyID;
+    }
+
+    public static  function get_user_full_name(){
+        return JWTAuth::user()->FirstName.' '. JWTAuth::user()->LastName;
     }
 }
