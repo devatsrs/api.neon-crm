@@ -2,7 +2,8 @@
 
 namespace Api\Controllers;
 
-use App\Dog;
+
+use Api\Model\Dog;
 use App\Http\Requests;
 use Illuminate\Http\Request;
 use Api\Requests\DogRequest;

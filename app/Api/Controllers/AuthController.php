@@ -2,7 +2,7 @@
 
 namespace Api\Controllers;
 
-use App\User;
+use Api\Model\User;
 use Dingo\Api\Facade\API;
 use Illuminate\Http\Request;
 use Api\Requests\UserRequest;

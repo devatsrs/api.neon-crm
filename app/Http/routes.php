@@ -29,9 +29,12 @@ $api->version('v1', function ($api) {
 			$api->get('account/get_credit', 'AccountController@GetCredit');
 			$api->post('account/update_credit', 'AccountController@UpdateCredit');
 			$api->delete('account/delete_credit', 'AccountController@DeleteCredit');
+			$api->get('account/get_creditinfo', 'AccountController@GetCreditInfo');
+			$api->post('account/update_creditinfo', 'AccountController@UpdateCreditInfo');
+			$api->get('account/get_credithistorygrid', 'AccountController@GetCreditHistoryGrid');
 
 			// account temp credit
-			$api->get('account/get_credit', 'AccountController@GetTempCredit');
+			$api->get('account/get_temp_credit', 'AccountController@GetTempCredit');
 			$api->post('account/update_temp_credit', 'AccountController@UpdateTempCredit');
 			$api->delete('account/delete_temp_credit', 'AccountController@DeleteTempCredit');
 
