@@ -12,7 +12,8 @@
         "barryvdh/laravel-cors": "^0.7.1",
         "curl/curl": "1.*",
         "laravelcollective/remote": "5.1.*",
-        "bllim/datatables": "*"
+        "webpatser/laravel-uuid": "2.*",
+        "aws/aws-sdk-php": "2.*"
     },
     "require-dev": {
         "barryvdh/laravel-ide-helper": "^2.1",

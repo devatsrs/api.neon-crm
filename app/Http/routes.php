@@ -62,6 +62,10 @@ $api->version('v1', function ($api) {
             $api->get('opportunity/{id}/get_lead','OpportunityController@getLead');
             $api->get('opportunity/{id}/get_dropdownleadaccount','OpportunityController@getDropdownLeadAccount');
 
+            //Opportunity Comments
+            $api->post('opportunitycomment/add_comment', 'OpportunityCommentsController@add_comment');
+            $api->get('opportunitycomments/{id}/get_comments', 'OpportunityCommentsController@get_comments');
+
 		});
 
 	});

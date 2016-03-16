@@ -7,16 +7,16 @@ use Api\Model\Tags;
 use Api\Model\Contact;
 use Api\Model\Lead;
 use Api\Model\OpportunityBoardColumn;
-use Api\Model\DataTableSql;
+use App\AmazonS3;
 use App\Http\Requests;
-use Curl\Curl;
 use Dingo\Api\Facade\API;
+use Faker\Provider\Uuid;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Mockery\CountValidator\Exception;
-use Tymon\JWTAuth\Facades\JWTAuth;
+
 class OpportunityController extends BaseController {
 
     public function __construct()
@@ -69,32 +69,28 @@ class OpportunityController extends BaseController {
 
     public function saveAttachment($id){
         $data = Input::all();
+        $opportunityattachment = $data['file'];
 
-        $curl = new \Curl\Curl();
-        $curl->setOpt(CURLOPT_POSTFIELDS, true);
-        $files = new \CURLFile($data['file']['image']['name']);
-        //$opportunityattachment = Input::file('file');
-        $reponse_data = ['status' => 'success', 'data' => ['result' => $files], 'status_code' => 200];
-        return API::response()->array($reponse_data)->statusCode(200);
-        /*$AttachmentPaths = Opportunity::where(['OpportunityID'=>$id])->pluck('AttachmentPaths');
-        $opportunityattachments = [];
-        $opportunityattachment = Input::file('opportunityattachment');
         $allowed = getenv("CRM_ALLOWED_FILE_UPLOAD_EXTENSIONS");
         $allowedextensions = explode(',',$allowed);
         $allowedextensions = array_change_key_case($allowedextensions);
         foreach ($opportunityattachment as $attachment) {
-            $ext = $attachment->getClientOriginalExtension();
+            $ext = $attachment['fileExtension'];
             if (!in_array(strtolower($ext), $allowedextensions)) {
                 return $this->response->errorBadRequest($ext." file type is not allowed. Allowed file types are ".$allowed);
             }
         }
+        $opportunityattachment = uploaded_File_Handler($data['file']);
+        $AttachmentPaths = Opportunity::where(['OpportunityID'=>$id])->pluck('AttachmentPaths');
+        $opportunityattachments = [];
+
         foreach ($opportunityattachment as $attachment) {
-            $ext = $attachment->getClientOriginalExtension();
-            $originalfilename = $attachment->getClientOriginalName();
-            $file_name = "OpportunityAttachment_" . GUID::generate() . '.' . $ext;
+            $ext = $ext = $attachment['Extension'];
+            $originalfilename = $attachment['fileName'];
+            $file_name = "OpportunityAttachment_" . Uuid::uuid() . '.' . $ext;
             $amazonPath = AmazonS3::generate_upload_path(AmazonS3::$dir['OPPORTUNITY_ATTACHMENT']);
             $destinationPath = getenv("UPLOAD_PATH") . '/' . $amazonPath;
-            $attachment->move($destinationPath, $file_name);
+            rename_win($attachment['file'],$destinationPath.$file_name);
             if (!AmazonS3::upload($destinationPath . $file_name, $amazonPath)) {
                 return $this->response->errorBadRequest('Failed to upload');
             }
@@ -116,7 +112,7 @@ class OpportunityController extends BaseController {
             }
         } else{
             return $this->response->errorNotFound('No attachment found');
-        }*/
+        }
     }
 
     public function deleteAttachment($opportunityID,$attachmentID){
