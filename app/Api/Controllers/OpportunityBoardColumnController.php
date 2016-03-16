@@ -31,7 +31,7 @@ class OpportunityBoardColumnController extends BaseController
     public function getColumns($id){
         if( $id > 0 ) {
             $companyID = User::get_companyID();
-            $query = "call prc_getOpportunityBoradColumns (".$companyID.",".$id.")";
+            $query = "call prc_GetOpportunityBoradColumns (".$companyID.",".$id.")";
             $result  = DB::select($query);
             $reponse_data = ['status' => 'success', 'data' => ['result' => $result], 'status_code' => 200];
             return API::response()->array($reponse_data)->statusCode(200);
