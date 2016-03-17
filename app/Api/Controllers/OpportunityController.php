@@ -40,6 +40,7 @@ class OpportunityController extends BaseController {
         try{
             $result = DB::select($query);
             $boradsWithOpportunities = [];
+            $columns = [];
             foreach($result as $row){
                 $columns[$row->OpportunityBoardColumnID] = $row->OpportunityBoardColumnName;
                 if(!empty($row->OpportunityName)) {
