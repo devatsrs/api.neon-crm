@@ -73,7 +73,7 @@ class OpportunityBoardColumnController extends BaseController
             $data = Input::all();
             $OpportunityBoardColumn = OpportunityBoardColumn::findOrFail($id);
 
-            $companyID = User::getCompanyID();
+            $companyID = User::get_companyID();
             $data["CompanyID"] = $companyID;
             $data["ModifiedBy"] = User::get_user_full_name();
             $rules = array(
