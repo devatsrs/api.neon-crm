@@ -47,7 +47,7 @@ $api->version('v1', function ($api) {
 
             //Opportunity Board column
             $api->get('opportunityboardcolumn/{id}/get_columns','OpportunityBoardColumnController@getColumns');
-            $api->post('opportunityboardcolumn/add_Column','OpportunityBoardColumnController@addColumn');
+            $api->post('opportunityboardcolumn/add_column','OpportunityBoardColumnController@addColumn');
             $api->post('opportunityboardcolumn/{id}/update_column','OpportunityBoardColumnController@updateColumn');
             $api->post('opportunityboardcolumn/{id}/update_columnOrder','OpportunityBoardColumnController@updateColumnOrder');
 
