@@ -3,6 +3,7 @@
 namespace Api\Controllers;
 
 use Api\Model\OpportunityBoard;
+use Api\Model\OpportunityBoardColumn;
 use Api\Model\User;
 use Api\Model\DataTableSql;
 use App\Http\Requests;
@@ -70,7 +71,8 @@ class OpportunityBoardController extends BaseController
         $data['Status'] = isset($data['Status']) ? 1 : 0;
         $data["CreatedBy"] = User::get_user_full_name();
         try{
-            OpportunityBoard::create($data);
+            $boardID = OpportunityBoard::insertGetId($data);
+            OpportunityBoardColumn::addDefaultColumns($boardID);
         }catch (\Exception $ex){
             Log::info($ex);
             return $this->response->errorInternal($ex->getMessage());
