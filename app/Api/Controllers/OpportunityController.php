@@ -234,10 +234,7 @@ class OpportunityController extends BaseController {
             }
             try {
                 Tags::insertNewTags(['tags' => $data['Tags'], 'TagType' => Tags::Opportunity_tag]);
-                unset($data['leadcheck']);
                 unset($data['OpportunityID']);
-                unset($data['leadOrAccount']);
-
                 Opportunity::where(['OpportunityID' => $id])->update($data);
             } catch (\Exception $ex){
                 Log::info($ex);
