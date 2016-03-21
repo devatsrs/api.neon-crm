@@ -3,6 +3,7 @@
 namespace Api\Controllers;
 
 use Api\Model\AccountBalance;
+use Api\Model\Account;
 use App\Http\Requests;
 use Dingo\Api\Facade\API;
 use Illuminate\Support\Facades\Input;
