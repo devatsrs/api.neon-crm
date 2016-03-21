@@ -232,20 +232,14 @@ class OpportunityController extends BaseController {
             if ($validator->fails()) {
                 return $this->response->error($validator->errors(),'432');
             }
+            try {
+                Tags::insertNewTags(['tags' => $data['Tags'], 'TagType' => Tags::Opportunity_tag]);
+                unset($data['leadcheck']);
+                unset($data['OpportunityID']);
+                unset($data['leadOrAccount']);
 
-            if($data['leadcheck']=='Yes'){
-                unset($data['Company']);
-                unset($data['PhoneNumber']);
-                unset($data['Email']);
-            }
-            Tags::insertNewTags(['tags'=>$data['Tags'],'TagType'=>Tags::Opportunity_tag]);
-            unset($data['leadcheck']);
-            unset($data['OpportunityID']);
-            unset($data['leadOrAccount']);
-
-            try{
-                Opportunity::where(['OpportunityID'=>$id])->update($data);
-            }catch (\Exception $ex){
+                Opportunity::where(['OpportunityID' => $id])->update($data);
+            } catch (\Exception $ex){
                 Log::info($ex);
                 return $this->response->errorInternal($ex->getMessage());
             }
