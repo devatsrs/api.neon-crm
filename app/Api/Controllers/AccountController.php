@@ -153,5 +153,13 @@ class AccountController extends BaseController
     {
         return API::response()->array(['status' => 'success', 'message' => 'success', 'status_code' => 200])->statusCode(200);
     }
-
+    public function GetAccount($id){
+        try{
+            $account = Account::find($id);
+        }catch (\Exception $ex){
+            Log::info($ex);
+            return $this->response->errorInternal($ex->getMessage());
+        }
+        return API::response()->array(['status' => 'success', 'data'=>['account'=>$account] , 'status_code' => 200])->statusCode(200);
+    }
 }

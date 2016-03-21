@@ -25,8 +25,14 @@ $api->version('v1', function ($api) {
 			$api->delete('dogs/{id}', 'DogsController@destroy');
 			$api->put('dogs/{id}', 'DogsController@update');
 
+            //leads
+            $api->get('account/get_account', 'LeadController@GetLead');
+
+            //accounts
+            $api->get('account/get_account', 'AccountController@GetAccount');
+
 			// account credit
-			$api->get('account/get_credit', 'AccountController@GetCredit');
+            $api->get('account/get_credit', 'AccountController@GetCredit');
 			$api->post('account/update_credit', 'AccountController@UpdateCredit');
 			$api->delete('account/delete_credit', 'AccountController@DeleteCredit');
 

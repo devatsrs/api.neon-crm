@@ -279,10 +279,8 @@ class OpportunityController extends BaseController {
             return $this->response->errorInternal($ex->getMessage());
         }
     }
-    //@TODO: convert into procedure
     public function getLead($id){
-        $lead =  Lead::where(['tblAccount.AccountID'=>$id])->select(['AccountName as Company','tblAccount.Phone','tblAccount.Email','tblAccount.AccountType',DB::raw("concat(tblContact.FirstName,' ', tblContact.LastName) as ContactName")])
-            ->leftjoin('tblContact', 'tblContact.Owner', '=', 'tblAccount.AccountID')->get();
+        $lead =  Lead::find($id);
         $reponse_data = ['status' => 'success', 'data' => ['result' => $lead], 'status_code' => 200];
         return API::response()->array($reponse_data)->statusCode(200);
     }
