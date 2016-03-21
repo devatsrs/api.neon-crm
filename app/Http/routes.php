@@ -26,10 +26,10 @@ $api->version('v1', function ($api) {
 			$api->put('dogs/{id}', 'DogsController@update');
 
             //leads
-            $api->get('account/get_account', 'LeadController@GetLead');
+            $api->get('lead/{id}/get_account', 'LeadController@GetLead');
 
             //accounts
-            $api->get('account/get_account', 'AccountController@GetAccount');
+            $api->get('account/{id}/get_account', 'AccountController@GetAccount');
 
 			// account credit
             $api->get('account/get_credit', 'AccountController@GetCredit');
