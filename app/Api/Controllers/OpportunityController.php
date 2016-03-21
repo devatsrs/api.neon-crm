@@ -35,7 +35,7 @@ class OpportunityController extends BaseController {
         $data = Input::all();
         $data['account_owners'] = empty($data['account_owners'])?0:$data['account_owners'];
         $data['AccountID'] = empty($data['AccountID'])?0:$data['AccountID'];
-        $query = "call prc_GetOpportunities (".$companyID.", ".$id.",'".$data['opportunityName']."',".$data['account_owners'].", ".$data['AccountID'].")";
+        $query = "call prc_GetOpportunities (".$companyID.", ".$id.",'".$data['opportunityName']."',"."'".$data['Tags']."',".$data['account_owners'].", ".$data['AccountID'].")";
         try{
             $result = DB::select($query);
             $boradsWithOpportunities = [];
