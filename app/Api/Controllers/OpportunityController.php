@@ -15,7 +15,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
-use Mockery\CountValidator\Exception;
 
 class OpportunityController extends BaseController {
 
@@ -160,54 +159,44 @@ class OpportunityController extends BaseController {
         if ($validator->fails()) {
             return $this->response->error($validator->errors(),'432');
         }
-        if($data['leadcheck']=='No'){
-            $AccountType = $data['leadOrAccount']=='Lead'?0:1;
-            $tobeinsert = ['CompanyID'=>$companyID,
-                            'Owner'=>$data['UserID'],
-                            'AccountName'=>$data['Company'],
-                            'Email'=>$data['Email'],
-                            'Phone'=>$data['Phone'],
-                            'AccountType'=>$AccountType,
-                            'Status' => 1,
-                            'created_by'=>User::get_user_full_name(),
-                            'created_at'=>DB::raw('Now()')
-                            ];
-            if($AccountType==0){
-                $AccountID = Lead::insertGetId($tobeinsert);
-                $contact = ['CompanyId'=>$companyID,
-                            'AccountID'=>$AccountID,
-                            'FirstName'=>$data['ContactName']];
-                Contact::create($contact);
-                $message = 'and lead is created successfully.';
-            }else{
-                $AccountID = Account::insertGetId($tobeinsert);
-                $contact = ['CompanyId'=>$companyID,
-                    'AccountID'=>$AccountID,
-                    'FirstName'=>$data['ContactName']];
-                Contact::create($contact);
-                $message = 'and Account is created successfully.';
+        try {
+            if ($data['leadcheck'] == 'No') {
+                $AccountType = $data['leadOrAccount'] == 'Lead' ? 0 : 1;
+                $tobeinsert = ['CompanyID' => $companyID,
+                    'Owner' => $data['UserID'],
+                    'AccountName' => $data['Company'],
+                    'FirstName' => $data['ContactName'],
+                    'Email' => $data['Email'],
+                    'Phone' => $data['Phone'],
+                    'AccountType' => $AccountType,
+                    'Status' => 1,
+                    'created_by' => User::get_user_full_name(),
+                    'created_at' => DB::raw('Now()')
+                ];
+                if ($AccountType == 0) {
+                    $AccountID = Lead::insertGetId($tobeinsert);
+                    $message = 'and lead is created successfully.';
+                } else {
+                    $AccountID = Account::insertGetId($tobeinsert);
+                    $message = 'and Account is created successfully.';
+                }
+                $data['AccountID'] = $AccountID;
             }
-            $data['AccountID'] = $AccountID;
-        }
-        //Add new tags to db against opportunity
-        Tags::insertNewTags(['tags'=>$data['Tags'],'TagType'=>Tags::Opportunity_tag]);
-        // place new opp. in first column of board
-        $data["OpportunityBoardColumnID"] = OpportunityBoardColumn::where(['OpportunityBoardID'=>$data['OpportunityBoardID'],'Order'=>0])->pluck('OpportunityBoardColumnID');
-        $count = Opportunity::where(['CompanyID'=>$companyID,'OpportunityBoardID'=>$data['OpportunityBoardID'],'OpportunityBoardColumnID'=>$data["OpportunityBoardColumnID"]])->count();
-        $data['Order'] = $count;
-        $data["CreatedBy"] = User::get_user_full_name();
+            //Add new tags to db against opportunity
+            Tags::insertNewTags(['tags' => $data['Tags'], 'TagType' => Tags::Opportunity_tag]);
+            // place new opp. in first column of board
+            $data["OpportunityBoardColumnID"] = OpportunityBoardColumn::where(['OpportunityBoardID' => $data['OpportunityBoardID'], 'Order' => 0])->pluck('OpportunityBoardColumnID');
+            $count = Opportunity::where(['CompanyID' => $companyID, 'OpportunityBoardID' => $data['OpportunityBoardID'], 'OpportunityBoardColumnID' => $data["OpportunityBoardColumnID"]])->count();
+            $data['Order'] = $count;
+            $data["CreatedBy"] = User::get_user_full_name();
 
-        unset($data['Company']);
-        unset($data['PhoneNumber']);
-        unset($data['Email']);
+            unset($data['OppertunityID']);
+            unset($data['leadcheck']);
+            unset($data['leadOrAccount']);
 
-        unset($data['OppertunityID']);
-        unset($data['leadcheck']);
-        unset($data['leadOrAccount']);
-
-        try{
             Opportunity::create($data);
-        }catch (\Exception $ex){
+        }
+        catch (\Exception $ex){
             Log::info($ex);
             return $this->response->errorInternal($ex->getMessage());
         }
