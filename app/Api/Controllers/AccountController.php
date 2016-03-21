@@ -161,6 +161,7 @@ class AccountController extends BaseController
             Log::info($ex);
             return $this->response->errorInternal($ex->getMessage());
         }
-        return API::response()->array(['status' => 'success', 'data'=>['account'=>$account] , 'status_code' => 200])->statusCode(200);
+        $reponse_data = ['status' => 'success', 'data' => ['result' => $account], 'status_code' => 200];
+        return API::response()->array($reponse_data)->statusCode(200);
     }
 }
