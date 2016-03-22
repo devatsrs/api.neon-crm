@@ -41,7 +41,7 @@ class OpportunityController extends BaseController {
             $boradsWithOpportunities = [];
             $columns = [];
             foreach($result as $row){
-                $columns[$row->OpportunityBoardColumnID] = $row->OpportunityBoardColumnName;
+                $columns[$row->OpportunityBoardColumnID] = ['Name'=>$row->OpportunityBoardColumnName,'Height'=>$row->Height,'Width'=>$row->Width];
                 if(!empty($row->OpportunityName)) {
                     $boradsWithOpportunities[$row->OpportunityBoardColumnID][] = $row;
                 }else{
