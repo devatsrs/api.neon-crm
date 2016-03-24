@@ -65,6 +65,7 @@ $api->version('v1', function ($api) {
             $api->post('opportunity/add_opportunity','OpportunityController@addOpportunity');
             $api->post('opportunity/{id}/update_opportunity','OpportunityController@updateOpportunity');
             $api->post('opportunity/{id}/update_columnorder','OpportunityController@updateColumnOrder');
+            $api->post('opportunity/{id}/update_taggeduser','OpportunityController@updateTaggedUser');
             $api->get('opportunity/{id}/get_lead','OpportunityController@getLead');
             $api->get('opportunity/{id}/get_dropdownleadaccount','OpportunityController@getDropdownLeadAccount');
 

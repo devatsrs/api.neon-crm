@@ -259,6 +259,17 @@ class OpportunityController extends BaseController {
             return $this->response->errorInternal($ex->getMessage());
         }
     }
+    function updateTaggedUser($id){
+        $data = Input::all();
+        try {
+            $taggedUser = implode(',', $data['taggedUser']);
+            Opportunity::where(['OpportunityID'=>$id])->update(['TaggedUser'=>$taggedUser]);
+            return API::response()->array(['status' => 'success', 'message' => 'Tagged User Updated', 'status_code' => 200])->statusCode(200);
+        }
+        catch(Exception $ex){
+            return $this->response->errorInternal($ex->getMessage());
+        }
+    }
     public function getLead($id){
         $lead =  Lead::find($id);
         $reponse_data = ['status' => 'success', 'data' => ['result' => $lead], 'status_code' => 200];
