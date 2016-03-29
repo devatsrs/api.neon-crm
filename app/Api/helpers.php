@@ -36,7 +36,7 @@ function sendMail($view,$data){
     $status = array('status' => 0, 'message' => 'Something wrong with sending mail.');
     if(empty($data['companyID']))
     {
-        $companyID = User::get_companyID();
+        $companyID = \Api\Model\User::get_companyID();
     }else{
         $companyID = $data['companyID'];
     }
@@ -139,15 +139,15 @@ function email_log($data){
         $data['EmailTo'] = implode(',',$data['EmailTo']);
     }
 
-    $logData = ['EmailFrom'=>User::get_user_email(),
+    $logData = ['EmailFrom'=>\Api\Model\User::get_user_email(),
         'EmailTo'=>$data['EmailTo'],
         'Subject'=>$data['Subject'],
         'Message'=>$data['Message'],
         'AccountID'=>$data['AccountID'],
-        'CompanyID'=>User::get_companyID(),
-        'UserID'=>User::get_userID(),
-        'CreatedBy'=>User::get_user_full_name()];
-    if(AccountEmailLog::Create($logData)){
+        'CompanyID'=>\Api\Model\User::get_companyID(),
+        'UserID'=>\Api\Model\User::get_userID(),
+        'CreatedBy'=>\Api\Model\User::get_user_full_name()];
+    if(\Api\Model\AccountEmailLog::Create($logData)){
         $status['status'] = 1;
     }
     return $status;
