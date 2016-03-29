@@ -27,7 +27,7 @@ $api->version('v1', function ($api) {
 
             //leads
             $api->get('lead/{id}/get_account', 'LeadController@GetLead');
-
+            $api->get('lead/get_leads', 'LeadController@GetLeads');
             //accounts
             $api->get('account/{id}/get_account', 'AccountController@GetAccount');
 

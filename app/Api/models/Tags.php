@@ -23,7 +23,7 @@ class Tags extends \Eloquent {
     }
     public static function insertNewTags($data = []){
         if(count($data)>0){
-            $newTags = array_diff(explode(',', $data['tags']), Tags::getTagsArray());
+            $newTags = array_diff(explode(',', $data['tags']), Tags::getTagsArray($data['TagType']));
             if (count($newTags) > 0) {
                 foreach ($newTags as $tag) {
                     Tags::create(array('TagName' => $tag, 'CompanyID' => User::get_companyID(), 'TagType' => $data['TagType']));

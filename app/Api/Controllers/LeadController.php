@@ -27,4 +27,14 @@ class LeadController extends BaseController
         }
         return API::response()->array(['status' => 'success', 'data'=>['lead'=>$lead] , 'status_code' => 200])->statusCode(200);
     }
+
+    public function GetLeads(){
+        try{
+            $leads = Lead::getLeadList();
+        }catch (\Exception $ex){
+            Log::info($ex);
+            return $this->response->errorInternal($ex->getMessage());
+        }
+        return API::response()->array(['status' => 'success', 'data'=>['leads'=>$leads] , 'status_code' => 200])->statusCode(200);
+    }
 }

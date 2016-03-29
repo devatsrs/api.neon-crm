@@ -56,7 +56,7 @@ class Lead extends \Eloquent {
             $data['AccountType'] = 0;
         }
         $data['CompanyID']=User::get_companyID();
-        $row = Account::where($data)->select(array('AccountName', 'AccountID'))->orderBy('AccountName')->lists('AccountName', 'AccountID');
+        $row = Lead::where($data)->select(array('AccountName', 'AccountID'))->orderBy('AccountName')->lists('AccountName', 'AccountID');
         if(!empty($row)){
             $row = array(""=> "Select a Lead")+$row;
         }

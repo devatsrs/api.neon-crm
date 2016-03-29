@@ -87,7 +87,18 @@ class OpportunityCommentsController extends BaseController {
         $data ["CompanyID"] = $companyID;
         try{
             OpportunityComments::create($comment_data);
-            //$taggedUser = OpportunityController::where(['OpportunityID'=>$data["OpportunityID"]])->pluck('TaggedUser');
+            $taggedUser = OpportunityController::where(['OpportunityID'=>$data["OpportunityID"]])->pluck('TaggedUser');
+            $users = User::whereIn('UserID',explode(',',$taggedUser))->select(['EmailAddress'])->list('EmailAddress');
+            $emailData['Subject']='New Comment';
+            $emailData['EmailTo'] = $users;
+            $status = sendMail('emails.opportunity.AccountUserEmailSend',$emailData);
+            if($status['status']==1){
+                $account = Account::find($data['AccountID']);
+                $emailData['AccountID'] = $account->AccountID;
+                $emailData['EmailTo'] = $account->Email;
+                $status = sendMail('emails.account.AccountEmailSend',$data);
+                email_log($emailData);
+            }
         }catch (\Exception $ex){
             Log::info($ex);
             return $this->response->errorInternal($ex->getMessage());
