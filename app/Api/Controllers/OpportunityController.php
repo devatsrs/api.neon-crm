@@ -44,7 +44,7 @@ class OpportunityController extends BaseController {
                 if(!empty($row->OpportunityName)) {
                     $users = [];
                     if(!empty($row->TaggedUser)){
-                        $users = User::whereIn('AccountId',explode(',',$row->TaggedUser))->select(['FirstName','LastName','UserID'])->get();
+                        $users = User::whereIn('UserID',explode(',',$row->TaggedUser))->select(['FirstName','LastName','UserID'])->get();
                     }
                     $boradsWithOpportunities[$row->OpportunityBoardColumnID][] = ['TaggedUser'=>$users,'opportunity'=>$row];
                 }else{
