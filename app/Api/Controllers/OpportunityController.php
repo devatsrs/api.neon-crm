@@ -1,6 +1,7 @@
 <?php
 namespace Api\Controllers;
 
+use Api\Model\Account;
 use Api\Model\Opportunity;
 use Api\Model\User;
 use Api\Model\Tags;
@@ -43,7 +44,11 @@ class OpportunityController extends BaseController {
             foreach($result as $row){
                 $columns[$row->OpportunityBoardColumnID] = ['Name'=>$row->OpportunityBoardColumnName,'Height'=>$row->Height,'Width'=>$row->Width];
                 if(!empty($row->OpportunityName)) {
-                    $boradsWithOpportunities[$row->OpportunityBoardColumnID][] = $row;
+                    $users = [];
+                    if(!empty($row->TaggedUser)){
+                        $users = Account::whereIn(['AccountId'=>$row->TaggedUser])->select(['FirstName','LastName','UserID'])->get();
+                    }
+                    $boradsWithOpportunities[$row->OpportunityBoardColumnID][] = ['TaggedUser'=>$users,'opportunity'=>$row];
                 }else{
                     $boradsWithOpportunities[$row->OpportunityBoardColumnID][] = '';
                 }
@@ -234,13 +239,15 @@ class OpportunityController extends BaseController {
             }
             try {
                 Tags::insertNewTags(['tags' => $data['Tags'], 'TagType' => Tags::Opportunity_tag]);
+                $taggedUser = implode(',', $data['TaggedUser']);
+                $data['TaggedUser'] = $taggedUser;
                 unset($data['OpportunityID']);
                 Opportunity::where(['OpportunityID' => $id])->update($data);
             } catch (\Exception $ex){
                 Log::info($ex);
                 return $this->response->errorInternal($ex->getMessage());
             }
-            return API::response()->array(['status' => 'success', 'message' => 'Opportunity Board Successfully Updated', 'status_code' => 200])->statusCode(200);
+            return API::response()->array(['status' => 'success', 'message' => $data, 'status_code' => 200])->statusCode(200);
         }else {
             return $this->response->errorBadRequest('Opportunity id is missing');
         }
@@ -259,17 +266,7 @@ class OpportunityController extends BaseController {
             return $this->response->errorInternal($ex->getMessage());
         }
     }
-    function updateTaggedUser($id){
-        $data = Input::all();
-        try {
-            $taggedUser = implode(',', $data['taggedUser']);
-            Opportunity::where(['OpportunityID'=>$id])->update(['TaggedUser'=>$taggedUser]);
-            return API::response()->array(['status' => 'success', 'message' => 'Tagged User Updated', 'status_code' => 200])->statusCode(200);
-        }
-        catch(Exception $ex){
-            return $this->response->errorInternal($ex->getMessage());
-        }
-    }
+
     public function getLead($id){
         $lead =  Lead::find($id);
         $reponse_data = ['status' => 'success', 'data' => ['result' => $lead], 'status_code' => 200];

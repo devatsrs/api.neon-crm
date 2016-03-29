@@ -87,6 +87,7 @@ class OpportunityCommentsController extends BaseController {
         $data ["CompanyID"] = $companyID;
         try{
             OpportunityComments::create($comment_data);
+            //$taggedUser = OpportunityController::where(['OpportunityID'=>$data["OpportunityID"]])->pluck('TaggedUser');
         }catch (\Exception $ex){
             Log::info($ex);
             return $this->response->errorInternal($ex->getMessage());
