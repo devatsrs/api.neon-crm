@@ -86,7 +86,7 @@ function sendMail($view,$data){
     return $status;
 }
 function setMailConfig($CompanyID){
-    $result = Company::select('SMTPServer','SMTPUsername','CompanyName','SMTPPassword','Port','IsSSL','EmailFrom')->where("CompanyID", '=', $CompanyID)->first();
+    $result = \Api\Model\Company::select('SMTPServer','SMTPUsername','CompanyName','SMTPPassword','Port','IsSSL','EmailFrom')->where("CompanyID", '=', $CompanyID)->first();
     Config::set('mail.host',$result->SMTPServer);
     Config::set('mail.port',$result->Port);
     Config::set('mail.from.address',$result->EmailFrom);
