@@ -93,11 +93,13 @@ class OpportunityCommentsController extends BaseController {
             $emailData['EmailTo'] = $users;
             $status = sendMail('emails.opportunity.AccountUserEmailSend',$emailData);
             if($status['status']==1){
-                $account = Account::find($data['AccountID']);
-                $emailData['AccountID'] = $account->AccountID;
-                $emailData['EmailTo'] = $account->Email;
-                $status = sendMail('emails.account.AccountEmailSend',$data);
-                email_log($emailData);
+                if($data['PrivateComment']==1) {
+                    $account = Account::find($data['AccountID']);
+                    $emailData['AccountID'] = $account->AccountID;
+                    $emailData['EmailTo'] = $account->Email;
+                    $status = sendMail('emails.account.AccountEmailSend', $data);
+                    email_log($emailData);
+                }
             }
         }catch (\Exception $ex){
             Log::info($ex);
