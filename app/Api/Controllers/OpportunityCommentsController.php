@@ -1,6 +1,7 @@
 <?php
 namespace Api\Controllers;
 
+use Api\Model\Opportunity;
 use Api\Model\OpportunityComments;
 use Api\Model\User;
 use App\AmazonS3;
@@ -87,7 +88,7 @@ class OpportunityCommentsController extends BaseController {
         $data ["CompanyID"] = $companyID;
         try{
             OpportunityComments::create($comment_data);
-            $taggedUser = OpportunityController::where(['OpportunityID'=>$data["OpportunityID"]])->pluck('TaggedUser');
+            $taggedUser = Opportunity::where(['OpportunityID'=>$data["OpportunityID"]])->pluck('TaggedUser');
             $users = User::whereIn('UserID',explode(',',$taggedUser))->select(['EmailAddress'])->list('EmailAddress');
             $emailData['Subject']='New Comment';
             $emailData['EmailTo'] = $users;
