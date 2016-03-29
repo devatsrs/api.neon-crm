@@ -1,11 +1,9 @@
 <?php
 namespace Api\Controllers;
 
-use Api\Model\Account;
 use Api\Model\Opportunity;
 use Api\Model\User;
 use Api\Model\Tags;
-use Api\Model\Contact;
 use Api\Model\Lead;
 use Api\Model\OpportunityBoardColumn;
 use App\AmazonS3;
@@ -46,7 +44,7 @@ class OpportunityController extends BaseController {
                 if(!empty($row->OpportunityName)) {
                     $users = [];
                     if(!empty($row->TaggedUser)){
-                        $users = Account::whereIn('AccountId',explode(',',$row->TaggedUser))->select(['FirstName','LastName','UserID'])->get();
+                        $users = User::whereIn('AccountId',explode(',',$row->TaggedUser))->select(['FirstName','LastName','UserID'])->get();
                     }
                     $boradsWithOpportunities[$row->OpportunityBoardColumnID][] = ['TaggedUser'=>$users,'opportunity'=>$row];
                 }else{
