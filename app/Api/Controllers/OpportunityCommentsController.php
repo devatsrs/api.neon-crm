@@ -89,7 +89,7 @@ class OpportunityCommentsController extends BaseController {
         try{
             OpportunityComments::create($comment_data);
             $taggedUser = Opportunity::where(['OpportunityID'=>$data["OpportunityID"]])->pluck('TaggedUser');
-            $users = User::whereIn('UserID',explode(',',$taggedUser))->select(['EmailAddress'])->list('EmailAddress');
+            $users = User::whereIn('UserID',explode(',',$taggedUser))->select(['EmailAddress'])->lists('EmailAddress');
             $emailData['Subject']='New Comment';
             $emailData['EmailTo'] = $users;
             $status = sendMail('emails.opportunity.AccountUserEmailSend',$emailData);
