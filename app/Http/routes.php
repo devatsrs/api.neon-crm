@@ -1,5 +1,5 @@
 <?php
-$api = app('Dingo\Api\Routing\Adapter');
+$api = app('Dingo\Api\Routing\Router');
 
 // Version 1 of our API
 $api->version('v1', function ($api) {
