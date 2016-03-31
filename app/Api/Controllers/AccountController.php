@@ -3,6 +3,7 @@
 namespace Api\Controllers;
 
 use Api\Model\AccountBalance;
+use Api\Model\Account;
 use App\Http\Requests;
 use Dingo\Api\Facade\API;
 use Illuminate\Support\Facades\Input;
@@ -22,7 +23,7 @@ class AccountController extends BaseController
      * Show account balance
      *
      * Get a JSON representation of all the dogs
-     *
+     *  get/post variables
      * @Get('/')
      */
     public function GetCredit()
@@ -153,5 +154,14 @@ class AccountController extends BaseController
     {
         return API::response()->array(['status' => 'success', 'message' => 'success', 'status_code' => 200])->statusCode(200);
     }
-
+    public function GetAccount($id){
+        try{
+            $account = Account::find($id);
+        }catch (\Exception $ex){
+            Log::info($ex);
+            return $this->response->errorInternal($ex->getMessage());
+        }
+        $reponse_data = ['status' => 'success', 'data' => ['result' => $account], 'status_code' => 200];
+        return API::response()->array($reponse_data)->statusCode(200);
+    }
 }
