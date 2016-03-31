@@ -92,13 +92,14 @@ class OpportunityCommentsController extends BaseController {
             $users = User::whereIn('UserID',explode(',',$taggedUser))->select(['EmailAddress'])->lists('EmailAddress');
             $emailData['Subject']='New Comment';
             $emailData['EmailTo'] = $users;
+            $emailData['Message'] = $comment_data['CommentText'];
             $status = sendMail('emails.opportunity.AccountUserEmailSend',$emailData);
             if($status['status']==1){
-                if($data['PrivateComment']==1) {
+                if($data['PrivateComment']!=1) {
                     $account = Account::find($data['AccountID']);
                     $emailData['AccountID'] = $account->AccountID;
                     $emailData['EmailTo'] = $account->Email;
-                    $status = sendMail('emails.account.AccountEmailSend', $data);
+                    $status = sendMail('emails.opportunity.AccountEmailSend', $emailData);
                     email_log($emailData);
                 }
             }
