@@ -8,7 +8,7 @@
         "php": ">=5.5.9",
         "laravel/framework": "5.1.*",
         "dingo/api": "1.0.*@dev",
-        "tymon/jwt-auth": "0.5.",
+        "tymon/jwt-auth": "0.5.*",
         "barryvdh/laravel-cors": "^0.7.1",
         "curl/curl": "1.*",
         "laravelcollective/remote": "5.1.*",
