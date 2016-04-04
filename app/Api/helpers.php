@@ -38,7 +38,7 @@
         if(isset($data['mandrill']) && $data['mandrill'] ==1){
             $mandrill = 1;
         }
-        $mail = Helper::setMailConfig($data['CompanyID'],$mandrill);
+        $mail = setMailConfig($data['CompanyID'],$mandrill);
         $mail->isHTML(true);
         if(isset($data['isHTML']) && $data['isHTML'] == 'false'){
             $mail->isHTML(false);
@@ -81,7 +81,7 @@
         }
     }
     function setMailConfig($CompanyID,$mandrill){
-        $result = Company::select('SMTPServer','SMTPUsername','CompanyName','SMTPPassword','Port','IsSSL','EmailFrom')->where("CompanyID", '=', $CompanyID)->first();
+        $result = \Api\Model\Company::select('SMTPServer','SMTPUsername','CompanyName','SMTPPassword','Port','IsSSL','EmailFrom')->where("CompanyID", '=', $CompanyID)->first();
         if($mandrill == 1) {
             Config::set('mail.host', getenv("MANDRILL_SMTP_SERVER"));
             Config::set('mail.port', getenv("MANDRILL_PORT"));
@@ -101,7 +101,7 @@
         }
         extract(Config::get('mail'));
 
-        $mail = new \PHPMailer();
+        $mail = new PHPMailer();
         //$mail->SMTPDebug = 3;                               // Enable verbose debug output
         $mail->isSMTP();                                      // Set mailer to use SMTP
         $mail->Host = $host;  // Specify main and backup SMTP servers

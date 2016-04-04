@@ -39,7 +39,6 @@ class OpportunityCommentsController extends BaseController {
         $data = Input::all();
         $rules = array(
             'OpportunityID' => 'required',
-            'CommentText' => 'required'
         );
         $validator = Validator::make($data, $rules);
         if ($validator->fails()) {
@@ -93,12 +92,16 @@ class OpportunityCommentsController extends BaseController {
             $emailData['Subject']='New Comment';
             $emailData['EmailTo'] = $users;
             $emailData['Message'] = $comment_data['CommentText'];
+            $emailData['CompanyID'] = $data ["CompanyID"];
+            $emailData['EmailToName'] = '';
             $status = sendMail('emails.opportunity.AccountUserEmailSend',$emailData);
             if($status['status']==1){
                 if($data['PrivateComment']!=1) {
                     $account = Account::find($data['AccountID']);
                     $emailData['AccountID'] = $account->AccountID;
                     $emailData['EmailTo'] = $account->Email;
+                    $data['EmailToName'] = $account->FirstName.' '.$account->LastName;
+                    $emailData['CompanyID'] = $data ["CompanyID"];
                     $status = sendMail('emails.opportunity.AccountEmailSend', $emailData);
                     email_log($emailData);
                 }
