@@ -9,7 +9,7 @@ class OpportunityBoardColumn extends \Eloquent {
     protected $guarded = array('OpportunityBoardColumnID');
     protected $table = 'tblOpportunityBoardColumn';
     public  $primaryKey = "OpportunityBoardColumnID";
-    public static $defaultColumns = ['To do','In Progress','Done'];
+    public static $defaultColumns = ['To Do','In Progress','Done'];
 
     public static function addDefaultColumns($boardID){
         $companyID = User::get_companyID();

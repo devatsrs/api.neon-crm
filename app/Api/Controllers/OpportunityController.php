@@ -236,9 +236,11 @@ class OpportunityController extends BaseController {
                 return $this->response->error($validator->errors(),'432');
             }
             try {
-                Tags::insertNewTags(['tags' => $data['Tags'], 'TagType' => Tags::Opportunity_tag]);
-                $taggedUser = implode(',', $data['TaggedUser']);
-                $data['TaggedUser'] = $taggedUser;
+                if(isset($data['TaggedUser']) && !empty($data['TaggedUser'])) {
+                    Tags::insertNewTags(['tags' => $data['Tags'], 'TagType' => Tags::Opportunity_tag]);
+                    $taggedUser = implode(',', $data['TaggedUser']);
+                    $data['TaggedUser'] = $taggedUser;
+                }
                 unset($data['OpportunityID']);
                 Opportunity::where(['OpportunityID' => $id])->update($data);
             } catch (\Exception $ex){
