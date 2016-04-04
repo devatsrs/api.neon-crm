@@ -2,6 +2,8 @@
 namespace Api\Model;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
+
 class OpportunityBoardColumn extends \Eloquent {
     protected $fillable = [];
     protected $guarded = array('OpportunityBoardColumnID');
@@ -13,12 +15,11 @@ class OpportunityBoardColumn extends \Eloquent {
         $companyID = User::get_companyID();
         $created_by = User::get_user_full_name();
         foreach(OpportunityBoardColumn::$defaultColumns as $index=>$column){
-            OpportunityBoardColumn::create(['BoardID'=>$boardID,
+            OpportunityBoardColumn::create(['OpportunityBoardID'=>$boardID,
                                             'CompanyID'=>$companyID,
-                                            'BoardColumnName'=>$column,
+                                            'OpportunityBoardColumnName'=>$column,
                                             'Order'=>$index,
-                                            'CreatedBy'=>$created_by,
-                                            'created_at'=>DB::raw('Now()')]);
+                                            'CreatedBy'=>$created_by]);
         }
     }
 }
