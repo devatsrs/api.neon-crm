@@ -168,6 +168,7 @@ class OpportunityController extends BaseController {
                 $tobeinsert = ['CompanyID' => $companyID,
                     'Owner' => $data['UserID'],
                     'AccountName' => $data['Company'],
+                    'Title' => $data['Title'],
                     'FirstName' => $data['FirstName'],
                     'LastName' => $data['LastName'],
                     'Email' => $data['Email'],
