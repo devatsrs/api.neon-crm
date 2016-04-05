@@ -5,7 +5,7 @@ use Api\Model\Opportunity;
 use Api\Model\User;
 use Api\Model\Tags;
 use Api\Model\Lead;
-use Api\Model\OpportunityBoardColumn;
+use Api\Model\CRMBoardColumn;
 use App\AmazonS3;
 use App\Http\Requests;
 use Dingo\Api\Facade\API;
@@ -40,15 +40,15 @@ class OpportunityController extends BaseController {
             $boradsWithOpportunities = [];
             $columns = [];
             foreach($result as $row){
-                $columns[$row->OpportunityBoardColumnID] = ['Name'=>$row->OpportunityBoardColumnName,'Height'=>$row->Height,'Width'=>$row->Width];
+                $columns[$row->BoardColumnID] = ['Name'=>$row->BoardColumnName,'Height'=>$row->Height,'Width'=>$row->Width];
                 if(!empty($row->OpportunityName)) {
                     $users = [];
                     if(!empty($row->TaggedUser)){
                         $users = User::whereIn('UserID',explode(',',$row->TaggedUser))->select(['FirstName','LastName','UserID','Color'])->get();
                     }
-                    $boradsWithOpportunities[$row->OpportunityBoardColumnID][] = ['TaggedUser'=>$users,'opportunity'=>$row];
+                    $boradsWithOpportunities[$row->BoardColumnID][] = ['TaggedUser'=>$users,'opportunity'=>$row];
                 }else{
-                    $boradsWithOpportunities[$row->OpportunityBoardColumnID][] = '';
+                    $boradsWithOpportunities[$row->BoardColumnID][] = '';
                 }
             }
             $return['columns'] = $columns;
@@ -153,7 +153,7 @@ class OpportunityController extends BaseController {
             'Company'=>'required',
             'Email'=>'required',
             'Phone'=>'required',
-            'OpportunityBoardID'=>'required',
+            'BoardID'=>'required',
         );
         if($data['leadcheck']=='No') {
             $rules['Company'] = 'required|unique:tblAccount,AccountName,NULL,CompanyID,CompanyID,' . $companyID . '';
@@ -188,8 +188,8 @@ class OpportunityController extends BaseController {
             //Add new tags to db against opportunity
             Tags::insertNewTags(['tags' => $data['Tags'], 'TagType' => Tags::Opportunity_tag]);
             // place new opp. in first column of board
-            $data["OpportunityBoardColumnID"] = OpportunityBoardColumn::where(['OpportunityBoardID' => $data['OpportunityBoardID'], 'Order' => 0])->pluck('OpportunityBoardColumnID');
-            $count = Opportunity::where(['CompanyID' => $companyID, 'OpportunityBoardID' => $data['OpportunityBoardID'], 'OpportunityBoardColumnID' => $data["OpportunityBoardColumnID"]])->count();
+            $data["BoardColumnID"] = CRMBoardColumn::where(['BoardID' => $data['BoardID'], 'Order' => 0])->pluck('BoardColumnID');
+            $count = Opportunity::where(['CompanyID' => $companyID, 'BoardID' => $data['BoardID'], 'BoardColumnID' => $data["BoardColumnID"]])->count();
             $data['Order'] = $count;
             $data["CreatedBy"] = User::get_user_full_name();
 
@@ -228,7 +228,7 @@ class OpportunityController extends BaseController {
                 'Company'=>'required',
                 'Email'=>'required',
                 'Phone'=>'required',
-                'OpportunityBoardID'=>'required'
+                'BoardID'=>'required'
             );
             $validator = Validator::make($data, $rules);
 
@@ -258,7 +258,7 @@ class OpportunityController extends BaseController {
         try {
             $cardorder = explode(',', $data['cardorder']);
             foreach ($cardorder as $index => $key) {
-                Opportunity::where(['OpportunityID' => $key])->update(['Order' => $index,'OpportunityBoardColumnID'=>$data['OpportunityBoardColumnID']]);
+                Opportunity::where(['OpportunityID' => $key])->update(['Order' => $index,'BoardColumnID'=>$data['BoardColumnID']]);
             }
             return API::response()->array(['status' => 'success', 'message' => 'Opportunity Updated', 'status_code' => 200])->statusCode(200);
         }

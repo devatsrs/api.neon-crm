@@ -2,7 +2,7 @@
 
 namespace Api\Controllers;
 
-use Api\Model\OpportunityBoardColumn;
+use Api\Model\CRMBoardColumn;
 use Api\Model\User;
 use Api\Model\DataTableSql;
 use App\Http\Requests;
@@ -31,7 +31,7 @@ class OpportunityBoardColumnController extends BaseController
     public function getColumns($id){
         if( $id > 0 ) {
             $companyID = User::get_companyID();
-            $query = "call prc_GetOpportunityBoradColumns (".$companyID.",".$id.")";
+            $query = "call prc_GetCRMBoardColumns (".$companyID.",".$id.")";
             $result  = DB::select($query);
             $reponse_data = ['status' => 'success', 'data' => ['result' => $result], 'status_code' => 200];
             return API::response()->array($reponse_data)->statusCode(200);
@@ -44,11 +44,11 @@ class OpportunityBoardColumnController extends BaseController
 
         $data = Input::all();
         $companyID = User::get_companyID();
-        $count = OpportunityBoardColumn::where(['CompanyID'=>$companyID,'OpportunityBoardID'=>$data['OpportunityBoardID']])->count();
+        $count = CRMBoardColumn::where(['CompanyID'=>$companyID,'BoardID'=>$data['BoardID']])->count();
         $data ["CompanyID"] = $companyID;
         $rules = array(
             'CompanyID' => 'required',
-            'OpportunityBoardColumnName' => 'required',
+            'BoardColumnName' => 'required',
         );
         $validator = Validator::make($data, $rules);
         if ($validator->fails()) {
@@ -56,10 +56,10 @@ class OpportunityBoardColumnController extends BaseController
         }
         $data["CreatedBy"] = User::get_user_full_name();
         $data['Order'] = $count;
-        unset($data['OpportunityBoardColumnID']);
+        unset($data['BoardColumnID']);
 
         try{
-            OpportunityBoardColumn::create($data);
+            CRMBoardColumn::create($data);
         }catch (\Exception $ex){
             Log::info($ex);
             return $this->response->errorInternal($ex->getMessage());
@@ -71,14 +71,14 @@ class OpportunityBoardColumnController extends BaseController
     {
         if( $id > 0 ) {
             $data = Input::all();
-            $OpportunityBoardColumn = OpportunityBoardColumn::findOrFail($id);
+            $BoardColumn = CRMBoardColumn::findOrFail($id);
 
             $companyID = User::get_companyID();
             $data["CompanyID"] = $companyID;
             $data["ModifiedBy"] = User::get_user_full_name();
             $rules = array(
                 'CompanyID' => 'required',
-                'OpportunityBoardColumnName' => 'required',
+                'BoardColumnName' => 'required',
             );
             $validator = Validator::make($data, $rules);
 
@@ -87,7 +87,7 @@ class OpportunityBoardColumnController extends BaseController
             }
 
             try{
-                $OpportunityBoardColumn->update($data);
+                $BoardColumn->update($data);
             }catch (\Exception $ex){
                 Log::info($ex);
                 return $this->response->errorInternal($ex->getMessage());
@@ -103,7 +103,7 @@ class OpportunityBoardColumnController extends BaseController
         try {
             $columnorder = explode(',', $data['columnorder']);
             foreach ($columnorder as $index => $key) {
-                OpportunityBoardColumn::where(['OpportunityBoardColumnID' => $key])->update(['Order' => $index]);
+                BoardColumn::where(['BoardColumnID' => $key])->update(['Order' => $index]);
             }
             return API::response()->array(['status' => 'success', 'message' => 'Opportunity Board Column Updated', 'status_code' => 200])->statusCode(200);
         }

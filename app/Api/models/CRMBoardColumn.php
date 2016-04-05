@@ -4,20 +4,20 @@ namespace Api\Model;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
-class OpportunityBoardColumn extends \Eloquent {
+class CRMBoardColumn extends \Eloquent {
     protected $fillable = [];
-    protected $guarded = array('OpportunityBoardColumnID');
-    protected $table = 'tblOpportunityBoardColumn';
-    public  $primaryKey = "OpportunityBoardColumnID";
+    protected $guarded = array('BoardColumnID');
+    protected $table = 'tblCRMBoardColumn';
+    public  $primaryKey = "BoardColumnID";
     public static $defaultColumns = ['To Do','In Progress','Done'];
 
     public static function addDefaultColumns($boardID){
         $companyID = User::get_companyID();
         $created_by = User::get_user_full_name();
-        foreach(OpportunityBoardColumn::$defaultColumns as $index=>$column){
-            OpportunityBoardColumn::create(['OpportunityBoardID'=>$boardID,
+        foreach(CRMBoardColumn::$defaultColumns as $index=>$column){
+            CRMBoardColumn::create(['BoardID'=>$boardID,
                                             'CompanyID'=>$companyID,
-                                            'OpportunityBoardColumnName'=>$column,
+                                            'BoardColumnName'=>$column,
                                             'Order'=>$index,
                                             'CreatedBy'=>$created_by]);
         }
