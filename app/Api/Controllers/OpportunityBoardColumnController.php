@@ -103,7 +103,7 @@ class OpportunityBoardColumnController extends BaseController
         try {
             $columnorder = explode(',', $data['columnorder']);
             foreach ($columnorder as $index => $key) {
-                BoardColumn::where(['BoardColumnID' => $key])->update(['Order' => $index]);
+                CRMBoardColumn::where(['BoardColumnID' => $key])->update(['Order' => $index]);
             }
             return API::response()->array(['status' => 'success', 'message' => 'Opportunity Board Column Updated', 'status_code' => 200])->statusCode(200);
         }
