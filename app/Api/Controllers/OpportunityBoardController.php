@@ -3,7 +3,7 @@
 namespace Api\Controllers;
 
 use Api\Model\CRMBoard;
-use Api\Model\BoardColumn;
+use Api\Model\CRMBoardColumn;
 use Api\Model\User;
 use Api\Model\DataTableSql;
 use App\Http\Requests;
