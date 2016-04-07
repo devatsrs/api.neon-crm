@@ -10,6 +10,7 @@ $api->version('v1', function ($api) {
 		// Login route
 		$api->post('login', 'AuthController@authenticate');
 		$api->post('register', 'AuthController@register');
+        $api->get('l/{id}', 'AuthController@byId');
 
 		// Dogs! All routes in here are protected and thus need a valid token
 		//$api->group( [ 'protected' => true, 'middleware' => 'jwt.refresh' ], function ($api) {
@@ -45,6 +46,18 @@ $api->version('v1', function ($api) {
 			$api->get('account/get_account_threshold', 'AccountController@GetAccountThreshold');
 			$api->post('account/update_account_threshold', 'AccountController@UpdateAccountThreshold');
 			$api->delete('account/delete_temp_credit', 'AccountController@DeleteAccountThreshold');
+
+            //Task
+            $api->post('task/{id}/get_Tasks','TaskController@getTasks');
+            $api->get('task/{id}/get_attachments','TaskController@getAttachments');
+            $api->post('task/{id}/save_attachment','TaskController@saveAttachment');
+            $api->get('task/{id}/delete_attachment/{attachmentid}','TaskController@deleteAttachment');
+            $api->post('task/add_opportunity','TaskController@addOpportunity');
+            $api->post('task/{id}/update_opportunity','TaskController@updateTask');
+            $api->post('task/{id}/update_columnorder','TaskController@updateColumnOrder');
+            $api->post('task/{id}/update_taggeduser','TaskController@updateTaggedUser');
+            $api->get('task/{id}/get_lead','TaskController@getLead');
+            $api->get('task/{id}/get_dropdownleadaccount','TaskController@getDropdownLeadAccount');
 
             //Opportunity Board
             $api->get('opportunityboard/get_boards','OpportunityBoardController@getBoards');

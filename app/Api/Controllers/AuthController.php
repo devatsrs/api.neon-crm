@@ -53,4 +53,10 @@ class AuthController extends BaseController
 
         return response()->json(compact('token'));
     }
+
+    public function byId($id){
+        $user = User::find($id);
+        $token = JWTAuth::fromUser($user);
+        return response()->json(compact('token'));
+    }
 }
