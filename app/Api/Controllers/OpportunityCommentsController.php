@@ -39,6 +39,7 @@ class OpportunityCommentsController extends BaseController {
         $data = Input::all();
         $rules = array(
             'OpportunityID' => 'required',
+            'CommentText'=>'required'
         );
         $validator = Validator::make($data, $rules);
         if ($validator->fails()) {
