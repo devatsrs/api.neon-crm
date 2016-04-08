@@ -108,7 +108,8 @@ class OpportunityCommentsController extends BaseController {
                     $emailData['CompanyID'] = $data ["CompanyID"];
                     $status = sendMail('emails.opportunity.AccountUserEmailSend',$emailData);
                     Log::info($status);
-                    $status = ($emailData);
+                    $emailData['Message'] = $status['body'];
+                    $status = email_log($emailData);
                     Log::info($status);
                 }
             }else{
