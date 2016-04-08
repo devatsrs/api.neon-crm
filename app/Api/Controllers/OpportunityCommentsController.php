@@ -1,6 +1,7 @@
 <?php
 namespace Api\Controllers;
 
+use Api\Model\Account;
 use Api\Model\Opportunity;
 use Api\Model\OpportunityComments;
 use Api\Model\User;
@@ -98,15 +99,17 @@ class OpportunityCommentsController extends BaseController {
             $emailData['mandrill'] =1;
             $status = sendMail('emails.opportunity.AccountUserEmailSend',$emailData);
             if($status['status']==1){
-                if(isset($data['PrivateComment']) && $data['PrivateComment']!=1) {
+                if(isset($data['PrivateComment']) && $data['PrivateComment']==1) {
                     $account = Account::find($data['AccountID']);
+                    Log::info($account);
                     $emailData['AccountID'] = $account->AccountID;
                     $emailData['EmailTo'] = $account->Email;
                     $data['EmailToName'] = $account->FirstName.' '.$account->LastName;
                     $emailData['CompanyID'] = $data ["CompanyID"];
-                    $status = sendMail('emails.opportunity.AccountEmailSend', $emailData);
+                    $status = sendMail('emails.opportunity.AccountUserEmailSend',$emailData);
                     Log::info($status);
-                    email_log($emailData);
+                    $status = ($emailData);
+                    Log::info($status);
                 }
             }else{
                 return $this->response->errorBadRequest($status['message']);
