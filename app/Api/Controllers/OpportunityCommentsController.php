@@ -91,21 +91,25 @@ class OpportunityCommentsController extends BaseController {
             $taggedUser = Opportunity::where(['OpportunityID'=>$data["OpportunityID"]])->pluck('TaggedUser');
             $users = User::whereIn('UserID',explode(',',$taggedUser))->select(['EmailAddress'])->lists('EmailAddress');
             $emailData['Subject']='New Comment';
-            $emailData['EmailTo'] = $users;
+            $emailData['EmailTo'] = (array)$users;
             $emailData['Message'] = $comment_data['CommentText'];
             $emailData['CompanyID'] = $data ["CompanyID"];
             $emailData['EmailToName'] = '';
+            $emailData['mandrill'] =1;
             $status = sendMail('emails.opportunity.AccountUserEmailSend',$emailData);
             if($status['status']==1){
-                if($data['PrivateComment']!=1) {
+                if(isset($data['PrivateComment']) && $data['PrivateComment']!=1) {
                     $account = Account::find($data['AccountID']);
                     $emailData['AccountID'] = $account->AccountID;
                     $emailData['EmailTo'] = $account->Email;
                     $data['EmailToName'] = $account->FirstName.' '.$account->LastName;
                     $emailData['CompanyID'] = $data ["CompanyID"];
                     $status = sendMail('emails.opportunity.AccountEmailSend', $emailData);
+                    Log::info($status);
                     email_log($emailData);
                 }
+            }else{
+                return $this->response->errorBadRequest($status['message']);
             }
         }catch (\Exception $ex){
             Log::info($ex);
