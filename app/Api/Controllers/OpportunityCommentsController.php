@@ -89,15 +89,20 @@ class OpportunityCommentsController extends BaseController {
         $data ["CompanyID"] = $companyID;
         try{
             OpportunityComments::create($comment_data);
-            $taggedUser = Opportunity::where(['OpportunityID'=>$data["OpportunityID"]])->pluck('TaggedUser');
-            $users = User::whereIn('UserID',explode(',',$taggedUser))->select(['EmailAddress'])->lists('EmailAddress');
+            $opportunity = Opportunity::where(['OpportunityID'=>$data["OpportunityID"]])->get();
+            $taggedUsers = explode(',',$opportunity[0]->TaggedUser);
+            $taggedUsers[] = $opportunity[0]->UserID;
+            $users = User::whereIn('UserID',$taggedUsers)->select(['EmailAddress'])->lists('EmailAddress');
             $emailData['Subject']='New Comment';
-            $emailData['EmailTo'] = (array)$users;
+            $status['status'] = 1;
             $emailData['Message'] = $comment_data['CommentText'];
             $emailData['CompanyID'] = $data ["CompanyID"];
             $emailData['EmailToName'] = '';
             $emailData['mandrill'] =1;
-            $status = sendMail('emails.opportunity.AccountUserEmailSend',$emailData);
+            if(!empty($users) && count($users)>0){
+                $emailData['EmailTo'] = (array)$users;
+                $status = sendMail('emails.opportunity.AccountUserEmailSend',$emailData);
+            }
             if($status['status']==1){
                 if(isset($data['PrivateComment']) && $data['PrivateComment']==1) {
                     $account = Account::find($data['AccountID']);
@@ -119,6 +124,8 @@ class OpportunityCommentsController extends BaseController {
             Log::info($ex);
             return $this->response->errorInternal($ex->getMessage());
         }
+        /*$reponse_data = ['status' => 'success', 'data' => ['result' => $opportunity], 'status_code' => 200];
+        return API::response()->array($reponse_data)->statusCode(200);*/
         return API::response()->array(['status' => 'success', 'message' => 'Comment save successfully', 'status_code' => 200])->statusCode(200);
 
     }
