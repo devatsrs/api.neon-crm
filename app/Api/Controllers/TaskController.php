@@ -198,6 +198,14 @@ class TaskController extends BaseController {
             $data['Order'] = $count;
             $data['CreatedBy'] = User::get_user_full_name();
             $data['BoardColumnID'] = $data["TaskStatus"];
+            if(isset($data['UsersIDs'])) {
+                $taggedUser = implode(',', $data['UsersIDs']);
+                $data['UsersIDs'] = $taggedUser;
+            }
+            if(isset($data['AccountIDs'])) {
+                $taggedUser = implode(',', $data['AccountIDs']);
+                $data['AccountIDs'] = $taggedUser;
+            }
 
             unset($data["TaskStatus"]);
             unset($data['TaskID']);
