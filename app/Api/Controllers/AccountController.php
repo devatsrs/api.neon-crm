@@ -249,7 +249,7 @@ class AccountController extends BaseController
         $data['IsVendor'] 		= 	isset($data['IsVendor']) ? 1 : 0;
         $data['IsCustomer'] 	= 	isset($data['IsCustomer']) ? 1 : 0;
         $data['updated_by'] 	= 	User::get_user_full_name();
-		$data['AccountName'] 	= 	trim($data['AccountName']);
+		$data['AccountName'] 	= 	trim(isset($data['AccountName'])?$data['AccountName']:'');
 
         $shipping = array('firstName'=>$account['FirstName'],
             'lastName'=>$account['LastName'],
