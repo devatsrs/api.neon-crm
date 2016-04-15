@@ -237,7 +237,7 @@ class AccountController extends BaseController
 	public function update_account($id) {
         $data 		= 	Input::all();
         $account 	= 	Account::find($id);
-        $newTags 	= 	array_diff(explode(',',$data['tags']),Tags::getTagsArray());
+        $newTags 	= 	array_diff(explode(',',isset($data['tags'])?$data['tags']:''),Tags::getTagsArray());
         if(count($newTags)>0){
             foreach($newTags as $tag){
                 Tags::create(array('TagName'=>$tag,'CompanyID'=>User::get_companyID(),'TagType'=>Tags::Account_tag));
