@@ -310,7 +310,7 @@ class AccountController extends BaseController
             $data['NextInvoiceDate'] = Invoice::getNextInvoiceDate($id);
             $invoice_count = Account::getInvoiceCount($id);
             if($invoice_count == 0){
-                $data['LastInvoiceDate'] = $data['BillingStartDate'];
+                $data['LastInvoiceDate'] = isset($data['BillingStartDate'])?$data['BillingStartDate']:"";
             }
             $account->update($data);
             if(trim(Input::get('Number')) == ''){
