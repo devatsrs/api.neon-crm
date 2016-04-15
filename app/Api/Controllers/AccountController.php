@@ -365,7 +365,7 @@ class AccountController extends BaseController
         }		
 		
 	    try{
-		    $account = Account::where(['Number'=>$data['contactNo']])->get();			
+		    $account = Account::where(['phone'=>$data['contactNo']])->get();
         }catch (\Exception $ex){
             Log::info($ex);
             return $this->response->errorInternal($ex->getMessage());
