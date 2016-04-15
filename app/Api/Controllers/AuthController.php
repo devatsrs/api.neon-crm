@@ -1,15 +1,16 @@
 <?php
-
 namespace Api\Controllers;
-
 
 use Api\Model\User;
 use Dingo\Api\Facade\API;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Api\Requests\UserRequest;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
-
+use Api\Model\Company;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Auth;
 class AuthController extends BaseController
 {
     public function me(Request $request)
@@ -20,17 +21,25 @@ class AuthController extends BaseController
     public function authenticate(Request $request)
     {
         // grab credentials from the request
-        $credentials = $request->only('EmailAddress', 'password');
+        $credentials 		  = $request->only('EmailAddress', 'password');
+		$credentials_license  = $request->only("LicenceHost","LicenceIP","LicenceKey");
         try {
             // attempt to verify the credentials and create a token for the user
             if (! $token = JWTAuth::attempt($credentials)) {
                 return response()->json(['error' => 'invalid_credentials'], 401);
             }
+			
         } catch (JWTException $e) {
             // something went wrong whilst attempting to encode the token
             return response()->json(['error' => 'could_not_create_token'], 500);
         }
-
+		 $license = 	Company::getLicenceResponse($credentials_license);
+		 if($license['Status']!=1)
+		 {
+			$this->logout();	
+		   return response()->json(['error' => $license['Message']], 401);	
+		 }
+		 Log::info($license);
         // all good so return the token
         return response()->json(compact('token'));
     }
@@ -58,5 +67,13 @@ class AuthController extends BaseController
         $user = User::find($id);
         $token = JWTAuth::fromUser($user);
         return response()->json(compact('token'));
+    }
+	
+	//@ Todo Enable black list to run JWTAuth::invalidate(JWTAuth::getToken());
+	 public function logout() {
+		Session::flush();
+		Auth::logout();
+        //JWTAuth::invalidate(JWTAuth::getToken());
+        return $this->response()->accepted()->header('Authorization', '');
     }
 }

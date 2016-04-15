@@ -2,7 +2,10 @@
 namespace Api\Model;
 
 use Illuminate\Database\Eloquent\Model;
-class Tags extends \Eloquent {
+use Illuminate\Support\Facades\DB;
+use Api\Model\User;
+
+class Tags extends Model{
     protected $guarded = array("TagID");
 
     protected $table = 'tblTags';

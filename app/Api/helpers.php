@@ -158,3 +158,38 @@
         }
         return $status;
     }
+
+    function call_api($post = array()){
+
+        //$LicenceVerifierURL = 'http://localhost/RMLicenceAPI/branches/master/public/validate_licence';
+        $LicenceVerifierURL = 'http://api.licence.neon-soft.com/validate_licence';// //getenv('LICENCE_URL').'validate_licence';
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $LicenceVerifierURL);
+        curl_setopt($ch, CURLOPT_VERBOSE, '1');
+        curl_setopt($ch, CURLOPT_AUTOREFERER, 1);//TRUE to automatically set the Referer: field in requests where it follows a Location: redirect.
+        curl_setopt($ch, CURLOPT_FORBID_REUSE, 1);//TRUE to force the connection to explicitly close when it has finished processing, and not be pooled for reuse.
+        curl_setopt($ch, CURLOPT_FRESH_CONNECT, 1);//TRUE to force the use of a new connection instead of a cached one.
+
+
+        //turning off the server and peer verification(TrustManager Concept).
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+        // curl_setopt($ch, CURLOPT_SSLVERSION, CURL_SSLVERSION_DEFAULT);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_POST, 1);
+
+        //NVPRequest for submitting to server
+        $nvpreq = "json=" . json_encode($post);
+
+        //$nvpreq = http_build_query($post);
+
+        ////setting the nvpreq as POST FIELD to curl
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $nvpreq);
+
+        //getting response from server
+        $response = curl_exec($ch);
+        Illuminate\Support\Facades\Log::info($response);
+        // echo $response;
+        return $response;
+    }
