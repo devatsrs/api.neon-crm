@@ -9,6 +9,7 @@ $api->version('v1', function ($api) {
 
 		// Login route
 		$api->post('login', 'AuthController@authenticate');
+        $api->post('logout', 'AuthController@logout');
 		$api->post('register', 'AuthController@register');
         $api->get('l/{id}', 'AuthController@byId');
 
