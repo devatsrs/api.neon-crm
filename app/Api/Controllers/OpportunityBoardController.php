@@ -44,7 +44,7 @@ class OpportunityBoardController extends BaseController
         $columns = ['BoardName' ,'Status','CreatedBy','BoardID'];
         $data['Active'] = $data['Active']==''?2:$data['Active'];
         $sort_column = $columns[$data['iSortCol_0']];
-        $query = "call prc_GetCRMBoard (".$companyID.",".$data['Active'].",'".$data['BoardName']."',".( ceil($data['iDisplayStart']/$data['iDisplayLength']) )." ,".$data['iDisplayLength'].",'".$sort_column."','".$data['sSortDir_0']."'";
+        $query = "call prc_GetCRMBoard (".$companyID.",".$data['Active'].",'".$data['BoardName']."',".CRMBoard::OpportunityBoard.",".( ceil($data['iDisplayStart']/$data['iDisplayLength']) )." ,".$data['iDisplayLength'].",'".$sort_column."','".$data['sSortDir_0']."'";
         if(isset($data['Export']) && $data['Export'] == 1) {
             $result  = DB::select($query.',1)');
         }else{
@@ -62,17 +62,27 @@ class OpportunityBoardController extends BaseController
         $data ["CompanyID"] = $companyID;
         $rules = array(
             'BoardName' => 'required',
-            'CompanyID'=>'required'
+            'CompanyID'=>'required|Numeric',
+            'BoardType'=>'required|Numeric'
         );
         $validator = Validator::make($data, $rules);
         if ($validator->fails()) {
             return $this->response->error($validator->errors(),'432');
         }
+
+        if($data['BoardType']==CRMBoard::TaskBoard && CRMBoard::where(['BoardType'=>CRMBoard::TaskBoard])->count() > 0){
+            return $this->response->error('Task Board already created','432');
+        }
+
         $data['Status'] = isset($data['Status']) ? 1 : 0;
         $data["CreatedBy"] = User::get_user_full_name();
         try{
             $boardID = CRMBoard::insertGetId($data);
-            CRMBoardColumn::addDefaultColumns($boardID);
+            if($data['BoardType']==CRMBoard::OpportunityBoard){
+                CRMBoardColumn::addDefaultColumns($boardID,CRMBoard::OpportunityBoard);
+            }else{
+                CRMBoardColumn::addDefaultColumns($boardID,CRMBoard::TaskBoard);
+            }
         }catch (\Exception $ex){
             Log::info($ex);
             return $this->response->errorInternal($ex->getMessage());

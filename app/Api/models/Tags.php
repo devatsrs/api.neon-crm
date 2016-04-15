@@ -11,7 +11,9 @@ class Tags extends \Eloquent {
     const  Account_tag = 1;
     const  Lead_tag = 2;
     const  Opportunity_tag = 3;
-    public static function getTagsArray($type = 1){
+    const  Task_tag = 4;
+
+    public static function getTagsArray($type = Tags::Account_tag){
         $tags = Tags::where(array('CompanyID'=>User::get_companyID(),'TagType'=>$type))->get(array("TagName"));
         if(!empty($tags)){
             $tagsname = [];

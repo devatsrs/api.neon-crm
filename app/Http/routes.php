@@ -86,6 +86,23 @@ $api->version('v1', function ($api) {
             $api->post('opportunitycomment/add_comment', 'OpportunityCommentsController@add_comment');
             $api->get('opportunitycomments/{id}/get_comments', 'OpportunityCommentsController@get_comments');
 
+            //Task
+            $api->post('task/{id}/get_tasks','TaskController@getTasks');
+            $api->get('task/{id}/get_attachments','TaskController@getAttachments');
+            $api->post('task/{id}/save_attachment','TaskController@saveAttachment');
+            $api->get('task/{id}/delete_attachment/{attachmentid}','TaskController@deleteAttachment');
+            $api->post('task/add_task','TaskController@addTask');
+            $api->post('task/{id}/update_task','TaskController@updateTask');
+            $api->post('task/{id}/update_columnorder','TaskController@updateColumnOrder');
+            $api->post('task/{id}/update_taggeduser','TaskController@updateTaggedUser');
+            $api->get('task/{id}/get_lead','TaskController@getLead');
+            $api->get('task/{id}/get_dropdownleadaccount','TaskController@getDropdownLeadAccount');
+            $api->get('task/get_priorities','TaskController@getPriority');
+
+            //Task Comments
+            $api->post('taskcomment/add_comment', 'TaskCommentsController@add_comment');
+            $api->get('taskcomments/{id}/get_comments', 'TaskCommentsController@get_comments');
+
 		});
 
 	});
