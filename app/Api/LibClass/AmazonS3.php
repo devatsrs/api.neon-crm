@@ -26,9 +26,7 @@ class AmazonS3 {
         'RATETABLE_UPLOAD'=>'RateTableUpload',
         'WYSIHTML5_FILE_UPLOAD'=>'Wysihtml5fileupload',
         'PAYMENT_UPLOAD'=>'PaymentUpload',
-        'OPPORTUNITY_ATTACHMENT'=>'OpportunityAttachment',
-        'TASK_ATTACHMENT'=>'TaskAttachment',
-		'EMAIL_ATTACHMENT'=>'EmailAttachment',
+        'OPPORTUNITY_ATTACHMENT'=>'OpportunityAttachment'
     );
 
     // Instantiate an S3 client

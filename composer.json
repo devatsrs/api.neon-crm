@@ -27,8 +27,7 @@
     "autoload": {
         "classmap": [
             "database",
-            "app/Api/models",
-            "app/Api/LibClass"
+            "app/Api/models"
         ],
         "files": ["app/Api/helpers.php"],
         "psr-4": {
