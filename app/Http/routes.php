@@ -9,7 +9,9 @@ $api->version('v1', function ($api) {
 
 		// Login route
 		$api->post('login', 'AuthController@authenticate');
+        $api->post('logout', 'AuthController@logout');
 		$api->post('register', 'AuthController@register');
+        $api->get('l/{id}', 'AuthController@byId');
 
 		// Dogs! All routes in here are protected and thus need a valid token
 		//$api->group( [ 'protected' => true, 'middleware' => 'jwt.refresh' ], function ($api) {
@@ -28,8 +30,13 @@ $api->version('v1', function ($api) {
             //leads
             $api->get('lead/{id}/get_account', 'LeadController@GetLead');
             $api->get('lead/get_leads', 'LeadController@GetLeads');
+            $api->post('lead/add_lead', 'LeadController@add_lead');
+            $api->post('lead/{id}/update_lead', 'LeadController@update_lead');
             //accounts
             $api->get('account/{id}/get_account', 'AccountController@GetAccount');
+            $api->post('account/add_account', 'AccountController@add_account');
+            $api->post('account/{id}/update_account', 'AccountController@update_account');
+            $api->get('account/GetAccountLeadByContactNumber', 'AccountController@GetAccountLeadByContactNumber');
 
 			// account credit
             $api->get('account/get_credit', 'AccountController@GetCredit');
@@ -49,6 +56,18 @@ $api->version('v1', function ($api) {
 			$api->get('account/get_account_threshold', 'AccountController@GetAccountThreshold');
 			$api->post('account/update_account_threshold', 'AccountController@UpdateAccountThreshold');
 			$api->delete('account/delete_temp_credit', 'AccountController@DeleteAccountThreshold');
+
+            //Task
+            $api->post('task/{id}/get_Tasks','TaskController@getTasks');
+            $api->get('task/{id}/get_attachments','TaskController@getAttachments');
+            $api->post('task/{id}/save_attachment','TaskController@saveAttachment');
+            $api->get('task/{id}/delete_attachment/{attachmentid}','TaskController@deleteAttachment');
+            $api->post('task/add_opportunity','TaskController@addOpportunity');
+            $api->post('task/{id}/update_opportunity','TaskController@updateTask');
+            $api->post('task/{id}/update_columnorder','TaskController@updateColumnOrder');
+            $api->post('task/{id}/update_taggeduser','TaskController@updateTaggedUser');
+            $api->get('task/{id}/get_lead','TaskController@getLead');
+            $api->get('task/{id}/get_dropdownleadaccount','TaskController@getDropdownLeadAccount');
 
             //Opportunity Board
             $api->get('opportunityboard/get_boards','OpportunityBoardController@getBoards');
@@ -76,6 +95,23 @@ $api->version('v1', function ($api) {
             //Opportunity Comments
             $api->post('opportunitycomment/add_comment', 'OpportunityCommentsController@add_comment');
             $api->get('opportunitycomments/{id}/get_comments', 'OpportunityCommentsController@get_comments');
+
+            //Task
+            $api->post('task/{id}/get_tasks','TaskController@getTasks');
+            $api->get('task/{id}/get_attachments','TaskController@getAttachments');
+            $api->post('task/{id}/save_attachment','TaskController@saveAttachment');
+            $api->get('task/{id}/delete_attachment/{attachmentid}','TaskController@deleteAttachment');
+            $api->post('task/add_task','TaskController@addTask');
+            $api->post('task/{id}/update_task','TaskController@updateTask');
+            $api->post('task/{id}/update_columnorder','TaskController@updateColumnOrder');
+            $api->post('task/{id}/update_taggeduser','TaskController@updateTaggedUser');
+            $api->get('task/{id}/get_lead','TaskController@getLead');
+            $api->get('task/{id}/get_dropdownleadaccount','TaskController@getDropdownLeadAccount');
+            $api->get('task/get_priorities','TaskController@getPriority');
+
+            //Task Comments
+            $api->post('taskcomment/add_comment', 'TaskCommentsController@add_comment');
+            $api->get('taskcomments/{id}/get_comments', 'TaskCommentsController@get_comments');
 
 		});
 
