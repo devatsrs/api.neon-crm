@@ -36,9 +36,10 @@ class TaskController extends BaseController {
         if(!isset($data['fetchType'])){
             return $this->response->error('fetch Type field is required','432');
         }
-        $data['account_owners'] = empty($data['account_owners'])?0:$data['account_owners'];
+        $data['AccountOwner'] = empty($data['AccountOwner'])?0:$data['AccountOwner'];
         $data['AccountID'] = empty($data['AccountID'])?0:$data['AccountID'];
         $data['Priority'] = empty($data['Priority'])?0:$data['Priority'];
+        $data['TaskStatus'] = empty($data['TaskStatus'])?0:$data['TaskStatus'];
         if($data['fetchType']=='Grid') {
             $rules['iDisplayStart'] = 'required|Min:1';
             $rules['iDisplayLength'] = 'required';
@@ -52,7 +53,7 @@ class TaskController extends BaseController {
             $columns = ['Subject', 'DueDate', 'Status', 'Priority','UserID'];
             $sort_column = $columns[$data['iSortCol_0']];
 
-            $query = "call prc_GetTasksGrid (" . $companyID . ", " . $id . ",'" . $data['taskName'] . "','" . $data['account_owners'] . "', " . $data['Priority'] .",'".$data['DueDate']. "'," . (ceil($data['iDisplayStart'] / $data['iDisplayLength'])) . " ," . $data['iDisplayLength'] . ",'" . $sort_column . "','" . $data['sSortDir_0'] . "')";
+            $query = "call prc_GetTasksGrid (" . $companyID . ", " . $id . ",'" . $data['taskName'] . "','" . $data['AccountOwner'] . "', " . $data['Priority'] .",'".$data['DueDate']. "',".$data['TaskStatus'].",".(ceil($data['iDisplayStart'] / $data['iDisplayLength'])) . " ," . $data['iDisplayLength'] . ",'" . $sort_column . "','" . $data['sSortDir_0'] . "')";
             Log::Info($query);
             try {
                 $result = DataTableSql::of($query)->make();
@@ -63,7 +64,7 @@ class TaskController extends BaseController {
                 return $this->response->errorInternal($ex->getMessage());
             }
         }elseif($data['fetchType']=='Board') {
-            $query = "call prc_GetTasksBoard (" . $companyID . ", " . $id . ",'" . $data['taskName'] . "','" . $data['account_owners'] . "', " . $data['Priority'].",'".$data['DueDate']."')";
+            $query = "call prc_GetTasksBoard (" . $companyID . ", " . $id . ",'" . $data['taskName'] . "','" . $data['AccountOwner'] . "', " . $data['Priority'].",'".$data['DueDate']."',".$data['TaskStatus'].")";
             try{
                 $result = DB::select($query);
                 $boardsWithITask = [];
