@@ -49,7 +49,7 @@ class TaskController extends BaseController {
                 return $this->response->error($validator->errors(), '432');
             }
 
-            $columns = ['TaskID','Subject', 'DueDate', 'Status', 'Priority'];
+            $columns = ['Subject', 'DueDate', 'Status', 'Priority','UserID'];
             $sort_column = $columns[$data['iSortCol_0']];
 
             $query = "call prc_GetTasksGrid (" . $companyID . ", " . $id . ",'" . $data['taskName'] . "','" . $data['account_owners'] . "', " . $data['Priority'] .",'".$data['DueDate']. "'," . (ceil($data['iDisplayStart'] / $data['iDisplayLength'])) . " ," . $data['iDisplayLength'] . ",'" . $sort_column . "','" . $data['sSortDir_0'] . "')";
@@ -185,8 +185,10 @@ class TaskController extends BaseController {
             'DueDate'=>'required',
             'Priority'=>'required'
         );
-
-        $validator = Validator::make($data, $rules);
+        $messages = array(
+            'UsersIDs.required' => 'Assign To field is required.',
+        );
+        $validator = Validator::make($data, $rules, $messages);
         if ($validator->fails()) {
             return $this->response->error($validator->errors(),'432');
         }
@@ -241,7 +243,11 @@ class TaskController extends BaseController {
                 'DueDate'=>'required',
                 'Priority'=>'required'
             );
-            $validator = Validator::make($data, $rules);
+
+            $messages = array(
+                'UsersIDs' => 'User field is required.',
+            );
+            $validator = Validator::make($data, $rules,$messages);
 
             if ($validator->fails()) {
                 return $this->response->error($validator->errors(),'432');
