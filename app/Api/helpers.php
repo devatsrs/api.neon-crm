@@ -90,15 +90,15 @@ function sendMail($view,$data){
             $email_address = trim($data['EmailTo']);
             $mail->clearAllRecipients();
             $mail->addAddress($email_address); //trim Added by Abubakar
-            if (!$mail->send()) {
-				\Illuminate\Support\Facades\Log::info($e);
+            if (!$mail->send()) {				
                 $status['status'] = 0;
                 $status['message'] .= $mail->ErrorInfo . ' ( Email Address: ' . $data['EmailTo'] . ')';
-            } else {
 				\Illuminate\Support\Facades\Log::info($status);
+            } else {				
                 $status['status'] = 1;
                 $status['message'] = 'Email has been sent';
                 $status['body'] = $body;
+				\Illuminate\Support\Facades\Log::info($status);
             }
             
         }
