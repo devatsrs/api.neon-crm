@@ -95,7 +95,7 @@ function sendMail($view,$data){
                 $status['status'] = 0;
                 $status['message'] .= $mail->ErrorInfo . ' ( Email Address: ' . $data['EmailTo'] . ')';
             } else {
-				\Illuminate\Support\Facades\Log::info($e);
+				\Illuminate\Support\Facades\Log::info($status);
                 $status['status'] = 1;
                 $status['message'] = 'Email has been sent';
                 $status['body'] = $body;
