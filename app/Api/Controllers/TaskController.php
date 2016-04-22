@@ -259,10 +259,6 @@ class TaskController extends BaseController {
                     $taggedUser = implode(',', $data['TaggedUser']);
                     $data['TaggedUser'] = $taggedUser;
                 }
-                if(isset($data['UsersIDs'])) {
-                    $taggedUser = implode(',', $data['UsersIDs']);
-                    $data['UsersIDs'] = $taggedUser;
-                }
                 if(isset($data['AccountIDs'])) {
                     $taggedUser = implode(',', $data['AccountIDs']);
                     $data['AccountIDs'] = $taggedUser;
