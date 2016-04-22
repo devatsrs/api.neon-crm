@@ -41,7 +41,7 @@ class TaskController extends BaseController {
         $data['Priority'] = empty($data['Priority'])?0:$data['Priority'];
         $data['TaskStatus'] = empty($data['TaskStatus'])?0:$data['TaskStatus'];
         if(isset($data['DueDateFilter'])){
-            $data['DueDate'] = $data['DueDateFilter']!=4?$data['DueDateFilter']:$data['DueDate'];
+            $data['DueDate'] = $data['DueDateFilter']!=5?$data['DueDateFilter']:$data['DueDate'];
         }
         if($data['fetchType']=='Grid') {
             $rules['iDisplayStart'] = 'required|Min:1';
@@ -203,10 +203,6 @@ class TaskController extends BaseController {
             $data['Order'] = $count;
             $data['CreatedBy'] = User::get_user_full_name();
             $data['BoardColumnID'] = $data["TaskStatus"];
-            if(isset($data['AccountIDs'])) {
-                $taggedUser = implode(',', $data['AccountIDs']);
-                $data['AccountIDs'] = $taggedUser;
-            }
 
             unset($data["TaskStatus"]);
             unset($data['TaskID']);
@@ -255,10 +251,6 @@ class TaskController extends BaseController {
                 if(isset($data['TaggedUser'])) {
                     $taggedUser = implode(',', $data['TaggedUser']);
                     $data['TaggedUser'] = $taggedUser;
-                }
-                if(isset($data['AccountIDs'])) {
-                    $taggedUser = implode(',', $data['AccountIDs']);
-                    $data['AccountIDs'] = $taggedUser;
                 }
                 $data['BoardColumnID'] = $data["TaskStatus"];
                 unset($data["TaskStatus"]);
