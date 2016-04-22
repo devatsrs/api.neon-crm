@@ -41,7 +41,7 @@ class TaskController extends BaseController {
         $data['Priority'] = empty($data['Priority'])?0:$data['Priority'];
         $data['TaskStatus'] = empty($data['TaskStatus'])?0:$data['TaskStatus'];
         if(isset($data['DueDateFilter'])){
-            $data['DueDate'] = $data['DueDateFilter']!=3?$data['DueDateFilter']:$data['DueDate'];
+            $data['DueDate'] = $data['DueDateFilter']!=4?$data['DueDateFilter']:$data['DueDate'];
         }
         if($data['fetchType']=='Grid') {
             $rules['iDisplayStart'] = 'required|Min:1';
@@ -186,12 +186,10 @@ class TaskController extends BaseController {
             'Subject' => 'required',
             'UsersIDs'=>'required',
             'TaskStatus'=>'required',
-            'DueDate'=>'required',
             'Priority'=>'required'
         );
         $messages = array(
-            'UsersIDs.required' => 'Assign To field is required.',
-            'DueDate.required' => 'Due Date is required',
+            'UsersIDs.required' => 'Assign To field is required.'
         );
         $validator = Validator::make($data, $rules, $messages);
         if ($validator->fails()) {
@@ -241,7 +239,6 @@ class TaskController extends BaseController {
                 'Subject' => 'required',
                 'UsersIDs'=>'required',
                 'TaskStatus'=>'required',
-                'DueDate'=>'required',
                 'Priority'=>'required'
             );
 
