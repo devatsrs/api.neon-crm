@@ -219,8 +219,8 @@ class TaskController extends BaseController {
 
             unset($data["TaskStatus"]);
             unset($data['TaskID']);
-            return $data;
-           $result  			=   Task::create($data);
+            Log::Info($data);
+            $result  			=   Task::create($data);
 		   $sql 				= 	"CALL `prc_GetTasksSingle`(".$result['TaskID'].")";
 		   $result  			= 	DB::select($sql);	
         }
