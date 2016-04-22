@@ -9,7 +9,7 @@ function check_date_format_db($date){
 }
 function uploaded_File_Handler($fileArray){
     $files_array = [];
-    foreach($fileArray as $Index=>$file){
+    foreach($fileArray as $Index=>$file){  
         $decoded_file = base64_decode($file['file']);
         $fileName = $file['fileName'];
         $tempPath = getenv('TEMP_PATH');

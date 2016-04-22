@@ -38,16 +38,15 @@ class AccountActivityController extends BaseController {
 	
 	   $CompanyID = User::get_companyID();
 	   
-	   
-	   
-        if(getenv('EmailToCustomer') == 1){
+	    if(getenv('EmailToCustomer') == 1){
 			$data['EmailTo']	= 	$data['email-to'];
         }else{
             $data['EmailTo'] = User::getEmail($CompanyID);		
         }
         $validator = Validator::make($data,$rules);
         if ($validator->fails()) {
-            return $this->response->errorBadRequest($validator->errors());
+            //return $this->response->errorBadRequest($validator->errors());
+            return $this->response->error($validator->errors(),'432');
         }
 		
 		
@@ -92,10 +91,12 @@ class AccountActivityController extends BaseController {
             $status 				= 	sendMail('emails.account.AccountEmailSend',$data);           
             $result 				= 	email_log_data($data);
            	$result['message'] 		= 	'Email Sent Successfully';
-			$user_data 				= 	Account::where(["Email" => $data['email-to']])->get();
-			$result->EmailTo		=	$user_data[0]['AccountName'];
-			return API::response()->array(['status' => 'success', "LogID" =>$result['AccountEmailLogID'], 'data' => ['result' => $result], 'status_code' => 200])->statusCode(200);
-            
+			$user_data 				= 	User::where(["EmailAddress" => $data['email-to']])->get();
+            if(count($user_data)>0) {
+
+                $result->EmailTo = $user_data[0]['FirstName'].' '.$user_data[0]['LastName'];
+            }
+            return API::response()->array(['status' => 'success', "LogID" =>$result['AccountEmailLogID'], 'data' => ['result' => $result], 'status_code' => 200])->statusCode(200);
         }catch (Exception $ex){
         	 return $this->response->errorInternal($ex->getMessage());
         }

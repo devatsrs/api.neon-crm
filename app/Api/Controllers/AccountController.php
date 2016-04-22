@@ -182,7 +182,8 @@ class AccountController extends BaseController
         $validator = Validator::make($data, $rules);
 
         if ($validator->fails()) {
-            return $this->response->errorBadRequest($validator->errors());
+            //return $this->response->errorBadRequest($validator->errors());
+            return $this->response->error($validator->errors(),'432');
         }
 
 		try{
@@ -211,9 +212,9 @@ class AccountController extends BaseController
             $columns =  ['Timeline_type','ActivityTitle','ActivityDescription','ActivityDate','ActivityType','ActivityID','Emailfrom','EmailTo','EmailSubject','EmailMessage','AccountEmailLogID','NoteID','Note','CreatedBy','created_at','updated_at'];
             $query = "call prc_getAccountTimeLine(" . $data['AccountID'] . "," . $companyID . "," . $data['iDisplayStart'] . "," . $data['iDisplayLength'] . ")";
 
-            $result_array = DataTableSql::of($query, 'sqlsrv')->make();
+            $result_array = DB::select($query);
 
-            $reponse_data = ['status' => 'success', 'data' => ['result' => $result_array], 'status_code' => 200];
+            $reponse_data = ['status' => 'success', 'data' => ['result' => $result_array], 'status_code' => 200,"query"=>$query];
             return API::response()->array($reponse_data)->statusCode(200);
         }
         catch (\Exception $ex){
