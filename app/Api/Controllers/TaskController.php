@@ -40,6 +40,9 @@ class TaskController extends BaseController {
         $data['AccountID'] = empty($data['AccountID'])?0:$data['AccountID'];
         $data['Priority'] = empty($data['Priority'])?0:$data['Priority'];
         $data['TaskStatus'] = empty($data['TaskStatus'])?0:$data['TaskStatus'];
+        if(isset($data['DueDateFilter'])){
+            $data['DueDate'] = $data['DueDateFilter']!=3?$data['DueDateFilter']:$data['DueDate'];
+        }
         if($data['fetchType']=='Grid') {
             $rules['iDisplayStart'] = 'required|Min:1';
             $rules['iDisplayLength'] = 'required';
@@ -188,6 +191,7 @@ class TaskController extends BaseController {
         );
         $messages = array(
             'UsersIDs.required' => 'Assign To field is required.',
+            'DueDate.required' => 'Due Date is required',
         );
         $validator = Validator::make($data, $rules, $messages);
         if ($validator->fails()) {
@@ -201,10 +205,6 @@ class TaskController extends BaseController {
             $data['Order'] = $count;
             $data['CreatedBy'] = User::get_user_full_name();
             $data['BoardColumnID'] = $data["TaskStatus"];
-            if(isset($data['UsersIDs'])) {
-                $taggedUser = implode(',', $data['UsersIDs']);
-                $data['UsersIDs'] = $taggedUser;
-            }
             if(isset($data['AccountIDs'])) {
                 $taggedUser = implode(',', $data['AccountIDs']);
                 $data['AccountIDs'] = $taggedUser;
