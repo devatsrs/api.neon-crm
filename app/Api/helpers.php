@@ -91,14 +91,16 @@ function sendMail($view,$data){
             $mail->clearAllRecipients();
             $mail->addAddress($email_address); //trim Added by Abubakar
             if (!$mail->send()) {
+				\Illuminate\Support\Facades\Log::info($e);
                 $status['status'] = 0;
                 $status['message'] .= $mail->ErrorInfo . ' ( Email Address: ' . $data['EmailTo'] . ')';
             } else {
+				\Illuminate\Support\Facades\Log::info($e);
                 $status['status'] = 1;
                 $status['message'] = 'Email has been sent';
                 $status['body'] = $body;
             }
-            \Illuminate\Support\Facades\Log::info($e);
+            
         }
     }
     return $status;
