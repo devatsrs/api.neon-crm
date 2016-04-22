@@ -98,6 +98,7 @@ function sendMail($view,$data){
                 $status['message'] = 'Email has been sent';
                 $status['body'] = $body;
             }
+            \Illuminate\Support\Facades\Log::info($e);
         }
     }
     return $status;
