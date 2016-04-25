@@ -59,7 +59,7 @@ function sendMail($view,$data){
 		{
 			 if(is_amazon() == true)
 			{
-				$Attachmenturl =  AmazonS3::preSignedUrl($attachment_data['filepath']);
+				$Attachmenturl =  \App\AmazonS3::preSignedUrl($attachment_data['filepath']);
 			}
 			else
 			{
