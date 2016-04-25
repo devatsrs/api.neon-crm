@@ -41,7 +41,7 @@ class TaskController extends BaseController {
         $data['Priority'] = empty($data['Priority'])?0:$data['Priority'];
         $data['TaskStatus'] = empty($data['TaskStatus'])?0:$data['TaskStatus'];
         if(isset($data['DueDateFilter'])){
-            $data['DueDate'] = $data['DueDateFilter']!=5?$data['DueDateFilter']:$data['DueDate'];
+            $data['DueDate'] = $data['DueDateFilter']!=Task::CustomDate?$data['DueDateFilter']:$data['DueDate'];
         }
         if($data['fetchType']=='Grid') {
             $rules['iDisplayStart'] = 'required|Min:1';
@@ -68,6 +68,7 @@ class TaskController extends BaseController {
             }
         }elseif($data['fetchType']=='Board') {
             $query = "call prc_GetTasksBoard (" . $companyID . ", " . $id . ",'" . $data['taskName'] . "','" . $data['AccountOwner'] . "', " . $data['Priority'].",'".$data['DueDate']."',".$data['TaskStatus'].")";
+            Log::Info($query);
             try{
                 $result = DB::select($query);
                 $boardsWithITask = [];
