@@ -69,7 +69,7 @@ function sendMail($view,$data){
             $mail->addAddress(trim($data['EmailTo']));
         }
 	
-	if(isset($data['AttachmentPaths']) && count($data['AttachmentPaths'])>0)
+	/*if(isset($data['AttachmentPaths']) && count($data['AttachmentPaths'])>0)
 	{
 		foreach($data['AttachmentPaths'] as $attachment_data)
 		{
@@ -83,10 +83,11 @@ function sendMail($view,$data){
 			}			
 			$mail->AddAttachment($Attachmenturl,$attachment_data['filename']);
 		}
-	}
+	}*/
 	
-	  $mail->Body = $body;
+	    $mail->Body = $body;
         $mail->Subject = $data['Subject'];
+	
         if (!$mail->send()) {
             $status['status'] = 0;
             $status['message'] .= $mail->ErrorInfo;
