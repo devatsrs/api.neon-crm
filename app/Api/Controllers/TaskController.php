@@ -38,7 +38,7 @@ class TaskController extends BaseController {
         }
         $data['AccountOwner'] = empty($data['AccountOwner'])?0:$data['AccountOwner'];
         $data['AccountID'] = empty($data['AccountID'])?0:$data['AccountID'];
-        $data['Priority'] = empty($data['Priority'])?0:$data['Priority'];
+        $data['Priority'] = empty($data['Priority']) || $data['Priority'] ==false ?0:$data['Priority'];
         $data['TaskStatus'] = empty($data['TaskStatus'])?0:$data['TaskStatus'];
         if(isset($data['DueDateFilter'])){
             $data['DueDate'] = $data['DueDateFilter']!=Task::CustomDate?$data['DueDateFilter']:$data['DueDate'];
@@ -186,8 +186,7 @@ class TaskController extends BaseController {
             'CompanyID' => 'required',
             'Subject' => 'required',
             'UsersIDs'=>'required',
-            'TaskStatus'=>'required',
-            'Priority'=>'required'
+            'TaskStatus'=>'required'
         );
         $messages = array(
             'UsersIDs.required' => 'Assign To field is required.'
@@ -198,15 +197,15 @@ class TaskController extends BaseController {
         }
         try {
 
-            //Add new tags to db against task
-            //Tags::insertNewTags(['tags' => $data['Tags'], 'TagType' => Tags::Task_tag]);
             $count = Task::where(['CompanyID' => $companyID, 'BoardID' => $data['BoardID'], 'BoardColumnID' => $data["TaskStatus"]])->count();
             $data['Order'] = $count;
             $data['CreatedBy'] = User::get_user_full_name();
             $data['BoardColumnID'] = $data["TaskStatus"];
+            $data['DueDate'] = isset($data['StartTime']) && !empty($data['StartTime'])?$data['DueDate'].' '.$data['StartTime']:$data['DueDate'];
 
             unset($data["TaskStatus"]);
             unset($data['TaskID']);
+            unset($data['StartTime']);
             Task::create($data);
         }
         catch (\Exception $ex){
@@ -235,8 +234,7 @@ class TaskController extends BaseController {
                 'CompanyID' => 'required',
                 'Subject' => 'required',
                 'UsersIDs'=>'required',
-                'TaskStatus'=>'required',
-                'Priority'=>'required'
+                'TaskStatus'=>'required'
             );
 
             $messages = array(
@@ -254,8 +252,10 @@ class TaskController extends BaseController {
                     $data['TaggedUser'] = $taggedUser;
                 }
                 $data['BoardColumnID'] = $data["TaskStatus"];
+                $data['DueDate'] = isset($data['StartTime']) && !empty($data['StartTime'])?$data['DueDate'].' '.$data['StartTime']:$data['DueDate'];
                 unset($data["TaskStatus"]);
                 unset($data['TaskID']);
+                unset($data['StartTime']);
                 Log::info($data);
                 Task::where(['TaskID' => $id])->update($data);
             } catch (\Exception $ex){

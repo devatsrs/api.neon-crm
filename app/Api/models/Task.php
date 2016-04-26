@@ -16,8 +16,6 @@ class Task extends \Eloquent {
     const ThisWeeks = 3;
     const CustomDate = 4;
 
-
-    public static $priority = [Task::High=>'High',Task::Medium=>'Medium',Task::Low=>'Low'];
     public static $tasks = [Task::All=>'All',Task::Overdue=>'Overdue',Task::DueSoon=>'Due Soon',
         Task::ThisWeeks=>'This Weeks',Task::CustomDate=>'Custom Date'];
 }
