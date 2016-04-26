@@ -41,7 +41,12 @@ function sendMail($view,$data){
     }else{
         $companyID = $data['companyID'];
     }
-    $mail = setMailConfig($companyID);
+	
+	 $mandrill =0;
+        if(isset($data['mandrill']) && $data['mandrill'] ==1){
+            $mandrill = 1;
+        }
+    $mail = setMailConfig($companyID,$mandrill);
     $body = View::make($view,compact('data'))->render();
 
     if(getenv('APP_ENV') != 'Production'){
@@ -105,15 +110,34 @@ function sendMail($view,$data){
     }
     return $status;
 }
-function setMailConfig($CompanyID){
+function setMailConfig($CompanyID,$mandrill){
     $result = \Api\Model\Company::select('SMTPServer','SMTPUsername','CompanyName','SMTPPassword','Port','IsSSL','EmailFrom')->where("CompanyID", '=', $CompanyID)->first();
-    Config::set('mail.host',$result->SMTPServer);
+ /*   Config::set('mail.host',$result->SMTPServer);
     Config::set('mail.port',$result->Port);
     Config::set('mail.from.address',$result->EmailFrom);
     Config::set('mail.from.name',$result->CompanyName);
     Config::set('mail.encryption',($result->IsSSL==1?'SSL':'TLS'));
     Config::set('mail.username',$result->SMTPUsername);
-    Config::set('mail.password',$result->SMTPPassword);
+    Config::set('mail.password',$result->SMTPPassword);*/
+	
+	if($mandrill == 1) {
+            Config::set('mail.host', getenv("MANDRILL_SMTP_SERVER"));
+            Config::set('mail.port', getenv("MANDRILL_PORT"));
+            Config::set('mail.from.address', $result->EmailFrom);
+            Config::set('mail.from.name', $result->CompanyName);
+            Config::set('mail.encryption', (getenv("MADRILL_SSL") == 1 ? 'SSL' : 'TLS'));
+            Config::set('mail.username', getenv("MANDRILL_SMTP_USERNAME"));
+            Config::set('mail.password', getenv("MANDRILL_SMTP_PASSWORD"));
+        }else{
+            Config::set('mail.host', $result->SMTPServer);
+            Config::set('mail.port', $result->Port);
+            Config::set('mail.from.address', $result->EmailFrom);
+            Config::set('mail.from.name', $result->CompanyName);
+            Config::set('mail.encryption', ($result->IsSSL == 1 ? 'SSL' : 'TLS'));
+            Config::set('mail.username', $result->SMTPUsername);
+            Config::set('mail.password', $result->SMTPPassword);
+        }
+	
     extract(Config::get('mail'));
 
     $mail = new PHPMailer;

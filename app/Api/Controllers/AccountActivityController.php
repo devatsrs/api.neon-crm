@@ -102,7 +102,7 @@ class AccountActivityController extends BaseController {
         $data['extra'] = $extra;
         $data['replace'] = $replace;
 		// image upload end		
-
+        data['mandrill'] = 1;
         try{
             $status 				= 	sendMail('emails.account.AccountEmailSend',$data);           
             $result 				= 	email_log_data($data);
