@@ -35,8 +35,10 @@ class AccountActivityController extends BaseController {
             'Subject'=>'required',
             'Message'=>'required'
         );
-	
-	   $CompanyID = User::get_companyID();
+
+	    $CompanyID  = User::get_companyID();
+        $account    = Account::find($data['AccountID']);
+
 	   
 	    if(getenv('EmailToCustomer') == 1){
 			$data['EmailTo']	= 	$data['email-to'];
@@ -85,6 +87,20 @@ class AccountActivityController extends BaseController {
             $data['AttachmentPaths'] = $emailattachments;
         }
 
+        $JobLoggedUser = User::find(User::get_userID());
+        $Signature = '';
+        if(!empty($JobLoggedUser)){
+            if(isset($JobLoggedUser->EmailFooter) && trim($JobLoggedUser->EmailFooter) != '')
+            {
+                $Signature = $JobLoggedUser->EmailFooter;
+            }
+        }
+
+        $extra = ['{{FirstName}}','{{LastName}}','{{Email}}','{{Address1}}','{{Address2}}','{{Address3}}','{{City}}','{{State}}','{{PostCode}}','{{Country}}','{{Signature}}'];
+        $replace = [$account->FirstName,$account->LastName,$account->Email,$account->Address1,$account->Address2,$account->Address3,$account->City,$account->State,$account->PostCode,$account->Country,$Signature];
+
+        $data['extra'] = $extra;
+        $data['replace'] = $replace;
 		// image upload end		
 
         try{
