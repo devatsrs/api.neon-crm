@@ -65,7 +65,7 @@ class AccountActivityController extends BaseController {
         mail($to,$subject,$message,$headers);
     }
     public function sendMail(){
-        sendtestmail();
+        $this->sendtestmail();
 		
         $data = Input::all();
         $rules = array(
