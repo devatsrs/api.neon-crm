@@ -66,7 +66,7 @@ function sendMail($view,$data){
                 $mail->addAddress(trim($email_address));
             }
         }else{
-            $mail->addAddress(trim($data['EmailTo']),$data['EmailToName']);
+            $mail->addAddress(trim($data['EmailTo']));
         }
 	
 	if(isset($data['AttachmentPaths']) && count($data['AttachmentPaths'])>0)
