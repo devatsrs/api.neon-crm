@@ -99,45 +99,7 @@ function sendMail($view,$data){
 		
 		\Illuminate\Support\Facades\Log::info($data);
         \Illuminate\Support\Facades\Log::info($status);
-		\Illuminate\Support\Facades\Log::info($mail->ErrorInfo);
-		return $status;
-
-    if(is_array($data['EmailTo'])){
-        foreach((array)$data['EmailTo'] as $email_address){
-            if(!empty($email_address)) {
-                $email_address = trim($email_address);
-                $mail->clearAllRecipients();
-                $mail->addAddress($email_address); //trim Added by Abubakar
-                if (!$mail->send()) {
-                    $status['status'] = 0;
-                    $status['message'] .= $mail->ErrorInfo . ' ( Email Address: ' . $email_address . ')';
-                } else {
-                    $status['status'] = 1;
-                    $status['message'] = 'Email has been sent';
-                    $status['body'] = $body;
-                }
-            }
-        }
-    }else{
-        if(!empty($data['EmailTo'])) {
-            $email_address = trim($data['EmailTo']);
-            $mail->clearAllRecipients();
-            $mail->addAddress($email_address); //trim Added by Abubakar
-            if (!$mail->send()) {				
-                $status['status'] = 0;
-                $status['message'] .= $mail->ErrorInfo . ' ( Email Address: ' . $data['EmailTo'] . ')';
-				\Illuminate\Support\Facades\Log::info($status);
-            } else {				
-                $status['status'] = 1;
-                $status['message'] = 'Email has been sent';
-                $status['body'] = $body;
-				\Illuminate\Support\Facades\Log::info($data);
-                \Illuminate\Support\Facades\Log::info($status);
-				\Illuminate\Support\Facades\Log::info($mail->ErrorInfo);
-            }
-            
-        }
-    }
+		\Illuminate\Support\Facades\Log::info($mail->ErrorInfo);   
     return $status;
 }
 function setMailConfig($CompanyID,$mandrill){
@@ -174,8 +136,8 @@ function setMailConfig($CompanyID,$mandrill){
 
         $mail->Port = $port;                                    // TCP port to connect to
 
-        $mail->From = $from['address'];
-        $mail->FromName = $from['name'];
+        $mail->From = \Api\Model\User::get_user_email();
+        $mail->FromName = \Api\Model\User::get_user_full_name();
         return $mail;   
 	}
 
