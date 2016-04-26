@@ -69,7 +69,7 @@ function sendMail($view,$data){
             $mail->addAddress(trim($data['EmailTo']));
         }
 	
-	/*if(isset($data['AttachmentPaths']) && count($data['AttachmentPaths'])>0)
+	if(isset($data['AttachmentPaths']) && count($data['AttachmentPaths'])>0)
 	{
 		foreach($data['AttachmentPaths'] as $attachment_data)
 		{
@@ -83,7 +83,7 @@ function sendMail($view,$data){
 			}			
 			$mail->AddAttachment($Attachmenturl,$attachment_data['filename']);
 		}
-	}*/
+	}
 	
 	    $mail->Body = $body;
         $mail->Subject = $data['Subject'];
@@ -98,9 +98,9 @@ function sendMail($view,$data){
             $status['body'] = $body;
         }
 		
-		\Illuminate\Support\Facades\Log::info($data);
-        \Illuminate\Support\Facades\Log::info($status);
-		\Illuminate\Support\Facades\Log::info($mail->ErrorInfo);   
+		//\Illuminate\Support\Facades\Log::info($data);
+       // \Illuminate\Support\Facades\Log::info($status);
+	//	\Illuminate\Support\Facades\Log::info($mail->ErrorInfo);
     return $status;
 }
 function setMailConfig($CompanyID,$mandrill){
@@ -124,7 +124,7 @@ function setMailConfig($CompanyID,$mandrill){
             Config::set('mail.password', $result->SMTPPassword);
         }
 
-		\Illuminate\Support\Facades\Log::info(Config::get('mail'));
+
         extract(Config::get('mail'));
 
         $mail = new \PHPMailer();
