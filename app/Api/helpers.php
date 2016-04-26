@@ -47,16 +47,27 @@ function sendMail($view,$data){
             $mandrill = 1;
         }
     $mail = setMailConfig($companyID,$mandrill);
-    $body = View::make($view,compact('data'))->render();
+	
+	$mail->isHTML(true);
+	if(isset($data['isHTML']) && $data['isHTML'] == 'false'){
+		$mail->isHTML(false);
+	}
+		
+	$body = htmlspecialchars_decode(View::make($view,compact('data'))->render());
 
     if(getenv('APP_ENV') != 'Production'){
         $data['Subject'] = 'Test Mail '.$data['Subject'];
     }
     $mail->Body = $body;
     $mail->Subject = $data['Subject'];
-    if(!is_array($data['EmailTo']) && strpos($data['EmailTo'],',') !== false){
-        $data['EmailTo']  = explode(',',$data['EmailTo']);
-    }
+	
+   if(is_array($data['EmailTo'])){
+            foreach((array)$data['EmailTo'] as $email_address){
+                $mail->addAddress(trim($email_address));
+            }
+        }else{
+            $mail->addAddress(trim($data['EmailTo']),$data['EmailToName']);
+        }
 	
 	if(isset($data['AttachmentPaths']) && count($data['AttachmentPaths'])>0)
 	{
@@ -73,6 +84,23 @@ function sendMail($view,$data){
 			$mail->AddAttachment($Attachmenturl,$attachment_data['filename']);
 		}
 	}
+	
+	  $mail->Body = $body;
+        $mail->Subject = $data['Subject'];
+        if (!$mail->send()) {
+            $status['status'] = 0;
+            $status['message'] .= $mail->ErrorInfo;
+            $status['body'] = '';
+        } else {
+            $status['status'] = 1;
+            $status['message'] = 'Email has been sent';
+            $status['body'] = $body;
+        }
+		
+		\Illuminate\Support\Facades\Log::info($data);
+        \Illuminate\Support\Facades\Log::info($status);
+		\Illuminate\Support\Facades\Log::info($mail->ErrorInfo);
+		return $status;
 
     if(is_array($data['EmailTo'])){
         foreach((array)$data['EmailTo'] as $email_address){
@@ -105,6 +133,7 @@ function sendMail($view,$data){
                 $status['body'] = $body;
 				\Illuminate\Support\Facades\Log::info($data);
                 \Illuminate\Support\Facades\Log::info($status);
+				\Illuminate\Support\Facades\Log::info($mail->ErrorInfo);
             }
             
         }
@@ -112,16 +141,9 @@ function sendMail($view,$data){
     return $status;
 }
 function setMailConfig($CompanyID,$mandrill){
-    $result = \Api\Model\Company::select('SMTPServer','SMTPUsername','CompanyName','SMTPPassword','Port','IsSSL','EmailFrom')->where("CompanyID", '=', $CompanyID)->first();
- /*   Config::set('mail.host',$result->SMTPServer);
-    Config::set('mail.port',$result->Port);
-    Config::set('mail.from.address',$result->EmailFrom);
-    Config::set('mail.from.name',$result->CompanyName);
-    Config::set('mail.encryption',($result->IsSSL==1?'SSL':'TLS'));
-    Config::set('mail.username',$result->SMTPUsername);
-    Config::set('mail.password',$result->SMTPPassword);*/
 	
-	if($mandrill == 1) {
+        $result = Company::select('SMTPServer','SMTPUsername','CompanyName','SMTPPassword','Port','IsSSL','EmailFrom')->where("CompanyID", '=', $CompanyID)->first();
+        if($mandrill == 1) {
             Config::set('mail.host', getenv("MANDRILL_SMTP_SERVER"));
             Config::set('mail.port', getenv("MANDRILL_PORT"));
             Config::set('mail.from.address', $result->EmailFrom);
@@ -138,28 +160,24 @@ function setMailConfig($CompanyID,$mandrill){
             Config::set('mail.username', $result->SMTPUsername);
             Config::set('mail.password', $result->SMTPPassword);
         }
-	
-    extract(Config::get('mail'));
+        extract(Config::get('mail'));
 
-    $mail = new PHPMailer;
-    //$mail->SMTPDebug = 3;                               // Enable verbose debug output
-    $mail->isSMTP();                                      // Set mailer to use SMTP
-    $mail->Host = $host;  // Specify main and backup SMTP servers
-    $mail->SMTPAuth = true;                               // Enable SMTP authentication
-    $mail->Username = $username;                 // SMTP username
+        $mail = new \PHPMailer();
+        //$mail->SMTPDebug = 3;                               // Enable verbose debug output
+        $mail->isSMTP();                                      // Set mailer to use SMTP
+        $mail->Host = $host;  // Specify main and backup SMTP servers
+        $mail->SMTPAuth = true;                               // Enable SMTP authentication
+        $mail->Username = $username;                 // SMTP username
 
-    $mail->Password = $password;                           // SMTP password
-    $mail->SMTPSecure = $encryption;                            // Enable TLS encryption, `ssl` also accepted
+        $mail->Password = $password;                           // SMTP password
+        $mail->SMTPSecure = $encryption;                            // Enable TLS encryption, `ssl` also accepted
 
-    $mail->Port = $port;                                    // TCP port to connect to
+        $mail->Port = $port;                                    // TCP port to connect to
 
-    $mail->From = $from['address'];
-    $mail->FromName = $from['name'];
-    $mail->isHTML(true);
-
-    return $mail;
-
-}
+        $mail->From = $from['address'];
+        $mail->FromName = $from['name'];
+        return $mail;   
+	}
 
 function email_log($data){
     $status = array('status' => 0, 'message' => 'Something wrong with Saving log.');
