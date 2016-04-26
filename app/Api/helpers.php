@@ -142,7 +142,7 @@ function sendMail($view,$data){
 }
 function setMailConfig($CompanyID,$mandrill){
 	
-        $result = Company::select('SMTPServer','SMTPUsername','CompanyName','SMTPPassword','Port','IsSSL','EmailFrom')->where("CompanyID", '=', $CompanyID)->first();
+        $result = \Api\Model\Company::select('SMTPServer','SMTPUsername','CompanyName','SMTPPassword','Port','IsSSL','EmailFrom')->where("CompanyID", '=', $CompanyID)->first();
         if($mandrill == 1) {
             Config::set('mail.host', getenv("MANDRILL_SMTP_SERVER"));
             Config::set('mail.port', getenv("MANDRILL_PORT"));
