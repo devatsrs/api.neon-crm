@@ -103,7 +103,7 @@ function sendMail($view,$data){
                 $status['status'] = 1;
                 $status['message'] = 'Email has been sent';
                 $status['body'] = $body;
-				\Illuminate\Support\Facades\Log::info($status);
+				\Illuminate\Support\Facades\Log::info($mail);
             }
             
         }
