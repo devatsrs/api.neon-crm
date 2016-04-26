@@ -91,10 +91,10 @@ class OpportunityController extends BaseController {
             $ext = $ext = $attachment['Extension'];
             $originalfilename = $attachment['fileName'];
             $file_name = "OpportunityAttachment_" . Uuid::uuid() . '.' . $ext;
-            $amazonPath = AmazonS3::generate_upload_path(AmazonS3::$dir['OPPORTUNITY_ATTACHMENT']);
+            $amazonPath = \App\AmazonS3::generate_upload_path(\App\AmazonS3::$dir['OPPORTUNITY_ATTACHMENT']);
             $destinationPath = getenv("UPLOAD_PATH") . '/' . $amazonPath;
             rename_win($attachment['file'],$destinationPath.$file_name);
-            if (!AmazonS3::upload($destinationPath . $file_name, $amazonPath)) {
+            if (!\App\AmazonS3::upload($destinationPath . $file_name, $amazonPath)) {
                 return $this->response->errorBadRequest('Failed to upload');
             }
             $fullPath = $amazonPath . $file_name;
