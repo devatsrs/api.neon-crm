@@ -122,6 +122,8 @@ function setMailConfig($CompanyID,$mandrill){
             Config::set('mail.username', $result->SMTPUsername);
             Config::set('mail.password', $result->SMTPPassword);
         }
+
+		\Illuminate\Support\Facades\Log::info(Config::get('mail'));
         extract(Config::get('mail'));
 
         $mail = new \PHPMailer();
@@ -136,8 +138,8 @@ function setMailConfig($CompanyID,$mandrill){
 
         $mail->Port = $port;                                    // TCP port to connect to
 
-        $mail->From = \Api\Model\User::get_user_email();
-        $mail->FromName = \Api\Model\User::get_user_full_name();
+        $mail->From = $from['address'];
+        $mail->FromName = $from['name'];
         return $mail;   
 	}
 
