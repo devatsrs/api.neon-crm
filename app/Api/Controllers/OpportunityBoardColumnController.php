@@ -81,7 +81,7 @@ class OpportunityBoardColumnController extends BaseController
                 'BoardColumnName' => 'required',
             );
             $validator = Validator::make($data, $rules);
-
+            $data['Priority'] = isset($data['Priority'])?1:0;
             if ($validator->fails()) {
                 return $this->response->error($validator->errors(),'432');
             }
