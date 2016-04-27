@@ -13,9 +13,8 @@ class Task extends \Eloquent {
     const All = 0;
     const Overdue = 1;
     const DueSoon = 2;
-    const ThisWeeks = 3;
-    const CustomDate = 4;
+    const CustomDate = 3;
 
     public static $tasks = [Task::All=>'All',Task::Overdue=>'Overdue',Task::DueSoon=>'Due Soon',
-        Task::ThisWeeks=>'This Weeks',Task::CustomDate=>'Custom Date'];
+        Task::CustomDate=>'Custom Date'];
 }

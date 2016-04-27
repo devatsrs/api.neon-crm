@@ -41,7 +41,8 @@ class TaskController extends BaseController {
         $data['Priority'] = empty($data['Priority']) || $data['Priority'] ==false ?0:$data['Priority'];
         $data['TaskStatus'] = empty($data['TaskStatus'])?0:$data['TaskStatus'];
         if(isset($data['DueDateFilter'])){
-            $data['DueDate'] = $data['DueDateFilter']!=Task::CustomDate?$data['DueDateFilter']:$data['DueDate'];
+            $data['DueDateFrom'] = $data['DueDateFilter']!=Task::CustomDate?$data['DueDateFilter']:$data['DueDateFrom'];
+            $data['DueDateTo'] = $data['DueDateFilter']!=Task::CustomDate?$data['DueDateFilter']:$data['DueDateTo'];
         }
         if($data['fetchType']=='Grid') {
             $rules['iDisplayStart'] = 'required|Min:1';
@@ -56,7 +57,7 @@ class TaskController extends BaseController {
             $columns = ['Subject', 'DueDate', 'Status', 'Priority','UserID'];
             $sort_column = $columns[$data['iSortCol_0']];
 
-            $query = "call prc_GetTasksGrid (" . $companyID . ", " . $id . ",'" . $data['taskName'] . "','" . $data['AccountOwner'] . "', " . $data['Priority'] .",'".$data['DueDate']. "',".$data['TaskStatus'].",".(ceil($data['iDisplayStart'] / $data['iDisplayLength'])) . " ," . $data['iDisplayLength'] . ",'" . $sort_column . "','" . $data['sSortDir_0'] . "')";
+            $query = "call prc_GetTasksGrid (" . $companyID . ", " . $id . ",'" . $data['taskName'] . "','" . $data['AccountOwner'] . "', " . $data['Priority'] .",'".$data['DueDateFrom']."','".$data['DueDateTo']."',".$data['TaskStatus'].",".(ceil($data['iDisplayStart'] / $data['iDisplayLength'])) . " ," . $data['iDisplayLength'] . ",'" . $sort_column . "','" . $data['sSortDir_0'] . "')";
             Log::Info($query);
             try {
                 $result = DataTableSql::of($query)->make();
@@ -67,7 +68,7 @@ class TaskController extends BaseController {
                 return $this->response->errorInternal($ex->getMessage());
             }
         }elseif($data['fetchType']=='Board') {
-            $query = "call prc_GetTasksBoard (" . $companyID . ", " . $id . ",'" . $data['taskName'] . "','" . $data['AccountOwner'] . "', " . $data['Priority'].",'".$data['DueDate']."',".$data['TaskStatus'].")";
+            $query = "call prc_GetTasksBoard (" . $companyID . ", " . $id . ",'" . $data['taskName'] . "','" . $data['AccountOwner'] . "', " . $data['Priority'].",'".$data['DueDateFrom']."','".$data['DueDateTo']."',".$data['TaskStatus'].")";
             Log::Info($query);
             try{
                 $result = DB::select($query);
@@ -115,7 +116,10 @@ class TaskController extends BaseController {
         foreach ($taskattachment as $attachment) {
             $ext = $attachment['fileExtension'];
             if (!in_array(strtolower($ext), $allowedextensions)) {
-                return $this->response->errorBadRequest($ext." file type is not allowed. Allowed file types are ".$allowed);
+                $message             =  $ext." file type is not allowed. Allowed file types are ".$allowed;
+                $validator_response  =  json_encode(["Uploaderror"=>[$message]]);
+                $reponse_data        =  ['status' => 'failed','message' => $validator_response,  'status_code' => 432];
+                return API::response()->array($reponse_data)->statusCode(432);
             }
         }
         $taskattachment = uploaded_File_Handler($data['file']);
