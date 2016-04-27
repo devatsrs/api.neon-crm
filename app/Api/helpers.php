@@ -76,6 +76,7 @@ function sendMail($view,$data){
 			 if(is_amazon() == true)
 			{
 				$Attachmenturl =  \App\AmazonS3::preSignedUrl($attachment_data['filepath']);
+				
 			}
 			else
 			{
@@ -84,7 +85,7 @@ function sendMail($view,$data){
             $path =    getenv('AWS_URL').'/'.$attachment_data['filepath'];
 			
             $file = getenv('TEMP_PATH').'/'.basename($path);
-            file_put_contents($file,file_get_contents($path ));
+            file_put_contents($file,file_get_contents($Attachmenturl));
 			\Illuminate\Support\Facades\Log::info($file);
 			\Illuminate\Support\Facades\Log::info($path);
 			$mail->AddAttachment($file,$attachment_data['filename']);
