@@ -87,7 +87,7 @@ function sendMail($view,$data){
             $file = getenv('TEMP_PATH').'/'.basename($path);
             file_put_contents($file,file_get_contents($Attachmenturl));
 			\Illuminate\Support\Facades\Log::info($file);
-			\Illuminate\Support\Facades\Log::info($path);
+			\Illuminate\Support\Facades\Log::info($Attachmenturl);
 			$mail->AddAttachment($file,$attachment_data['filename']);
 		}
 	}
