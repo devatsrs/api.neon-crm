@@ -84,6 +84,7 @@ function sendMail($view,$data){
             $path =    \App\AmazonS3::unSignedUrl($attachment_data['filepath']);
             $file = Config::get('app.temp_location').basename($path);
             file_put_contents($file,file_get_contents($path ));
+			\Illuminate\Support\Facades\Log::info($file);
 			$mail->AddAttachment($file,$attachment_data['filename']);
 		}
 	}
