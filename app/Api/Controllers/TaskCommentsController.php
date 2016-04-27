@@ -102,7 +102,7 @@ class TaskCommentsController extends BaseController {
             $emailData['Message'] = $comment_data['CommentText'];
             $emailData['CompanyID'] = $data ["CompanyID"];
             $emailData['EmailToName'] = '';
-            $emailData['mandrill'] =1;
+            //$emailData['mandrill'] =1;
             if(!empty($users) && count($users)>0){
                 $emailData['EmailTo'] = (array)$users;
                 $status = sendMail('emails.crm.AccountUserEmailSend',$emailData);
