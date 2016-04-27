@@ -5,6 +5,8 @@ use Api\Model\DataTableSql;
 use Api\Model\Task;
 use Api\Model\User;
 use Api\Model\Tags;
+use Api\Model\Note;
+use Api\Model\AccountEmailLog;
 use Api\Model\Lead;
 use Api\Model\CRMBoardColumn;
 use App\AmazonS3;
@@ -221,6 +223,23 @@ class TaskController extends BaseController {
             unset($data['TaskID']);
             Log::Info($data);
             $result  			=   Task::create($data);
+        /*  if($data['Task_type']!=0)
+            {
+                if($data['Task_type']==3) //notes
+                {
+                    //Note::where(['NoteID' => $data['ParentID']])->update(['created_at' =>date("Y-m-d H:i:s") ]);
+                    $sql = "update tblNote set created_at = '".date("Y-m-d H:i:s")."' , updated_at ='".date("Y-m-d H:i:s")."'  where NoteID ='".$data['ParentID']."'";
+                    db::statement($sql);
+                    Log::Info($sql);
+                }
+
+                if($data['Task_type']==2) //email
+                {
+                    $sql = "update AccountEmailLog set created_at = '".date("Y-m-d H:i:s")."', updated_at ='".date("Y-m-d H:i:s")."'  where AccountEmailLogID ='".$data['ParentID']."'";
+                    db::statement($sql);
+                    Log::Info($sql);
+                }
+            }*/
 		   $sql 				= 	"CALL `prc_GetTasksSingle`(".$result['TaskID'].")";
 		   $result  			= 	DB::select($sql);	
         }
@@ -325,5 +344,12 @@ class TaskController extends BaseController {
         $reponse_data = ['status' => 'success', 'data' => ['result' => $Priorities], 'status_code' => 200];
         return API::response()->array($reponse_data)->statusCode(200);
     }
+	
+	public function get_allowed_extensions(){
+		$allowed 				= 	getenv("CRM_ALLOWED_FILE_UPLOAD_EXTENSIONS");
+        $allowedextensions	 	= 	explode(',',$allowed);
+		$allowedextensions 		= 	array_change_key_case($allowedextensions);
+		return $allowedextensions;
+	}
 
 }

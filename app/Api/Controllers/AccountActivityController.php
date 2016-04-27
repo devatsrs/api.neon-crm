@@ -62,7 +62,14 @@ class AccountActivityController extends BaseController {
             foreach ($emailattachment as $attachment) {				
                 $ext = $attachment['fileExtension'];
                 if (!in_array(strtolower($ext), $allowedextensions)) {
-                    return $this->response->errorBadRequest($ext." file type is not allowed. Allowed file types are ".$allowed);
+                    $message             =  $ext." file type is not allowed. Allowed file types are ".$allowed;
+                    $validator_response  =  json_encode(["Uploaderror"=>[$message]]);
+                    $reponse_data        =  ['status' => 'failed','message' => $validator_response,  'status_code' => 432];
+                    return API::response()->array($reponse_data)->statusCode(432);
+
+                    //return $this->response->errorBadRequest(json_encode(array("message" => $ext." file type is not allowed. Allowed file types are ".$allowed,"status"=>"failed")));
+                   // $response = $ext." file type is not allowed. Allowed file types are ".$allowed;
+                  //  return $this->response->error($response,'432');
                 }
             }
 

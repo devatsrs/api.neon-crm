@@ -89,6 +89,9 @@ $api->version('v1', function ($api) {
             $api->get('task/{id}/get_lead','TaskController@getLead');
             $api->get('task/{id}/get_dropdownleadaccount','TaskController@getDropdownLeadAccount');
             $api->get('task/get_priorities','TaskController@getPriority');
+            $api->get('get_allowed_extensions','TaskController@get_allowed_extensions');
+
+
 
 		});
 
