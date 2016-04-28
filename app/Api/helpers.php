@@ -69,20 +69,20 @@ function sendMail($view,$data){
             $mail->addAddress(trim($data['EmailTo']));
         }
 		
-		$cc_array= explode(",",$data['cc']);
-		$bcc_array= explode(",",$data['bcc']);
+		//$cc_array= explode(",",$data['cc']);
+		//$bcc_array= explode(",",$data['bcc']);
 		
-		   if(is_array($cc_array))
+		   if(is_array($data['cc']))
 		   {
-            foreach($cc_array as $cc_array_data)
+            foreach($data['cc'] as $cc_array_data)
 			 {
                 $mail->AddCC(trim($cc_array_data));
            	 }
        	 }
 		 
-		  if(is_array($bcc_array))
+		  if(is_array($data['bcc']))
 		   {
-            foreach($bcc_array as $bcc_array_data)
+            foreach($data['bcc'] as $bcc_array_data)
 			 {
                 $mail->AddBCC(trim($bcc_array_data));
            	 }
