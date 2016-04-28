@@ -193,3 +193,39 @@
         // echo $response;
         return $response;
     }
+
+    function validfilepath($path){
+        $path = AmazonS3::unSignedUrl($path);
+        if (!is_numeric(strpos($path, "https://"))) {
+            //$path = str_replace('/', '\\', $path);
+            if (copy($path, './uploads/' . basename($path))) {
+                $path = URL::to('/') . '/uploads/' . basename($path);
+            }
+        }
+        return $path;
+    }
+
+    function create_site_configration_cache(){
+        $domain_url      =   $_SERVER['HTTP_HOST'];
+        $result       =  \Illuminate\Support\Facades\DB::table('tblCompanyThemes')->where(["DomainUrl" => $domain_url,'ThemeStatus'=>\Api\Model\Themes::ACTIVE])->get();
+
+        if($result){  //url found
+            $cache['FavIcon']    = empty($result[0]->Favicon)?URL::to('/').'/assets/images/favicon.ico':validfilepath($result[0]->Favicon);
+            $cache['Logo']       = empty($result[0]->Logo)?URL::to('/').'/assets/images/logo@2x.png':validfilepath($result[0]->Logo);
+            $cache['Title']    = $result[0]->Title;
+            $cache['FooterText']  = $result[0]->FooterText;
+            $cache['FooterUrl']   = $result[0]->FooterUrl;
+            $cache['LoginMessage']  = $result[0]->LoginMessage;
+            $cache['CustomCss']   = $result[0]->CustomCss;
+        }else{
+            $cache['FavIcon']    = URL::to('/').'/assets/images/favicon.ico';
+            $cache['Logo']       = URL::to('/').'/assets/images/logo@2x.png';
+            $cache['Title']    = 'Neon';
+            $cache['FooterText']  = '&copy; '.date('Y').' Code Desk';
+            $cache['FooterUrl']   = 'http://www.code-desk.com';
+            $cache['LoginMessage']  = 'Dear user, log in to access RM!';
+            $cache['CustomCss']   = '';
+        }
+        \Illuminate\Support\Facades\Log::info($cache);
+        Session::put('user_site_configrations', $cache);
+    }

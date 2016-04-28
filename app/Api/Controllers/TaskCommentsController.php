@@ -89,21 +89,22 @@ class TaskCommentsController extends BaseController {
         $comment_data["ParentID"] = $data["TaskID"];
         $comment_data["CommentType"] = CRMComments::taskComments;
         $comment_data["CreatedBy"] = User::get_user_full_name();
+        $comment_data["UserID"] = User::get_userID();
         $companyID = User::get_companyID();
         $data ["CompanyID"] = $companyID;
         try{
             CRMComments::create($comment_data);
             $task = Task::where(['TaskID'=>$data["TaskID"]])->get();
             $taggedUsers = explode(',',$task[0]->TaggedUser);
-            $taggedUsers[] = $task[0]->UserID;
+            $taggedUsers[] = $task[0]->UsersIDs;
             $users = User::whereIn('UserID',$taggedUsers)->select(['EmailAddress'])->lists('EmailAddress');
             $emailData['Subject']='New Comment';
             $status['status'] = 1;
             $emailData['Message'] = $comment_data['CommentText'];
             $emailData['CompanyID'] = $data ["CompanyID"];
             $emailData['EmailToName'] = '';
-            $emailData['CreatedBy'] = $comment_data["CreatedBy"];
-            $emailData['task'] = $task[0]->Subject;
+            $emailData['CreatedBy'] = User::get_user_full_name();
+            $emailData['Task'] = $task[0]->Subject;
             //$emailData['mandrill'] =1;
             if(!empty($users) && count($users)>0){
                 $emailData['EmailTo'] = (array)$users;
