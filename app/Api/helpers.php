@@ -226,6 +226,17 @@
             $cache['LoginMessage']  = 'Dear user, log in to access RM!';
             $cache['CustomCss']   = '';
         }
-        \Illuminate\Support\Facades\Log::info($cache);
-        Session::put('user_site_configrations', $cache);
+
+        \Illuminate\Support\Facades\Session::put('user_site_configrations', $cache);
     }
+ function getCompanyLogo(){
+     $domain_url      =   $_SERVER['HTTP_HOST'];
+     $result       =  \Illuminate\Support\Facades\DB::table('tblCompanyThemes')->where(["DomainUrl" => $domain_url,'ThemeStatus'=>\Api\Model\Themes::ACTIVE])->get();
+
+     if($result){  //url found
+         $cache['Logo']       = empty($result[0]->Logo)?URL::to('/').'/assets/images/logo@2x.png':validfilepath($result[0]->Logo);
+     }else{
+         $cache['Logo']       = URL::to('/').'/assets/images/logo@2x.png';
+     }
+    return $cache['Logo'];
+ }

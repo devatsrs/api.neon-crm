@@ -106,7 +106,7 @@ class TaskCommentsController extends BaseController {
             $emailData['EmailToName'] = '';
             $emailData['CreatedBy'] = User::get_user_full_name();
             $emailData['Task'] = $task[0]->Subject;
-            $emailData['Logo'] = '<img src="'.Session::get("user_site_configrations.Logo").'" width="120" alt="" />';
+            $emailData['Logo'] = '<img src="'.getCompanyLogo().'" width="120" alt="" />';
             //$emailData['mandrill'] =1;
             if(!empty($users) && count($users)>0){
                 $emailData['EmailTo'] = (array)$users;

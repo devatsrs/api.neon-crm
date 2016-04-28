@@ -11,6 +11,7 @@ use Dingo\Api\Facade\API;
 use Faker\Provider\Uuid;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 class OpportunityCommentsController extends BaseController {
 
@@ -87,22 +88,27 @@ class OpportunityCommentsController extends BaseController {
         }
 
         $comment_data["CommentText"] = $data["CommentText"];
-        $comment_data["ParentID"] = $data["OpportunityID"];
-        $comment_data["CommentType"] = CRMComments::opportunityComments;
+        $comment_data["ParentID"] = $data["TaskID"];
+        $comment_data["CommentType"] = CRMComments::taskComments;
         $comment_data["CreatedBy"] = User::get_user_full_name();
+        $comment_data["UserID"] = User::get_userID();
         $companyID = User::get_companyID();
         $data ["CompanyID"] = $companyID;
         try{
             CRMComments::create($comment_data);
-            $opportunity = Opportunity::where(['OpportunityID'=>$data["OpportunityID"]])->get();
-            $taggedUsers = explode(',',$opportunity[0]->TaggedUser);
-            $taggedUsers[] = $opportunity[0]->UserID;
+            $task = Task::where(['TaskID'=>$data["TaskID"]])->get();
+            $taggedUsers = explode(',',$task[0]->TaggedUser);
+            $taggedUsers[] = $task[0]->UsersIDs;
             $users = User::whereIn('UserID',$taggedUsers)->select(['EmailAddress'])->lists('EmailAddress');
+            Log::info($users);
             $emailData['Subject']='New Comment';
             $status['status'] = 1;
             $emailData['Message'] = $comment_data['CommentText'];
             $emailData['CompanyID'] = $data ["CompanyID"];
             $emailData['EmailToName'] = '';
+            $emailData['CreatedBy'] = User::get_user_full_name();
+            $emailData['Task'] = $task[0]->Subject;
+            $emailData['Logo'] = '<img src="'.getCompanyLogo().'" width="120" alt="" />';
             //$emailData['mandrill'] =1;
             if(!empty($users) && count($users)>0){
                 $emailData['EmailTo'] = (array)$users;
@@ -114,7 +120,7 @@ class OpportunityCommentsController extends BaseController {
                     Log::info($account);
                     $emailData['AccountID'] = $account->AccountID;
                     $emailData['EmailTo'] = $account->Email;
-                    $data['EmailToName'] = $account->FirstName.' '.$account->LastName;
+                    $emailData['EmailToName'] = $account->FirstName.' '.$account->LastName;
                     $emailData['CompanyID'] = $data ["CompanyID"];
                     $status = sendMail('emails.crm.AccountUserEmailSend',$emailData);
                     Log::info($status);
