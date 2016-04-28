@@ -68,6 +68,25 @@ function sendMail($view,$data){
         }else{
             $mail->addAddress(trim($data['EmailTo']));
         }
+		
+		$cc_array= explode(",",$data['cc']);
+		$bcc_array= explode(",",$data['bcc']);
+		
+		   if(is_array($cc_array))
+		   {
+            foreach($cc_array as $cc_array_data)
+			 {
+                $mail->AddCC(trim($cc_array_data));
+           	 }
+       	 }
+		 
+		  if(is_array($bcc_array))
+		   {
+            foreach($bcc_array as $bcc_array_data)
+			 {
+                $mail->AddBCC(trim($bcc_array_data));
+           	 }
+       	 }
 	
 	if(isset($data['AttachmentPaths']) && count($data['AttachmentPaths'])>0)
 	{
@@ -95,6 +114,7 @@ function sendMail($view,$data){
 		}
 	}
 	
+		
 	    $mail->Body = $body;
         $mail->Subject = $data['Subject'];
 	
