@@ -84,10 +84,13 @@ function sendMail($view,$data){
 			}
             $path =    getenv('AWS_URL').'/'.$attachment_data['filepath'];
 			
-            $file = getenv('TEMP_PATH').'/'.basename($path);
+            $file = getenv('TEMP_PATH').'/email_attachment/'.basename($path);
+            if(!file_exists(getenv('TEMP_PATH').'/email_attachment')) {
+                mkdir(getenv('TEMP_PATH').'/email_attachment',0777);
+            }
             file_put_contents($file,file_get_contents($Attachmenturl));
-			\Illuminate\Support\Facades\Log::info($file);
-			\Illuminate\Support\Facades\Log::info($Attachmenturl);
+			//\Illuminate\Support\Facades\Log::info($file);
+			//\Illuminate\Support\Facades\Log::info($Attachmenturl);
 			$mail->AddAttachment($file,$attachment_data['filename']);
 		}
 	}
