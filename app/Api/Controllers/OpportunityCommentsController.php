@@ -88,17 +88,17 @@ class OpportunityCommentsController extends BaseController {
         }
 
         $comment_data["CommentText"] = $data["CommentText"];
-        $comment_data["ParentID"] = $data["TaskID"];
-        $comment_data["CommentType"] = CRMComments::taskComments;
+        $comment_data["ParentID"] = $data["OpportunityID"];
+        $comment_data["CommentType"] = CRMComments::opportunityComments;
         $comment_data["CreatedBy"] = User::get_user_full_name();
         $comment_data["UserID"] = User::get_userID();
         $companyID = User::get_companyID();
         $data ["CompanyID"] = $companyID;
         try{
             CRMComments::create($comment_data);
-            $task = Task::where(['TaskID'=>$data["TaskID"]])->get();
-            $taggedUsers = explode(',',$task[0]->TaggedUser);
-            $taggedUsers[] = $task[0]->UsersIDs;
+            $opportunity = Opportunity::where(['OpportunityID'=>$data["OpportunityID"]])->get();
+            $taggedUsers = explode(',',$opportunity[0]->TaggedUser);
+            $taggedUsers[] = $opportunity[0]->UsersIDs;
             $users = User::whereIn('UserID',$taggedUsers)->select(['EmailAddress'])->lists('EmailAddress');
             Log::info($users);
             $emailData['Subject']='New Comment';
@@ -107,7 +107,7 @@ class OpportunityCommentsController extends BaseController {
             $emailData['CompanyID'] = $data ["CompanyID"];
             $emailData['EmailToName'] = '';
             $emailData['CreatedBy'] = User::get_user_full_name();
-            $emailData['Task'] = $task[0]->Subject;
+            $emailData['Task'] = $opportunity[0]->Subject;
             $emailData['Logo'] = '<img src="'.getCompanyLogo().'" width="120" alt="" />';
             //$emailData['mandrill'] =1;
             if(!empty($users) && count($users)>0){
