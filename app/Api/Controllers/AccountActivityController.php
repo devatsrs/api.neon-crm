@@ -5,6 +5,7 @@ use Api\Model\Account;
 use Api\Model\Note;
 use Api\Model\User;
 use Api\Model\DataTableSql;
+use Api\Model\AccountEmailLog;
 use App\Http\Requests;
 use Dingo\Api\Facade\API;
 use Illuminate\Support\Facades\Input;
@@ -124,6 +125,24 @@ class AccountActivityController extends BaseController {
         }catch (Exception $ex){
         	 return $this->response->errorInternal($ex->getMessage());
         }
+    }
+
+    public function  GetMail()
+    {
+        $data = Input::all();
+
+        $rules['EmailID'] = 'required';
+        $validator = Validator::make($data, $rules);
+        if ($validator->fails()) {
+            return $this->response->errorBadRequest($validator->errors());
+        }
+        try {
+            $Email = AccountEmailLog::where(['AccountEmailLogID'=>$data['EmailID']])->get();
+        } catch (\Exception $e) {
+            Log::info($e);
+            return $this->response->errorInternal($e->getMessage());
+        }
+        return API::response()->array(['status' => 'success', 'data'=>['Email'=>$Email] , 'status_code' => 200])->statusCode(200);
     }
 
 }

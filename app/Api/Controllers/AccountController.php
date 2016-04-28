@@ -196,6 +196,26 @@ class AccountController extends BaseController
         }
     }
 
+
+    public function GetNote()
+    {
+        $data = Input::all();
+
+        $rules['NoteID'] = 'required';
+        $validator = Validator::make($data, $rules);
+        if ($validator->fails()) {
+            return $this->response->errorBadRequest($validator->errors());
+        }
+        try {
+            $Note = Note::where(['NoteID'=>$data['NoteID']])->get();
+        } catch (\Exception $e) {
+            Log::info($e);
+            return $this->response->errorInternal($e->getMessage());
+        }
+        return API::response()->array(['status' => 'success', 'data'=>['Note'=>$Note] , 'status_code' => 200])->statusCode(200);
+
+    }
+
     public function GetTimeLine()
     {
         $data                       =   Input::all();

@@ -223,23 +223,23 @@ class TaskController extends BaseController {
             unset($data['TaskID']);
             Log::Info($data);
             $result  			=   Task::create($data);
-        /*  if($data['Task_type']!=0)
+          if(isset($data['Task_type']) && $data['Task_type']!=0)
             {
+                $new_date =  date("Y-m-d H:i:s", time() + 1);
                 if($data['Task_type']==3) //notes
                 {
-                    //Note::where(['NoteID' => $data['ParentID']])->update(['created_at' =>date("Y-m-d H:i:s") ]);
-                    $sql = "update tblNote set created_at = '".date("Y-m-d H:i:s")."' , updated_at ='".date("Y-m-d H:i:s")."'  where NoteID ='".$data['ParentID']."'";
+                    $sql = "update tblNote set created_at = '".$new_date."' , updated_at ='".$new_date."'  where NoteID ='".$data['ParentID']."'";
                     db::statement($sql);
                     Log::Info($sql);
                 }
 
                 if($data['Task_type']==2) //email
                 {
-                    $sql = "update AccountEmailLog set created_at = '".date("Y-m-d H:i:s")."', updated_at ='".date("Y-m-d H:i:s")."'  where AccountEmailLogID ='".$data['ParentID']."'";
+                    $sql = "update AccountEmailLog set created_at = '".$new_date."', updated_at ='".$new_date."'  where AccountEmailLogID ='".$data['ParentID']."'";
                     db::statement($sql);
                     Log::Info($sql);
                 }
-            }*/
+            }
 		   $sql 				= 	"CALL `prc_GetTasksSingle`(".$result['TaskID'].")";
 		   $result  			= 	DB::select($sql);	
         }
