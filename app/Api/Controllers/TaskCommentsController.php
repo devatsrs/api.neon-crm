@@ -102,6 +102,8 @@ class TaskCommentsController extends BaseController {
             $emailData['Message'] = $comment_data['CommentText'];
             $emailData['CompanyID'] = $data ["CompanyID"];
             $emailData['EmailToName'] = '';
+            $emailData['CreatedBy'] = $comment_data["CreatedBy"];
+            $emailData['task'] = $task[0]->Subject;
             //$emailData['mandrill'] =1;
             if(!empty($users) && count($users)>0){
                 $emailData['EmailTo'] = (array)$users;
@@ -113,7 +115,7 @@ class TaskCommentsController extends BaseController {
                     Log::info($account);
                     $emailData['AccountID'] = $account->AccountID;
                     $emailData['EmailTo'] = $account->Email;
-                    $data['EmailToName'] = $account->FirstName.' '.$account->LastName;
+                    $emailData['EmailToName'] = $account->FirstName.' '.$account->LastName;
                     $emailData['CompanyID'] = $data ["CompanyID"];
                     $status = sendMail('emails.crm.AccountUserEmailSend',$emailData);
                     Log::info($status);
