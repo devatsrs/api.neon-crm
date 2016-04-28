@@ -68,7 +68,7 @@ function sendMail($view,$data){
         }else{
             $mail->addAddress(trim($data['EmailTo']));
         }
-		
+		\Illuminate\Support\Facades\Log::info($data);
 		//$cc_array= explode(",",$data['cc']);
 		//$bcc_array= explode(",",$data['bcc']);
 		
