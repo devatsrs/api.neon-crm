@@ -72,7 +72,7 @@ function sendMail($view,$data){
 		//$cc_array= explode(",",$data['cc']);
 		//$bcc_array= explode(",",$data['bcc']);
 		
-		   if(is_array($data['cc']))
+		   if(isset ($data['cc']) && is_array($data['cc']))
 		   {
             foreach($data['cc'] as $cc_array_data)
 			 {
@@ -80,7 +80,7 @@ function sendMail($view,$data){
            	 }
        	 }
 		 
-		  if(is_array($data['bcc']))
+		  if(isset ($data['bcc']) && is_array($data['bcc']))
 		   {
             foreach($data['bcc'] as $bcc_array_data)
 			 {
