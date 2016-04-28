@@ -11,6 +11,7 @@ use Dingo\Api\Facade\API;
 use Faker\Provider\Uuid;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 class TaskCommentsController extends BaseController {
 
@@ -105,6 +106,7 @@ class TaskCommentsController extends BaseController {
             $emailData['EmailToName'] = '';
             $emailData['CreatedBy'] = User::get_user_full_name();
             $emailData['Task'] = $task[0]->Subject;
+            $emailData['Logo'] = '<img src="'.Session::get("user_site_configrations.Logo").'" width="120" alt="" />';
             //$emailData['mandrill'] =1;
             if(!empty($users) && count($users)>0){
                 $emailData['EmailTo'] = (array)$users;
