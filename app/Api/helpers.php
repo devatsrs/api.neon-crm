@@ -72,17 +72,19 @@ function sendMail($view,$data){
 		//$cc_array= explode(",",$data['cc']);
 		//$bcc_array= explode(",",$data['bcc']);
 		
-		   if(isset ($data['cc']) && is_array($data['cc']))
+		   if(isset ($data['cc']))
 		   {
-            foreach($data['cc'] as $cc_array_data)
+            $cc_array = explode(',',$data['cc']);
+            foreach($cc_array as $cc_array_data)
 			 {
                 $mail->AddCC(trim($cc_array_data));
            	 }
        	 }
 		 
-		  if(isset ($data['bcc']) && is_array($data['bcc']))
+		  if(isset ($data['bcc']))
 		   {
-            foreach($data['bcc'] as $bcc_array_data)
+               $bcc_array = explode(',',$data['bcc']);
+               foreach($bcc_array as $bcc_array_data)
 			 {
                 $mail->AddBCC(trim($bcc_array_data));
            	 }
@@ -240,14 +242,14 @@ function email_log_data($data){
         $data['EmailTo'] = implode(',',$data['EmailTo']);
     }
 	
-	if(!isset($data['cc']) || !is_array($data['cc']))
+	if(!isset($data['cc']))
 	{
-		$data['cc'] = array();
+		$data['cc'] = '';
 	}
 	
-	if(!isset($data['bcc']) || !is_array($data['bcc']))
+	if(!isset($data['bcc']))
 	{
-		$data['bcc'] = array();
+		$data['bcc'] = '';
 	}
 	
 	if(isset($data['AttachmentPaths']) && count($data['AttachmentPaths'])>0)
@@ -267,10 +269,11 @@ function email_log_data($data){
         'CompanyID'=>\Api\Model\User::get_companyID(),
         'UserID'=>\Api\Model\User::get_userID(),
         'CreatedBy'=>\Api\Model\User::get_user_full_name(),
-		'Cc'=>implode(",",$data['cc']),
-		'Bcc'=>implode(",",$data['bcc']),
+		'Cc'=>$data['cc'],
+		'Bcc'=>$data['bcc'],
 		"AttachmentPaths"=>$data['AttachmentPaths']
 		];
+		\Illuminate\Support\Facades\Log::info($data);
      $data =  \Api\Model\AccountEmailLog::Create($logData);
     return $data;
 }
