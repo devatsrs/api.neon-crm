@@ -98,16 +98,15 @@ class OpportunityCommentsController extends BaseController {
             CRMComments::create($comment_data);
             $opportunity = Opportunity::where(['OpportunityID'=>$data["OpportunityID"]])->get();
             $taggedUsers = explode(',',$opportunity[0]->TaggedUser);
-            $taggedUsers[] = $opportunity[0]->UsersIDs;
+            $taggedUsers[] = $opportunity[0]->UserID;
             $users = User::whereIn('UserID',$taggedUsers)->select(['EmailAddress'])->lists('EmailAddress');
-            Log::info($users);
             $emailData['Subject']='New Comment';
             $status['status'] = 1;
             $emailData['Message'] = $comment_data['CommentText'];
             $emailData['CompanyID'] = $data ["CompanyID"];
             $emailData['EmailToName'] = '';
             $emailData['CreatedBy'] = User::get_user_full_name();
-            $emailData['Task'] = $opportunity[0]->Subject;
+            $emailData['Task'] = $opportunity[0]->OpportunityName.' Opportunity';
             $emailData['Logo'] = '<img src="'.getCompanyLogo().'" width="120" alt="" />';
             //$emailData['mandrill'] =1;
             if(!empty($users) && count($users)>0){
@@ -117,7 +116,6 @@ class OpportunityCommentsController extends BaseController {
             if($status['status']==1){
                 if(isset($data['PrivateComment']) && $data['PrivateComment']==1) {
                     $account = Account::find($data['AccountID']);
-                    Log::info($account);
                     $emailData['AccountID'] = $account->AccountID;
                     $emailData['EmailTo'] = $account->Email;
                     $emailData['EmailToName'] = $account->FirstName.' '.$account->LastName;
