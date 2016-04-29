@@ -46,7 +46,7 @@ function sendMail($view,$data){
         if(isset($data['mandrill']) && $data['mandrill'] ==1){
             $mandrill = 1;
         }
-    $mail = setMailConfig($companyID,$mandrill);
+    $mail = setMailConfig($companyID,$mandrill,$data);
 	
 	$mail->isHTML(true);
 	if(isset($data['isHTML']) && $data['isHTML'] == 'false'){
@@ -133,7 +133,7 @@ function sendMail($view,$data){
 	//	\Illuminate\Support\Facades\Log::info($mail->ErrorInfo);
     return $status;
 }
-function setMailConfig($CompanyID,$mandrill){
+function setMailConfig($CompanyID,$mandrill,$data=array()){
 	
         $result = \Api\Model\Company::select('SMTPServer','SMTPUsername','CompanyName','SMTPPassword','Port','IsSSL','EmailFrom')->where("CompanyID", '=', $CompanyID)->first();
         if($mandrill == 1) {
@@ -168,9 +168,14 @@ function setMailConfig($CompanyID,$mandrill){
         $mail->SMTPSecure = $encryption;                            // Enable TLS encryption, `ssl` also accepted
 
         $mail->Port = $port;                                    // TCP port to connect to
-
-        $mail->From = $from['address'];
-        $mail->FromName = $from['name'];
+		
+		if($data){
+	       	$mail->From 	= $data['address'];
+        	$mail->FromName = $data['name'];
+		}else{	
+        	$mail->From 	= $from['address'];
+        	$mail->FromName = $from['name'];
+		}
         return $mail;   
 	}
 
