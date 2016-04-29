@@ -38,7 +38,7 @@ class TaskController extends BaseController {
         }
         $data['AccountOwner'] = empty($data['AccountOwner'])?0:$data['AccountOwner'];
         $data['AccountID'] = empty($data['AccountID'])?0:$data['AccountID'];
-        $data['Priority'] = empty($data['Priority']) || $data['Priority'] ==false ?0:$data['Priority'];
+        $data['Priority'] = empty($data['Priority']) || $data['Priority']=='false'?0:$data['Priority'];
         $data['TaskStatus'] = empty($data['TaskStatus'])?0:$data['TaskStatus'];
         if(isset($data['DueDateFilter'])){
             $data['DueDateFrom'] = $data['DueDateFilter']!=Task::CustomDate?$data['DueDateFilter']:$data['DueDateFrom'];
@@ -58,7 +58,6 @@ class TaskController extends BaseController {
             $sort_column = $columns[$data['iSortCol_0']];
 
             $query = "call prc_GetTasksGrid (" . $companyID . ", " . $id . ",'" . $data['taskName'] . "','" . $data['AccountOwner'] . "', " . $data['Priority'] .",'".$data['DueDateFrom']."','".$data['DueDateTo']."',".$data['TaskStatus'].",".(ceil($data['iDisplayStart'] / $data['iDisplayLength'])) . " ," . $data['iDisplayLength'] . ",'" . $sort_column . "','" . $data['sSortDir_0'] . "')";
-            Log::Info($query);
             try {
                 $result = DataTableSql::of($query)->make();
                 $reponse_data = ['status' => 'success', 'data' => ['result' => $result], 'status_code' => 200];
@@ -69,7 +68,6 @@ class TaskController extends BaseController {
             }
         }elseif($data['fetchType']=='Board') {
             $query = "call prc_GetTasksBoard (" . $companyID . ", " . $id . ",'" . $data['taskName'] . "','" . $data['AccountOwner'] . "', " . $data['Priority'].",'".$data['DueDateFrom']."','".$data['DueDateTo']."',".$data['TaskStatus'].")";
-            Log::Info($query);
             try{
                 $result = DB::select($query);
                 $boardsWithITask = [];
