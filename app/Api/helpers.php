@@ -34,54 +34,92 @@
 
     function sendMail($view,$data){
         $status = array('status' => 0, 'message' => 'Something wrong with sending mail.');
-        $mandrill =0;
-        if(isset($data['mandrill']) && $data['mandrill'] ==1){
+        if (empty($data['companyID'])) {
+            $companyID = \Api\Model\User::get_companyID();
+        } else {
+            $companyID = $data['companyID'];
+        }
+        $mandrill = 0;
+        if (isset($data['mandrill']) && $data['mandrill'] == 1) {
             $mandrill = 1;
         }
-        $mail = setMailConfig($data['CompanyID'],$mandrill);
+        $mail = setMailConfig($companyID, $mandrill, $data);
+
         $mail->isHTML(true);
-        if(isset($data['isHTML']) && $data['isHTML'] == 'false'){
+        if (isset($data['isHTML']) && $data['isHTML'] == 'false') {
             $mail->isHTML(false);
         }
-        $body = htmlspecialchars_decode(View::make($view,compact('data'))->render());
-        if(!is_array($data['EmailTo']) && strpos($data['EmailTo'],',') !== false){
-            $data['EmailTo']  = explode(',',$data['EmailTo']);
+
+        $body = htmlspecialchars_decode(View::make($view, compact('data'))->render());
+
+        if (getenv('APP_ENV') != 'Production') {
+            $data['Subject'] = 'Test Mail ' . $data['Subject'];
         }
-        if(is_array($data['EmailTo'])){
-            foreach((array)$data['EmailTo'] as $email_address){
+        $mail->Body = $body;
+        $mail->Subject = $data['Subject'];
+
+        if (is_array($data['EmailTo'])) {
+            foreach ((array)$data['EmailTo'] as $email_address) {
                 if(is_array($email_address)){
                     $email_address= $email_address[0];
                 }
                 $mail->addAddress(trim($email_address));
             }
-        }else{
-            $mail->addAddress(trim($data['EmailTo']),$data['EmailToName']);
+        } else {
+            $mail->addAddress(trim($data['EmailTo']));
         }
-        if(isset($data['attach'])){
-            $mail->addAttachment($data['attach']);
-        }
-        if(isset($data['EmailFrom'])){
-            $mail->From = $data['EmailFrom'];
-            if(isset($data['EmailFromName'])){
-                $mail->FromName = $data['EmailFromName'];
+
+        if (isset($data['cc'])) {
+            if (is_array($data['cc'])) {
+                foreach ((array)$data['cc'] as $email_address) {
+                    $mail->AddCC(trim($email_address));
+                }
+            } else {
+                $mail->AddCC(trim($data['cc']));
             }
         }
-        if(env('APP_ENV') != 'Production'){
-            $data['Subject'] = 'Test Mail '.env('RMArtisanFileLocation').' '.$data['Subject'];
+
+        if (isset($data['bcc'])) {
+            if (is_array($data['bcc'])) {
+                foreach ((array)$data['bcc'] as $email_address) {
+                    $mail->AddBCC(trim($email_address));
+                }
+            } else {
+                $mail->AddBCC(trim($data['bcc']));
+            }
         }
+
+        if (isset($data['AttachmentPaths']) && count($data['AttachmentPaths']) > 0) {
+            foreach ($data['AttachmentPaths'] as $attachment_data) {
+                if (is_amazon() == true) {
+                    $path = getenv('AWS_URL') . '/' . $attachment_data['filepath'];
+                } else {
+                    $path = getenv('TEMP_PATH') . '/' . $attachment_data['filepath'];
+                }
+
+                \Illuminate\Support\Facades\Log::info($path);
+                $file = getenv('TEMP_PATH') . '/email_attachment/' . basename($path);
+                if (!file_exists(getenv('TEMP_PATH') . '/email_attachment')) {
+                    mkdir(getenv('TEMP_PATH') . '/email_attachment', 0777);
+                }
+                file_put_contents($file, file_get_contents($path));
+                $mail->AddAttachment($file, $attachment_data['filename']);
+            }
+        }
+
         $mail->Body = $body;
         $mail->Subject = $data['Subject'];
+
         if (!$mail->send()) {
             $status['status'] = 0;
             $status['message'] .= $mail->ErrorInfo;
             $status['body'] = '';
-            return $status;
         } else {
             $status['status'] = 1;
             $status['message'] = 'Email has been sent';
             $status['body'] = $body;
-            return $status;
         }
+        return $status;
     }
     function setMailConfig($CompanyID,$mandrill){
         $result = \Api\Model\Company::select('SMTPServer','SMTPUsername','CompanyName','SMTPPassword','Port','IsSSL','EmailFrom')->where("CompanyID", '=', $CompanyID)->first();

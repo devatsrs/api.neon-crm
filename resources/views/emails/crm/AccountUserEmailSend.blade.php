@@ -28,7 +28,7 @@
                             <div style="float: left;clear:left;">
                                 <strong>{{$data['CreatedBy']}}</strong> Commented on {{$data['Task']}}
                                 <p style="font-size: 14px; font-family: 'helvetica', 'arial', sans-serif; font-weight: normal; color: #4d4d4d; text-align: left; margin: 0px 0px 10px; line-height: 19px; padding: 10px;background-color:#ffffff;border-color: #d6cfcf;border-radius: 10px;border-style: solid;border-width: 1px 3px 3px 1px;margin: 5px;max-width: 95%;padding: 5px;">
-                                    {{$data['Message']}}
+                                    {{nl2br($data['Message'])}}
                                 </p>
                             </div>
                         </td>
