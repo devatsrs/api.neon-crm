@@ -68,28 +68,32 @@ function sendMail($view,$data){
         }else{
             $mail->addAddress(trim($data['EmailTo']));
         }
-		\Illuminate\Support\Facades\Log::info($data);
+		//\Illuminate\Support\Facades\Log::info($data);
 		//$cc_array= explode(",",$data['cc']);
 		//$bcc_array= explode(",",$data['bcc']);
 		
-		   if(isset ($data['cc']))
-		   {
-            $cc_array = explode(',',$data['cc']);
-            foreach($cc_array as $cc_array_data)
-			 {
-                $mail->AddCC(trim($cc_array_data));
-           	 }
-       	 }
+		if(isset($data['cc']))
+		{
+			if(is_array($data['cc'])){
+           		foreach((array)$data['cc'] as $email_address){
+                	$mail->AddCC(trim($email_address));
+ 	        	}
+    		}else{           
+                $mail->AddCC(trim($data['cc']));           	
+			}
+       }
+	   
+	   if(isset($data['bcc']))
+		{
+			if(is_array($data['bcc'])){
+           		foreach((array)$data['bcc'] as $email_address){
+                	$mail->AddBCC(trim($email_address));
+ 	        	}
+    		}else{           
+                $mail->AddBCC(trim($data['bcc']));           	
+			}
+       }
 		 
-		  if(isset ($data['bcc']))
-		   {
-               $bcc_array = explode(',',$data['bcc']);
-               foreach($bcc_array as $bcc_array_data)
-			 {
-                $mail->AddBCC(trim($bcc_array_data));
-           	 }
-       	 }
-	
 	if(isset($data['AttachmentPaths']) && count($data['AttachmentPaths'])>0)
 	{
 		foreach($data['AttachmentPaths'] as $attachment_data)
