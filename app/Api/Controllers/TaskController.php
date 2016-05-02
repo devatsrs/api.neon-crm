@@ -304,4 +304,11 @@ class TaskController extends BaseController {
         return API::response()->array($reponse_data)->statusCode(200);
     }
 
+    public function get_allowed_extensions(){
+        $allowed     =  getenv("CRM_ALLOWED_FILE_UPLOAD_EXTENSIONS");
+        $allowedextensions   =  explode(',',$allowed);
+        $allowedextensions   =  array_change_key_case($allowedextensions);
+        return $allowedextensions;
+    }
+
 }
