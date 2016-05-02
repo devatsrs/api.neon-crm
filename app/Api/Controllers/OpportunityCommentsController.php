@@ -112,6 +112,7 @@ class OpportunityCommentsController extends BaseController {
             if(!empty($users) && count($users)>0){
                 $emailData['EmailTo'] = (array)$users;
                 $status = sendMail('emails.crm.AccountUserEmailSend',$emailData);
+                Log::info($status);
             }
             if($status['status']==1){
                 if(isset($data['PrivateComment']) && $data['PrivateComment']==1) {
