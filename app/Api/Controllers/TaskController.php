@@ -113,7 +113,7 @@ class TaskController extends BaseController {
         $allowedextensions = array_change_key_case($allowedextensions);
         foreach ($taskattachment as $attachment) {
             $ext = $attachment['fileExtension'];
-            if (!in_array(strtolower($ext), strtolower($allowedextensions))){
+            if (!in_array(strtolower($ext), $allowedextensions)){
                 $message             =  $ext." file type is not allowed. Allowed file types are ".$allowed;
                 $validator_response  =  json_encode(["Uploaderror"=>[$message]]);
                 $reponse_data        =  ['status' => 'failed','message' => $validator_response,  'status_code' => 432];
