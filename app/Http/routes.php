@@ -10,6 +10,7 @@ $api->version('v1', function ($api) {
 		// Login route
 		$api->post('login', 'AuthController@authenticate');
 		$api->post('register', 'AuthController@register');
+        $api->get('l/{id}', 'AuthController@byId');
 
 		// Dogs! All routes in here are protected and thus need a valid token
 		//$api->group( [ 'protected' => true, 'middleware' => 'jwt.refresh' ], function ($api) {

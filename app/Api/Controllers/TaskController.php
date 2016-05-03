@@ -5,8 +5,6 @@ use Api\Model\DataTableSql;
 use Api\Model\Task;
 use Api\Model\User;
 use Api\Model\Tags;
-use Api\Model\Note;
-use Api\Model\AccountEmailLog;
 use Api\Model\Lead;
 use Api\Model\CRMBoardColumn;
 use App\AmazonS3;
@@ -24,13 +22,13 @@ class TaskController extends BaseController {
     {
         $this->middleware('jwt.auth');
     }
-	/**
-	 * Display a listing of the resource.
-	 * GET /Deal board
-	 *
-	 * @return Response
+    /**
+     * Display a listing of the resource.
+     * GET /Deal board
+     *
+     * @return Response
 
-	  */
+     */
 
     public function getTasks($id){
         $companyID = User::get_companyID();
@@ -40,10 +38,11 @@ class TaskController extends BaseController {
         }
         $data['AccountOwner'] = empty($data['AccountOwner'])?0:$data['AccountOwner'];
         $data['AccountID'] = empty($data['AccountID'])?0:$data['AccountID'];
-        $data['Priority'] = empty($data['Priority'])?0:$data['Priority'];
+        $data['Priority'] = empty($data['Priority']) || $data['Priority']=='false'?0:$data['Priority'];
         $data['TaskStatus'] = empty($data['TaskStatus'])?0:$data['TaskStatus'];
         if(isset($data['DueDateFilter'])){
-            $data['DueDate'] = $data['DueDateFilter']!=3?$data['DueDateFilter']:$data['DueDate'];
+            $data['DueDateFrom'] = $data['DueDateFilter']!=Task::CustomDate?$data['DueDateFilter']:$data['DueDateFrom'];
+            $data['DueDateTo'] = $data['DueDateFilter']!=Task::CustomDate?$data['DueDateFilter']:$data['DueDateTo'];
         }
         if($data['fetchType']=='Grid') {
             $rules['iDisplayStart'] = 'required|Min:1';
@@ -58,8 +57,7 @@ class TaskController extends BaseController {
             $columns = ['Subject', 'DueDate', 'Status', 'Priority','UserID'];
             $sort_column = $columns[$data['iSortCol_0']];
 
-            $query = "call prc_GetTasksGrid (" . $companyID . ", " . $id . ",'" . $data['taskName'] . "','" . $data['AccountOwner'] . "', " . $data['Priority'] .",'".$data['DueDate']. "',".$data['TaskStatus'].",".(ceil($data['iDisplayStart'] / $data['iDisplayLength'])) . " ," . $data['iDisplayLength'] . ",'" . $sort_column . "','" . $data['sSortDir_0'] . "')";
-            Log::Info($query);
+            $query = "call prc_GetTasksGrid (" . $companyID . ", " . $id . ",'" . $data['taskName'] . "','" . $data['AccountOwner'] . "', " . $data['Priority'] .",'".$data['DueDateFrom']."','".$data['DueDateTo']."',".$data['TaskStatus'].",".(ceil($data['iDisplayStart'] / $data['iDisplayLength'])) . " ," . $data['iDisplayLength'] . ",'" . $sort_column . "','" . $data['sSortDir_0'] . "')";
             try {
                 $result = DataTableSql::of($query)->make();
                 $reponse_data = ['status' => 'success', 'data' => ['result' => $result], 'status_code' => 200];
@@ -69,7 +67,7 @@ class TaskController extends BaseController {
                 return $this->response->errorInternal($ex->getMessage());
             }
         }elseif($data['fetchType']=='Board') {
-            $query = "call prc_GetTasksBoard (" . $companyID . ", " . $id . ",'" . $data['taskName'] . "','" . $data['AccountOwner'] . "', " . $data['Priority'].",'".$data['DueDate']."',".$data['TaskStatus'].")";
+            $query = "call prc_GetTasksBoard (" . $companyID . ", " . $id . ",'" . $data['taskName'] . "','" . $data['AccountOwner'] . "', " . $data['Priority'].",'".$data['DueDateFrom']."','".$data['DueDateTo']."',".$data['TaskStatus'].")";
             try{
                 $result = DB::select($query);
                 $boardsWithITask = [];
@@ -116,7 +114,10 @@ class TaskController extends BaseController {
         foreach ($taskattachment as $attachment) {
             $ext = $attachment['fileExtension'];
             if (!in_array(strtolower($ext), $allowedextensions)) {
-                return $this->response->errorBadRequest($ext." file type is not allowed. Allowed file types are ".$allowed);
+                $message             =  $ext." file type is not allowed. Allowed file types are ".$allowed;
+                $validator_response  =  json_encode(["Uploaderror"=>[$message]]);
+                $reponse_data        =  ['status' => 'failed','message' => $validator_response,  'status_code' => 432];
+                return API::response()->array($reponse_data)->statusCode(432);
             }
         }
         $taskattachment = uploaded_File_Handler($data['file']);
@@ -127,10 +128,10 @@ class TaskController extends BaseController {
             $ext = $ext = $attachment['Extension'];
             $originalfilename = $attachment['fileName'];
             $file_name = "TaskAttachment_" . Uuid::uuid() . '.' . $ext;
-            $amazonPath = AmazonS3::generate_upload_path(AmazonS3::$dir['TASK_ATTACHMENT']);
+            $amazonPath = \App\AmazonS3::generate_upload_path(\App\AmazonS3::$dir['TASK_ATTACHMENT']);
             $destinationPath = getenv("UPLOAD_PATH") . '/' . $amazonPath;
             rename_win($attachment['file'],$destinationPath.$file_name);
-            if (!AmazonS3::upload($destinationPath . $file_name, $amazonPath)) {
+            if (!\App\AmazonS3::upload($destinationPath . $file_name, $amazonPath)) {
                 return $this->response->errorBadRequest('Failed to upload');
             }
             $fullPath = $amazonPath . $file_name;
@@ -172,12 +173,13 @@ class TaskController extends BaseController {
             return $this->response->errorNotFound('No attachment found');
         }
     }
-	/**
-	 * Show the form for creating a new resource.
-	 * GET /dealboard/create
-	 *
-	 * @return Response
-	 */
+    /**
+     * Show the form for creating a new resource.
+     * GET /dealboard/create
+     *
+     * @return Response
+     */
+
     public function addTask(){
         $data = Input::all();
        
@@ -188,19 +190,17 @@ class TaskController extends BaseController {
             'CompanyID' => 'required',
             'Subject' => 'required',
             'UsersIDs'=>'required',
-            'TaskStatus'=>'required',
-            'DueDate'=>'required',
-            'Priority'=>'required'
+            'TaskStatus'=>'required'
         );
         $messages = array(
-            'UsersIDs.required' => 'Assign To field is required.',
-            'DueDate.required' => 'Due Date is required',
+            'UsersIDs.required' => 'Assign To field is required.'
         );
         $validator = Validator::make($data, $rules, $messages);
         if ($validator->fails()) {
             return $this->response->error($validator->errors(),'432');
         }
-		
+        $data['DueDate'] = isset($data['StartTime']) && !empty($data['StartTime'])?$data['DueDate'].' '.$data['StartTime']:$data['DueDate'];
+        unset($data['StartTime']);
 		unset($data['scrol']);
         try {
 
@@ -252,13 +252,13 @@ class TaskController extends BaseController {
     }
 
 
-	/**
-	 * Update the specified resource in storage.
-	 * PUT /dealboard/{id}/update
-	 *
-	 * @param  int  $id
-	 * @return Response
-	 */
+    /**
+     * Update the specified resource in storage.
+     * PUT /dealboard/{id}/update
+     *
+     * @param  int  $id
+     * @return Response
+     */
     //@clarification:will not update attribute against leads
     public function updateTask($id)
     {
@@ -270,9 +270,7 @@ class TaskController extends BaseController {
                 'CompanyID' => 'required',
                 'Subject' => 'required',
                 'UsersIDs'=>'required',
-                'TaskStatus'=>'required',
-                'DueDate'=>'required',
-                'Priority'=>'required'
+                'TaskStatus'=>'required'
             );
 
             $messages = array(
@@ -289,17 +287,12 @@ class TaskController extends BaseController {
                     $taggedUser = implode(',', $data['TaggedUser']);
                     $data['TaggedUser'] = $taggedUser;
                 }
-                if(isset($data['UsersIDs'])) {
-                    $taggedUser = implode(',', $data['UsersIDs']);
-                    $data['UsersIDs'] = $taggedUser;
-                }
-                if(isset($data['AccountIDs'])) {
-                    $taggedUser = implode(',', $data['AccountIDs']);
-                    $data['AccountIDs'] = $taggedUser;
-                }
                 $data['BoardColumnID'] = $data["TaskStatus"];
+                $data['DueDate'] = isset($data['StartTime']) && !empty($data['StartTime'])?$data['DueDate'].' '.$data['StartTime']:$data['DueDate'];
+                $data['Priority'] = isset($data['Priority'])?1:0;
                 unset($data["TaskStatus"]);
                 unset($data['TaskID']);
+                unset($data['StartTime']);
                 Log::info($data);
                 Task::where(['TaskID' => $id])->update($data);
             } catch (\Exception $ex){
@@ -344,12 +337,12 @@ class TaskController extends BaseController {
         $reponse_data = ['status' => 'success', 'data' => ['result' => $Priorities], 'status_code' => 200];
         return API::response()->array($reponse_data)->statusCode(200);
     }
-	
-	public function get_allowed_extensions(){
-		$allowed 				= 	getenv("CRM_ALLOWED_FILE_UPLOAD_EXTENSIONS");
-        $allowedextensions	 	= 	explode(',',$allowed);
-		$allowedextensions 		= 	array_change_key_case($allowedextensions);
-		return $allowedextensions;
-	}
+
+    public function get_allowed_extensions(){
+        $allowed     =  getenv("CRM_ALLOWED_FILE_UPLOAD_EXTENSIONS");
+        $allowedextensions   =  explode(',',$allowed);
+        $allowedextensions   =  array_change_key_case($allowedextensions);
+        return $allowedextensions;
+    }
 
 }
