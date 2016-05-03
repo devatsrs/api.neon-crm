@@ -2,6 +2,7 @@
 namespace Api\Model;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Session;
 
 class Company extends \Eloquent {
     protected $guarded = array();
@@ -171,7 +172,6 @@ class Company extends \Eloquent {
     }
 
     public static function getLicenceResponse(){
-
         $LicenceApiResponse = Session::get('LicenceApiResponse','');
 
         if(empty($LicenceApiResponse)) { // if first time login ...

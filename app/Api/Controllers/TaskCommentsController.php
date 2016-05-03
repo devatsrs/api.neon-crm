@@ -2,7 +2,7 @@
 namespace Api\Controllers;
 
 use Api\Model\Account;
-use Api\Model\Opportunity;
+use Api\Model\Task;
 use Api\Model\CRMComments;
 use Api\Model\User;
 use App\AmazonS3;
@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
-class OpportunityCommentsController extends BaseController {
+class TaskCommentsController extends BaseController {
 
     public function __construct()
     {
@@ -26,7 +26,7 @@ class OpportunityCommentsController extends BaseController {
      */
     public function get_comments($id){
         $select = ['CommentText','AttachmentPaths','created_at','CreatedBy'];
-        $result = CRMComments::select($select)->where(['ParentID'=>$id,'CommentType'=>CRMComments::opportunityComments])->orderby('created_at','desc')->get();
+        $result = CRMComments::select($select)->where(['ParentID'=>$id,'CommentType'=>CRMComments::taskComments])->orderby('created_at','desc')->get();
         $reponse_data = ['status' => 'success', 'data' => ['result' => $result], 'status_code' => 200];
         return API::response()->array($reponse_data)->statusCode(200);
     }
@@ -40,7 +40,7 @@ class OpportunityCommentsController extends BaseController {
     public function add_comment(){
         $data = Input::all();
         $rules = array(
-            'OpportunityID' => 'required',
+            'TaskID' => 'required',
             'CommentText'=>'required'
         );
         $validator = Validator::make($data, $rules);
@@ -70,9 +70,8 @@ class OpportunityCommentsController extends BaseController {
             foreach ($commentattachment as $attachment) {
                 $ext = $ext = $attachment['Extension'];
                 $originalfilename = $attachment['fileName'];
-                $file_name = "OpportunityAttachment_" . Uuid::uuid() . '.' . $ext;
-
-                $amazonPath = \App\AmazonS3::generate_upload_path(\App\AmazonS3::$dir['OPPORTUNITY_ATTACHMENT']);
+                $file_name = "TaskAttachment_" . Uuid::uuid() . '.' . $ext;
+                $amazonPath = \App\AmazonS3::generate_upload_path(\App\AmazonS3::$dir['TASK_ATTACHMENT']);
                 $destinationPath = getenv("UPLOAD_PATH") . '/' . $amazonPath;
                 rename_win($attachment['file'],$destinationPath.$file_name);
                 if (!\App\AmazonS3::upload($destinationPath . $file_name, $amazonPath)) {
@@ -88,17 +87,17 @@ class OpportunityCommentsController extends BaseController {
         }
 
         $comment_data["CommentText"] = $data["CommentText"];
-        $comment_data["ParentID"] = $data["OpportunityID"];
-        $comment_data["CommentType"] = CRMComments::opportunityComments;
+        $comment_data["ParentID"] = $data["TaskID"];
+        $comment_data["CommentType"] = CRMComments::taskComments;
         $comment_data["CreatedBy"] = User::get_user_full_name();
         $comment_data["UserID"] = User::get_userID();
         $companyID = User::get_companyID();
         $data ["CompanyID"] = $companyID;
         try{
             CRMComments::create($comment_data);
-            $opportunity = Opportunity::where(['OpportunityID'=>$data["OpportunityID"]])->get();
-            $taggedUsers = explode(',',$opportunity[0]->TaggedUser);
-            $taggedUsers[] = $opportunity[0]->UserID;
+            $task = Task::where(['TaskID'=>$data["TaskID"]])->get();
+            $taggedUsers = explode(',',$task[0]->TaggedUser);
+            $taggedUsers[] = $task[0]->UsersIDs;
             $users = User::whereIn('UserID',$taggedUsers)->select(['EmailAddress'])->lists('EmailAddress');
             $emailData['Subject']='New Comment';
             $status['status'] = 1;
@@ -106,17 +105,17 @@ class OpportunityCommentsController extends BaseController {
             $emailData['CompanyID'] = $data ["CompanyID"];
             $emailData['EmailToName'] = '';
             $emailData['CreatedBy'] = User::get_user_full_name();
-            $emailData['Task'] = $opportunity[0]->OpportunityName.' Opportunity';
+            $emailData['Task'] = $task[0]->Subject.' Task';
             $emailData['Logo'] = '<img src="'.getCompanyLogo().'" width="120" alt="" />';
             //$emailData['mandrill'] =1;
             if(!empty($users) && count($users)>0){
                 $emailData['EmailTo'] = (array)$users;
                 $status = sendMail('emails.crm.AccountUserEmailSend',$emailData);
-                Log::info($status);
             }
             if($status['status']==1){
                 if(isset($data['PrivateComment']) && $data['PrivateComment']==1) {
                     $account = Account::find($data['AccountID']);
+                    Log::info($account);
                     $emailData['AccountID'] = $account->AccountID;
                     $emailData['EmailTo'] = $account->Email;
                     $emailData['EmailToName'] = $account->FirstName.' '.$account->LastName;
@@ -134,7 +133,7 @@ class OpportunityCommentsController extends BaseController {
             Log::info($ex);
             return $this->response->errorInternal($ex->getMessage());
         }
-        /*$reponse_data = ['status' => 'success', 'data' => ['result' => $opportunity], 'status_code' => 200];
+        /*$reponse_data = ['status' => 'success', 'data' => ['result' => $task], 'status_code' => 200];
         return API::response()->array($reponse_data)->statusCode(200);*/
         return API::response()->array(['status' => 'success', 'message' => 'Comment save successfully', 'status_code' => 200])->statusCode(200);
 

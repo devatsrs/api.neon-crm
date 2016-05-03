@@ -2,8 +2,8 @@
 
 namespace Api\Controllers;
 
-use Api\Model\OpportunityBoard;
-use Api\Model\OpportunityBoardColumn;
+use Api\Model\CRMBoard;
+use Api\Model\CRMBoardColumn;
 use Api\Model\User;
 use Api\Model\DataTableSql;
 use App\Http\Requests;
@@ -41,10 +41,10 @@ class OpportunityBoardController extends BaseController
         if ($validator->fails()) {
             return $this->response->error($validator->errors(),'432');
         }
-        $columns = ['OpportunityBoardName' ,'Status','CreatedBy','OpportunityBoardID'];
+        $columns = ['BoardName' ,'Status','CreatedBy','BoardID'];
         $data['Active'] = $data['Active']==''?2:$data['Active'];
         $sort_column = $columns[$data['iSortCol_0']];
-        $query = "call prc_GetOpportunityBoard (".$companyID.",".$data['Active'].",'".$data['OpportunityBoardName']."',".( ceil($data['iDisplayStart']/$data['iDisplayLength']) )." ,".$data['iDisplayLength'].",'".$sort_column."','".$data['sSortDir_0']."'";
+        $query = "call prc_GetCRMBoard (".$companyID.",".$data['Active'].",'".$data['BoardName']."',".CRMBoard::OpportunityBoard.",".( ceil($data['iDisplayStart']/$data['iDisplayLength']) )." ,".$data['iDisplayLength'].",'".$sort_column."','".$data['sSortDir_0']."'";
         if(isset($data['Export']) && $data['Export'] == 1) {
             $result  = DB::select($query.',1)');
         }else{
@@ -61,18 +61,28 @@ class OpportunityBoardController extends BaseController
         $companyID = User::get_companyID();
         $data ["CompanyID"] = $companyID;
         $rules = array(
-            'OpportunityBoardName' => 'required',
-            'CompanyID'=>'required'
+            'BoardName' => 'required',
+            'CompanyID'=>'required|Numeric',
+            'BoardType'=>'required|Numeric'
         );
         $validator = Validator::make($data, $rules);
         if ($validator->fails()) {
             return $this->response->error($validator->errors(),'432');
         }
+
+        if($data['BoardType']==CRMBoard::TaskBoard && CRMBoard::where(['BoardType'=>CRMBoard::TaskBoard])->count() > 0){
+            return $this->response->error('Task Board already created','432');
+        }
+
         $data['Status'] = isset($data['Status']) ? 1 : 0;
         $data["CreatedBy"] = User::get_user_full_name();
         try{
-            $boardID = OpportunityBoard::insertGetId($data);
-            OpportunityBoardColumn::addDefaultColumns($boardID);
+            $boardID = CRMBoard::insertGetId($data);
+            if($data['BoardType']==CRMBoard::OpportunityBoard){
+                CRMBoardColumn::addDefaultColumns($boardID,CRMBoard::OpportunityBoard);
+            }else{
+                CRMBoardColumn::addDefaultColumns($boardID,CRMBoard::TaskBoard);
+            }
         }catch (\Exception $ex){
             Log::info($ex);
             return $this->response->errorInternal($ex->getMessage());
@@ -84,7 +94,7 @@ class OpportunityBoardController extends BaseController
     {
         if( $id > 0 ) {
             $data = Input::all();
-            $OpportunityBoard = OpportunityBoard::findOrFail($id);
+            $Board = CRMBoard::findOrFail($id);
 
             $companyID = User::get_companyID();
             $data ["CompanyID"] = $companyID;
@@ -92,7 +102,7 @@ class OpportunityBoardController extends BaseController
             $data["ModifiedBy"] = User::get_user_full_name();
             $rules = array(
                 'CompanyID' => 'required',
-                'OpportunityBoardName' => 'required',
+                'BoardName' => 'required',
             );
             $validator = Validator::make($data, $rules);
 
@@ -100,7 +110,7 @@ class OpportunityBoardController extends BaseController
                 return $this->response->error($validator->errors(),'432');
             }
             try{
-                $OpportunityBoard->update($data);
+                $Board->update($data);
             }catch (\Exception $ex){
                 Log::info($ex);
                 return $this->response->errorInternal($ex->getMessage());

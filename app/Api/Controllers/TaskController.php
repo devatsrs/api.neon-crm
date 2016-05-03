@@ -200,16 +200,18 @@ class TaskController extends BaseController {
             return $this->response->error($validator->errors(),'432');
         }
         $data['DueDate'] = isset($data['StartTime']) && !empty($data['StartTime'])?$data['DueDate'].' '.$data['StartTime']:$data['DueDate'];
+        $Task_view = isset($data['Task_view'])?1:0;
         unset($data['StartTime']);
 		unset($data['scrol']);
+        unset($data['Task_view']);
+
         try {
 
-            //Add new tags to db against task
-            //Tags::insertNewTags(['tags' => $data['Tags'], 'TagType' => Tags::Task_tag]);
             $count = Task::where(['CompanyID' => $companyID, 'BoardID' => $data['BoardID'], 'BoardColumnID' => $data["TaskStatus"]])->count();
             $data['Order'] = $count;
             $data['CreatedBy'] = User::get_user_full_name();
             $data['BoardColumnID'] = $data["TaskStatus"];
+
             
             
 			if(isset($data['AccountIDs'])){
@@ -221,6 +223,7 @@ class TaskController extends BaseController {
 
             unset($data["TaskStatus"]);
             unset($data['TaskID']);
+			unset($data['StartTime']);
             Log::Info($data);
             $result  			=   Task::create($data);
           if(isset($data['Task_type']) && $data['Task_type']!=0)
@@ -247,8 +250,14 @@ class TaskController extends BaseController {
             Log::info($ex);
             return $this->response->errorInternal($ex->getMessage());
         }
-	
-	    return API::response()->array(['status' => 'success' , 'data' => ['result' => $result],  'message' => 'Task Successfully Created'.$message, 'status_code' => 200])->statusCode(200);
+
+        if($Task_view)
+        {
+            return API::response()->array(['status' => 'success', 'message' => 'Task Successfully Created'.$message, 'status_code' => 200])->statusCode(200);
+        }
+        else {
+            return API::response()->array(['status' => 'success', 'data' => ['result' => $result], 'message' => 'Task Successfully Created' . $message, 'status_code' => 200])->statusCode(200);
+        }
     }
 
 

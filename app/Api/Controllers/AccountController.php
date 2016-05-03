@@ -233,7 +233,7 @@ class AccountController extends BaseController
             $query = "call prc_getAccountTimeLine(" . $data['AccountID'] . "," . $companyID . "," . $data['iDisplayStart'] . "," . $data['iDisplayLength'] . ")";
 
             $result_array = DB::select($query);
-
+            \Illuminate\Support\Facades\Log::info($result_array);
             $reponse_data = ['status' => 'success', 'data' => ['result' => $result_array], 'status_code' => 200,"query"=>$query];
             return API::response()->array($reponse_data)->statusCode(200);
         }
