@@ -113,7 +113,10 @@ class AccountActivityController extends BaseController {
 
         $data['mandrill'] = 0;
         try{
-            $status 				= 	sendMail('emails.account.AccountEmailSend',$data);           
+            if(isset($data['email_send'])&& $data['email_send']==1) {
+                $status = sendMail('emails.account.AccountEmailSend', $data);
+            }
+
             $result 				= 	email_log_data($data);
            	$result['message'] 		= 	'Email Sent Successfully';
 			$user_data 				= 	User::where(["EmailAddress" => $data['email-to']])->get();
@@ -143,6 +146,24 @@ class AccountActivityController extends BaseController {
             return $this->response->errorInternal($e->getMessage());
         }
         return API::response()->array(['status' => 'success', 'data'=>['Email'=>$Email] , 'status_code' => 200])->statusCode(200);
+    }
+
+    public function DeleteMail(){
+        $data = Input::all();
+        Log::info($data);
+        $rules['AccountEmailLogID'] = 'required';
+        $validator = Validator::make($data, $rules);
+        if ($validator->fails()) {
+            return $this->response->error($validator->errors(),'432');
+        }
+
+        try{
+            AccountEmailLog::where(['AccountEmailLogID'=>$data['AccountEmailLogID']])->delete();
+        }catch (\Exception $ex){
+            Log::info($ex);
+            return $this->response->errorInternal($ex->getMessage());
+        }
+        return API::response()->array(['status' => 'success',"message"=>"successfull", 'status_code' => 200])->statusCode(200);
     }
 
 }

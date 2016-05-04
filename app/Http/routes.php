@@ -43,9 +43,13 @@ $api->version('v1', function ($api) {
 			$api->delete('account/delete_temp_credit', 'AccountController@DeleteTempCredit');
 			$api->post('account/add_note', 'AccountController@add_note');
             $api->get('account/get_note','AccountController@GetNote');
+            $api->post('account/delete_note','AccountController@DeleteNote');
+
+
             $api->get('account/GetTimeLine', 'AccountController@GetTimeLine');
             $api->post('accounts/sendemail', 'AccountActivityController@sendMail');
             $api->get('account/get_email','AccountActivityController@GetMail');
+            $api->post('account/delete_email','AccountActivityController@DeleteMail');
 
 			// account threshold credit
 			$api->get('account/get_account_threshold', 'AccountController@GetAccountThreshold');

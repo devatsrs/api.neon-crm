@@ -7,6 +7,8 @@ use Api\Model\User;
 use Api\Model\Tags;
 use Api\Model\Lead;
 use Api\Model\CRMBoardColumn;
+use Api\Model\AccountEmailLog;
+use Api\Model\Account;
 use App\AmazonS3;
 use App\Http\Requests;
 use Dingo\Api\Facade\API;
@@ -240,7 +242,30 @@ class TaskController extends BaseController {
                 {
                     $sql = "update AccountEmailLog set created_at = '".$new_date."', updated_at ='".$new_date."'  where AccountEmailLogID ='".$data['ParentID']."'";
                     db::statement($sql);
-                    Log::Info($sql);
+                    $Email      = AccountEmailLog::where(['AccountEmailLogID'=>$data['ParentID']])->get();
+                    $Email      = $Email[0];
+                    $account    = Account::find($data['AccountIDs']);
+                    $JobLoggedUser = User::find(User::get_userID());
+                    $Signature = '';
+                    if(!empty($JobLoggedUser)){
+                        if(isset($JobLoggedUser->EmailFooter) && trim($JobLoggedUser->EmailFooter) != '')
+                        {
+                            $Signature = $JobLoggedUser->EmailFooter;
+                        }
+                    }
+
+                    $extra      = ['{{FirstName}}','{{LastName}}','{{Email}}','{{Address1}}','{{Address2}}','{{Address3}}','{{City}}','{{State}}','{{PostCode}}','{{Country}}','{{Signature}}'];
+                    $replace    = [$account->FirstName,$account->LastName,$account->Email,$account->Address1,$account->Address2,$account->Address3,$account->City,$account->State,$account->PostCode,$account->Country,$Signature];
+
+                    $Email['extra'] = $extra;
+                    $Email['replace'] = $replace;
+                    $Email['AttachmentPaths'] = unserialize($Email['AttachmentPaths']);
+                    $Email['cc'] = $Email['Cc'];
+                    $Email['bcc'] = $Email['Bcc'];
+                    $Email['address']   =   $Email['Emailfrom'];
+                    $Email['name']   =  $Email['CreatedBy'];
+
+                    $status = sendMail('emails.account.AccountEmailSend', $Email);
                 }
             }
 		   $sql 				= 	"CALL `prc_GetTasksSingle`(".$result['TaskID'].")";

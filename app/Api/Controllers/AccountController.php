@@ -196,7 +196,6 @@ class AccountController extends BaseController
         }
     }
 
-
     public function GetNote()
     {
         $data = Input::all();
@@ -241,6 +240,24 @@ class AccountController extends BaseController
             Log::info($ex);
             return $this->response->errorInternal($ex->getMessage());
         }
+    }
+
+    public function DeleteNote(){
+        $data = Input::all();
+
+        $rules['NoteID'] = 'required';
+        $validator = Validator::make($data, $rules);
+        if ($validator->fails()) {
+            return $this->response->error($validator->errors(),'432');
+        }
+
+        try{
+            Note::where(['NoteID'=>$data['NoteID']])->delete();
+        }catch (\Exception $ex){
+            Log::info($ex);
+            return $this->response->errorInternal($ex->getMessage());
+        }
+        return API::response()->array(['status' => 'success',"message"=>"successfull", 'status_code' => 200])->statusCode(200);
     }
 
 }
