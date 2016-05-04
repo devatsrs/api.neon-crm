@@ -107,12 +107,10 @@ class TaskCommentsController extends BaseController {
             $emailData['CreatedBy'] = User::get_user_full_name();
             $emailData['Task'] = $task[0]->Subject.' Task';
             $emailData['Logo'] = '<img src="'.getCompanyLogo().'" width="120" alt="" />';
-            Log::info($users);
             //$emailData['mandrill'] =1;
             if(!empty($users) && count($users)>0){
                 $emailData['EmailTo'] = (array)$users;
                 $status = sendMail('emails.crm.AccountUserEmailSend',$emailData);
-                Log::info($status);
             }
             if($status['status']==1){
                 if(isset($data['PrivateComment']) && $data['PrivateComment']==1) {
