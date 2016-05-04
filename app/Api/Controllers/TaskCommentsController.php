@@ -98,7 +98,12 @@ class TaskCommentsController extends BaseController {
             $task = Task::where(['TaskID'=>$data["TaskID"]])->get();
             $taggedUsers = explode(',',$task[0]->TaggedUser);
             $taggedUsers[] = $task[0]->UsersIDs;
-            $users = User::whereIn('UserID',$taggedUsers)->select(['EmailAddress'])->lists('EmailAddress');
+            $users = User::whereIn('UserID',$taggedUsers)->select(['EmailAddress'])->get('EmailAddress');
+            $emailTo = [];
+            foreach($users as $user){
+                $emailTo[] = $user->EmailAddress;
+            }
+            Log::info($emailTo);exit();
             $emailData['Subject']='New Comment';
             $status['status'] = 1;
             $emailData['Message'] = $comment_data['CommentText'];
@@ -108,8 +113,8 @@ class TaskCommentsController extends BaseController {
             $emailData['Task'] = $task[0]->Subject.' Task';
             $emailData['Logo'] = '<img src="'.getCompanyLogo().'" width="120" alt="" />';
             //$emailData['mandrill'] =1;
-            if(!empty($users) && count($users)>0){
-                $emailData['EmailTo'] = (array)$users;
+            if(!empty($emailTo) && count($emailTo)>0){
+                $emailData['EmailTo'] = $emailTo;
                 $status = sendMail('emails.crm.AccountUserEmailSend',$emailData);
             }
             if($status['status']==1){

@@ -60,9 +60,6 @@
 
         if (is_array($data['EmailTo'])) {
             foreach ((array)$data['EmailTo'] as $email_address) {
-                if(is_array($email_address)){
-                    $email_address= $email_address[0];
-                }
                 $mail->addAddress(trim($email_address));
             }
         } else {
