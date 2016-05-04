@@ -75,7 +75,7 @@ class AuthController extends BaseController
 
     public function logout() {
         Session::flush();
-        Auth::logout();
+        //Auth::logout();
         //JWTAuth::invalidate(JWTAuth::getToken());
         return $this->response()->accepted()->header('Authorization', '');
     }
