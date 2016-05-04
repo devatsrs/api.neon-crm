@@ -127,6 +127,9 @@ class TaskCommentsController extends BaseController {
                     $status = sendMail('emails.crm.AccountUserEmailSend',$emailData);
                     $emailData['Message'] = $status['body'];
                     $status = email_log($emailData);
+                    if($status['status']==0){
+                        return $this->response->errorBadRequest($status['message']);
+                    }
                 }
             }else{
                 return $this->response->errorBadRequest($status['message']);
