@@ -71,4 +71,11 @@ class AuthController extends BaseController
         create_site_configration_cache();
         return response()->json(compact('token'));
     }
+
+    public function logout() {
+        Session::flush();
+        Auth::logout();
+        //JWTAuth::invalidate(JWTAuth::getToken());
+        return $this->response()->accepted()->header('Authorization', '');
+    }
 }
