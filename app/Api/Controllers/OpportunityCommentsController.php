@@ -85,6 +85,7 @@ class OpportunityCommentsController extends BaseController {
 
         if(!empty($commentattachments)){
             $comment_data['AttachmentPaths'] = json_encode($commentattachments);
+            $emailData['AttachmentPaths'] = $commentattachments;
         }
 
         $comment_data["CommentText"] = $data["CommentText"];

@@ -84,6 +84,7 @@ class TaskCommentsController extends BaseController {
 
         if(!empty($commentattachments)){
             $comment_data['AttachmentPaths'] = json_encode($commentattachments);
+            $emailData['AttachmentPaths'] = $commentattachments;
         }
 
         $comment_data["CommentText"] = $data["CommentText"];
@@ -119,7 +120,6 @@ class TaskCommentsController extends BaseController {
             if($status['status']==1){
                 if(isset($data['PrivateComment']) && $data['PrivateComment']==1) {
                     $account = Account::find($data['AccountID']);
-                    Log::info($account);
                     $emailData['AccountID'] = $account->AccountID;
                     $emailData['EmailTo'] = $account->Email;
                     $emailData['EmailToName'] = $account->FirstName.' '.$account->LastName;
@@ -135,10 +135,7 @@ class TaskCommentsController extends BaseController {
             Log::info($ex);
             return $this->response->errorInternal($ex->getMessage());
         }
-        /*$reponse_data = ['status' => 'success', 'data' => ['result' => $task], 'status_code' => 200];
-        return API::response()->array($reponse_data)->statusCode(200);*/
         return API::response()->array(['status' => 'success', 'message' => 'Comment save successfully', 'status_code' => 200])->statusCode(200);
-
     }
 
 }

@@ -241,6 +241,17 @@
         return $path;
     }
 
+    function is_amazon(){
+        $AMAZONS3_KEY  = getenv("AMAZONS3_KEY");
+        $AMAZONS3_SECRET = getenv("AMAZONS3_SECRET");
+        $AWS_REGION = getenv("AWS_REGION");
+
+        if(empty($AMAZONS3_KEY) || empty($AMAZONS3_SECRET) || empty($AWS_REGION) ){
+            return false;
+        }
+        return true;
+    }
+
     function create_site_configration_cache(){
         $domain_url      =   $_SERVER['HTTP_HOST'];
         $result       =  \Illuminate\Support\Facades\DB::table('tblCompanyThemes')->where(["DomainUrl" => $domain_url,'ThemeStatus'=>\Api\Model\Themes::ACTIVE])->get();
