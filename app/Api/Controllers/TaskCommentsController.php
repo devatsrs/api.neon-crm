@@ -103,7 +103,6 @@ class TaskCommentsController extends BaseController {
             foreach($users as $user){
                 $emailTo[] = $user->EmailAddress;
             }
-            Log::info($emailTo);exit();
             $emailData['Subject']='New Comment';
             $status['status'] = 1;
             $emailData['Message'] = $comment_data['CommentText'];
