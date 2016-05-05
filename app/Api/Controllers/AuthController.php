@@ -2,12 +2,16 @@
 
 namespace Api\Controllers;
 
-use App\User;
+
+use Api\Model\User;
+use Api\Model\Company;
 use Dingo\Api\Facade\API;
 use Illuminate\Http\Request;
 use Api\Requests\UserRequest;
+use Illuminate\Support\Facades\Session;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
+use Illuminate\Support\Facades\Auth;
 
 class AuthController extends BaseController
 {
@@ -20,7 +24,7 @@ class AuthController extends BaseController
     {
         // grab credentials from the request
         $credentials = $request->only('EmailAddress', 'password');
-
+        $credentials_license  = $request->only("LicenceHost","LicenceIP","LicenceKey");
         try {
             // attempt to verify the credentials and create a token for the user
             if (! $token = JWTAuth::attempt($credentials)) {
@@ -30,6 +34,14 @@ class AuthController extends BaseController
             // something went wrong whilst attempting to encode the token
             return response()->json(['error' => 'could_not_create_token'], 500);
         }
+
+		 $license = 	Company::getLicenceResponse($credentials_license);
+		 if($license['Status']!=1)
+		 {
+			$this->logout();	
+		   return response()->json(['error' => $license['Message']], 401);	
+		 }
+        create_site_configration_cache();
 
         // all good so return the token
         return response()->json(compact('token'));
@@ -52,5 +64,19 @@ class AuthController extends BaseController
         $token = JWTAuth::fromUser($user);
 
         return response()->json(compact('token'));
+    }
+
+    public function byId($id){
+        $user = User::find($id);
+        $token = JWTAuth::fromUser($user);
+        create_site_configration_cache();
+        return response()->json(compact('token'));
+    }
+
+    public function logout() {
+        Session::flush();
+        Auth::logout();
+        //JWTAuth::invalidate(JWTAuth::getToken());
+        return $this->response()->accepted()->header('Authorization', '');
     }
 }
