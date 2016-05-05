@@ -35,8 +35,7 @@ class OpportunityBoardController extends BaseController
         $companyID = User::get_companyID();
         $rules['iDisplayStart'] ='required|Min:1';
         $rules['iDisplayLength']='required';
-        $rules['iDisplayLength']='required';
-        $rules['sSortDir_0']='required';
+        $rules['iSortCol_0']='required';
         $validator = Validator::make($data, $rules);
         if ($validator->fails()) {
             return $this->response->error($validator->errors(),'432');

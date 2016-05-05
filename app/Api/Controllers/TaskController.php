@@ -47,7 +47,6 @@ class TaskController extends BaseController {
         if($data['fetchType']=='Grid') {
             $rules['iDisplayStart'] = 'required|Min:1';
             $rules['iDisplayLength'] = 'required';
-            $rules['iDisplayLength'] = 'required';
             $rules['sSortDir_0'] = 'required';
             $validator = Validator::make($data, $rules);
             if ($validator->fails()) {
