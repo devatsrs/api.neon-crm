@@ -1,12 +1,10 @@
 <?php
 namespace Api\Model;
+
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 
-
-class Company extends Model{
-
+class Company extends \Eloquent {
     protected $guarded = array();
 
     protected $table = 'tblCompany';
@@ -68,20 +66,22 @@ class Company extends Model{
 
     }
 
-    public static function ValidateLicenceKey($credentials){
-        $result 						= 	array();
-        $result['LicenceHost']   	 	= 	$credentials['LicenceHost'];
-        $result['LicenceIP']	 	 	= 	$credentials['LicenceIP'];
-        $result['LicenceKey'] 	 	 	= 	$credentials['LicenceKey'];
-        $result['Type'] 			 	= 	'';
-        $result['LicenceProperties'] 	= 	'';
-        $company_id 					= 	User::get_companyID();
-        $result['CompanyName'] 			= 	company::getName($company_id);
-        if(!empty($credentials['LicenceKey'])) {
+    public static function ValidateLicenceKey(){
+        $LICENCE_KEY = getenv('LICENCE_KEY');
+        $result = array();
+        $result['LicenceHost'] = $_SERVER['HTTP_HOST'];
+        $result['LicenceIP'] = $_SERVER['SERVER_ADDR'];
+        $result['LicenceKey'] = $LICENCE_KEY;
+        $result['Type'] = '';
+        $result['LicenceProperties'] = '';
+        $company_id = User::get_companyID();
+        $result['CompanyName'] = company::getName($company_id);
+        //$result['CompanyName'] = 'abc';
+        if(!empty($LICENCE_KEY)) {
 
-            $post = array("host" => $credentials['LicenceHost'], "ip" => $credentials['LicenceIP'], "licence_key" =>$credentials['LicenceKey'], "company_name" => $result['CompanyName']);
+            $post = array("host" => $_SERVER['HTTP_HOST'], "ip" => $_SERVER['SERVER_ADDR'], "licence_key" => getenv('LICENCE_KEY'), "company_name" => $result['CompanyName']);
             $response = call_api($post);
-           if (!empty($response)) {
+            if (!empty($response)) {
                 $response = json_decode($response,TRUE);
                 $result['Status'] = $response['Status'] ;
                 $result['Message'] = $response['Message'];
@@ -92,9 +92,13 @@ class Company extends Model{
                 $result['Status'] = 0 ;
                 $result['Message'] = 'Unable To Validate Licence';
                 $result['ExpiryDate']='';
+                $result['Status'] = 1;
+                $result['Message'] = "Your Licence is Valid";
+                $result['Type'] = '3';
             }
 
         }else{
+
             $result['Message'] = "Licence key not found";
             $result['Status'] = "Licence key not found";
             $result['ExpiryDate'] = "";
@@ -167,10 +171,14 @@ class Company extends Model{
 
     }
 
-    public static function getLicenceResponse($credentials){
-		$valresponse = Company::ValidateLicenceKey($credentials);
-		Session::set('LicenceApiResponse', $valresponse);
-		$LicenceApiResponse = $valresponse;
-		return $LicenceApiResponse;
+    public static function getLicenceResponse(){
+        $LicenceApiResponse = Session::get('LicenceApiResponse','');
+
+        if(empty($LicenceApiResponse)) { // if first time login ...
+            $valresponse = Company::ValidateLicenceKey();
+            Session::set('LicenceApiResponse', $valresponse);
+            $LicenceApiResponse = $valresponse;
+        }
+        return $LicenceApiResponse;
     }
 }

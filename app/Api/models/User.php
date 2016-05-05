@@ -65,10 +65,12 @@ class User extends Model implements AuthenticatableContract,
     public static  function get_user_full_name(){
         return Auth::user()->FirstName.' '. Auth::user()->LastName;
     }
-    public  static  function get_user_email(){
+	
+	   public static function get_user_email(){      
         return Auth::user()->EmailAddress;
     }
-    public  static  function get_userID(){
+	
+	   public static function get_userID(){       
         return Auth::user()->UserID;
     }
 }

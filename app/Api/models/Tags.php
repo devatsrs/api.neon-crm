@@ -2,10 +2,7 @@
 namespace Api\Model;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\DB;
-use Api\Model\User;
-
-class Tags extends Model{
+class Tags extends \Eloquent {
     protected $guarded = array("TagID");
 
     protected $table = 'tblTags';
@@ -14,9 +11,7 @@ class Tags extends Model{
     const  Account_tag = 1;
     const  Lead_tag = 2;
     const  Opportunity_tag = 3;
-    const  Task_tag = 4;
-
-    public static function getTagsArray($type = Tags::Account_tag){
+    public static function getTagsArray($type = 1){
         $tags = Tags::where(array('CompanyID'=>User::get_companyID(),'TagType'=>$type))->get(array("TagName"));
         if(!empty($tags)){
             $tagsname = [];
