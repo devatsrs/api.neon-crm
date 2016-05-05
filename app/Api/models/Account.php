@@ -3,6 +3,7 @@ namespace Api\Model;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Api\Model\CompanySetting;
 
 class Account extends Model
 {

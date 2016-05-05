@@ -11,7 +11,7 @@ use Api\Requests\UserRequest;
 use Illuminate\Support\Facades\Session;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
-
+use Illuminate\Support\Facades\Auth;
 
 class AuthController extends BaseController
 {
@@ -75,7 +75,7 @@ class AuthController extends BaseController
 
     public function logout() {
         Session::flush();
-        //Auth::logout();
+        Auth::logout();
         //JWTAuth::invalidate(JWTAuth::getToken());
         return $this->response()->accepted()->header('Authorization', '');
     }
