@@ -85,6 +85,7 @@ class OpportunityCommentsController extends BaseController {
 
         if(!empty($commentattachments)){
             $comment_data['AttachmentPaths'] = json_encode($commentattachments);
+            $emailData['AttachmentPaths'] = $commentattachments;
         }
 
         $comment_data["CommentText"] = $data["CommentText"];
@@ -99,7 +100,11 @@ class OpportunityCommentsController extends BaseController {
             $opportunity = Opportunity::where(['OpportunityID'=>$data["OpportunityID"]])->get();
             $taggedUsers = explode(',',$opportunity[0]->TaggedUser);
             $taggedUsers[] = $opportunity[0]->UserID;
-            $users = User::whereIn('UserID',$taggedUsers)->select(['EmailAddress'])->lists('EmailAddress');
+            $users = User::whereIn('UserID',$taggedUsers)->select(['EmailAddress'])->get('EmailAddress');
+            $emailTo = [];
+            foreach($users as $user){
+                $emailTo[] = $user->EmailAddress;
+            }
             $emailData['Subject']='New Comment';
             $status['status'] = 1;
             $emailData['Message'] = $comment_data['CommentText'];
@@ -109,10 +114,9 @@ class OpportunityCommentsController extends BaseController {
             $emailData['Task'] = $opportunity[0]->OpportunityName.' Opportunity';
             $emailData['Logo'] = '<img src="'.getCompanyLogo().'" width="120" alt="" />';
             //$emailData['mandrill'] =1;
-            if(!empty($users) && count($users)>0){
-                $emailData['EmailTo'] = (array)$users;
+            if(!empty($emailTo) && count($emailTo)>0){
+                $emailData['EmailTo'] = $emailTo;
                 $status = sendMail('emails.crm.AccountUserEmailSend',$emailData);
-                Log::info($status);
             }
             if($status['status']==1){
                 if(isset($data['PrivateComment']) && $data['PrivateComment']==1) {
@@ -122,10 +126,11 @@ class OpportunityCommentsController extends BaseController {
                     $emailData['EmailToName'] = $account->FirstName.' '.$account->LastName;
                     $emailData['CompanyID'] = $data ["CompanyID"];
                     $status = sendMail('emails.crm.AccountUserEmailSend',$emailData);
-                    Log::info($status);
                     $emailData['Message'] = $status['body'];
                     $status = email_log($emailData);
-                    Log::info($status);
+                    if($status['status']==0){
+                        return $this->response->errorBadRequest($status['message']);
+                    }
                 }
             }else{
                 return $this->response->errorBadRequest($status['message']);

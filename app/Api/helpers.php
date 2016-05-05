@@ -47,26 +47,23 @@ function sendMail($view,$data){
         if(isset($data['mandrill']) && $data['mandrill'] ==1){
             $mandrill = 1;
         }
-    $mail = setMailConfig($companyID,$mandrill,$data);
-	
-	$mail->isHTML(true);
-	if(isset($data['isHTML']) && $data['isHTML'] == 'false'){
-		$mail->isHTML(false);
-	}
-		
-	$body = htmlspecialchars_decode(View::make($view,compact('data'))->render());
+        $mail = setMailConfig($companyID, $mandrill, $data);
 
-    if(getenv('APP_ENV') != 'Production'){
-        $data['Subject'] = 'Test Mail '.$data['Subject'];
-    }
-    $mail->Body = $body;
-    $mail->Subject = $data['Subject'];
-	
-   if(is_array($data['EmailTo'])){
-            foreach((array)$data['EmailTo'] as $email_address){
-                if(is_array($email_address)){
-                    $email_address= $email_address[0];
-                }
+        $mail->isHTML(true);
+        if (isset($data['isHTML']) && $data['isHTML'] == 'false') {
+            $mail->isHTML(false);
+        }
+
+        $body = htmlspecialchars_decode(View::make($view, compact('data'))->render());
+
+        if (getenv('APP_ENV') != 'Production') {
+            $data['Subject'] = 'Test Mail ' . $data['Subject'];
+        }
+        $mail->Body = $body;
+        $mail->Subject = $data['Subject'];
+
+        if (is_array($data['EmailTo'])) {
+            foreach ((array)$data['EmailTo'] as $email_address) {
                 $mail->addAddress(trim($email_address));
             }
         }else{
@@ -339,6 +336,7 @@ function create_site_configration_cache(){
         }
         return $path;
     }
+
 
  function getCompanyLogo(){
      $domain_url      =   $_SERVER['HTTP_HOST'];
