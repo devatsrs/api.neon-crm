@@ -30,11 +30,19 @@ class OpportunityController extends BaseController {
 	  */
 
     public function getOpportunities($id){
+        if(empty($id) || !is_numeric($id) || $id==0 ) {
+            return API::response()->array(['status' => 'failed', 'message' => 'Board id is not provided or not valid', 'status_code' => 432])->statusCode(432);
+        }
         $companyID = User::get_companyID();
         $data = Input::all();
-        $data['account_owners'] = empty($data['account_owners'])?0:$data['account_owners'];
-        $data['AccountID'] = empty($data['AccountID'])?0:$data['AccountID'];
-        $query = "call prc_GetOpportunities (".$companyID.", ".$id.",'".$data['opportunityName']."',"."'".$data['Tags']."',".$data['account_owners'].", ".$data['AccountID'].")";
+        $defaultSelectd = implode(',',Opportunity::$defaultSelectedStatus);
+        $data['account_owners'] = isset($data['account_owners'])?empty($data['account_owners'])?0:$data['account_owners']:0;
+        $data['AccountID'] = isset($data['AccountID'])?empty($data['AccountID'])?0:$data['AccountID']:0;
+        $data['opportunityName'] = isset($data['opportunityName'])?empty($data['opportunityName'])?'':$data['opportunityName']:'';
+        $data['Tags'] = isset($data['Tags'])?empty($data['Tags'])?'':$data['Tags']:'';
+        $data['Status'] = isset($data['Status'])?empty($data['Status'])?$defaultSelectd:implode(',',$data['Status']):$defaultSelectd;
+        $query = "call prc_GetOpportunities (".$companyID.", ".$id.",'".$data['opportunityName']."',"."'".$data['Tags']."',".$data['account_owners'].", ".$data['AccountID'].",'".$data['Status']."')";
+        Log::info($query);
         try{
             $result = DB::select($query);
             $boradsWithOpportunities = [];
@@ -246,7 +254,11 @@ class OpportunityController extends BaseController {
                     $taggedUser = implode(',', $data['TaggedUser']);
                     $data['TaggedUser'] = $taggedUser;
                 }
+                if($data['Status']==Opportunity::Close){
+                    $data['ClosingDate'] = date('Y-m-d H:i:s');
+                }
                 unset($data['OpportunityID']);
+                Log::info($data);
                 Opportunity::where(['OpportunityID' => $id])->update($data);
             } catch (\Exception $ex){
                 Log::info($ex);
