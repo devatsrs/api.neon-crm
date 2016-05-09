@@ -9,6 +9,7 @@ $api->version('v1', function ($api) {
 
 		// Login route
 		$api->post('login', 'AuthController@authenticate');
+        $api->post('logout', 'AuthController@logout');
 		$api->post('register', 'AuthController@register');
         $api->get('l/{id}', 'AuthController@byId');
 
@@ -29,8 +30,13 @@ $api->version('v1', function ($api) {
             //leads
             $api->get('lead/{id}/get_account', 'LeadController@GetLead');
             $api->get('lead/get_leads', 'LeadController@GetLeads');
+            $api->post('lead/add_lead', 'LeadController@add_lead');
+            $api->post('lead/{id}/update_lead', 'LeadController@update_lead');
             //accounts
             $api->get('account/{id}/get_account', 'AccountController@GetAccount');
+            $api->post('account/add_account', 'AccountController@add_account');
+            $api->post('account/{id}/update_account', 'AccountController@update_account');
+            $api->get('account/GetAccountLeadByContactNumber', 'AccountController@GetAccountLeadByContactNumber');
 
 			// account credit
             $api->get('account/get_credit', 'AccountController@GetCredit');
