@@ -138,7 +138,7 @@ class TaskCommentsController extends BaseController {
             Log::info($ex);
             return $this->response->errorInternal($ex->getMessage());
         }
-        return API::response()->array(['status' => 'success', 'message' => 'Comment save successfully', 'status_code' => 200])->statusCode(200);
+        return API::response()->array(['status' => 'success', 'message' => 'Comment added successfully', 'status_code' => 200])->statusCode(200);
     }
 
 }

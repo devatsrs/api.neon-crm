@@ -141,7 +141,7 @@ class OpportunityCommentsController extends BaseController {
         }
         /*$reponse_data = ['status' => 'success', 'data' => ['result' => $opportunity], 'status_code' => 200];
         return API::response()->array($reponse_data)->statusCode(200);*/
-        return API::response()->array(['status' => 'success', 'message' => 'Comment save successfully', 'status_code' => 200])->statusCode(200);
+        return API::response()->array(['status' => 'success', 'message' => 'Comment added successfully', 'status_code' => 200])->statusCode(200);
 
     }
 

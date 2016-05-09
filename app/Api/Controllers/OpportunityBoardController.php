@@ -60,7 +60,7 @@ class OpportunityBoardController extends BaseController
         $companyID = User::get_companyID();
         $data ["CompanyID"] = $companyID;
         $rules = array(
-            'BoardName' => 'required',
+            'BoardName' => 'required|unique:tblCRMBoards,BoardName,NULL,BoardID,CompanyID,' . $data['CompanyID'],
             'CompanyID'=>'required|Numeric',
             'BoardType'=>'required|Numeric'
         );
@@ -100,6 +100,7 @@ class OpportunityBoardController extends BaseController
             $data['Status'] = isset($data['Status']) ? 1 : 0;
             $data["ModifiedBy"] = User::get_user_full_name();
             $rules = array(
+                'BoardName' => 'required|unique:tblCRMBoards,BoardName,'.$id.',BoardID,CompanyID,' . $data['CompanyID'],
                 'CompanyID' => 'required',
                 'BoardName' => 'required',
             );
