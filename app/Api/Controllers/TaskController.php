@@ -374,6 +374,7 @@ class TaskController extends BaseController {
     public function get_allowed_extensions(){
         $allowed     =  getenv("CRM_ALLOWED_FILE_UPLOAD_EXTENSIONS");
         $allowedextensions   =  explode(',',$allowed);
+        $allowedextensions   =  array_change_key_case($allowedextensions);
         $reponse_data = ['status' => 'success', 'data' => ['result' => $allowedextensions], 'status_code' => 200];
         return API::response()->array($reponse_data)->statusCode(200);
     }
