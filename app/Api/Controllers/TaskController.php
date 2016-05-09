@@ -38,13 +38,13 @@ class TaskController extends BaseController {
         if(!isset($data['fetchType'])){
             return $this->response->error('fetch Type field is required','432');
         }
-        $data['AccountOwner'] = empty($data['AccountOwner'])?0:$data['AccountOwner'];
-        $data['AccountID'] = empty($data['AccountID'])?0:$data['AccountID'];
-        $data['Priority'] = empty($data['Priority']) || $data['Priority']=='false'?0:$data['Priority'];
-        $data['TaskStatus'] = empty($data['TaskStatus'])?0:$data['TaskStatus'];
+        $data['AccountOwner'] = isset($data['AccountOwner'])?empty($data['AccountOwner'])?0:$data['AccountOwner']:'';
+        $data['AccountIDs'] = isset($data['AccountIDs'])?empty($data['AccountIDs'])?0:$data['AccountIDs']:0;
+        $data['Priority'] = isset($data['Priority'])?empty($data['Priority']) || $data['Priority']=='false'?0:$data['Priority']:0;
+        $data['TaskStatus'] = isset($data['TaskStatus'])?empty($data['TaskStatus'])?0:$data['TaskStatus']:0;
         if(isset($data['DueDateFilter'])){
-            $data['DueDateFrom'] = $data['DueDateFilter']!=Task::CustomDate?$data['DueDateFilter']:$data['DueDateFrom'];
-            $data['DueDateTo'] = $data['DueDateFilter']!=Task::CustomDate?$data['DueDateFilter']:$data['DueDateTo'];
+            $data['DueDateFrom'] = $data['DueDateFilter']!=Task::CustomDate?$data['DueDateFilter']:isset($data['DueDateFrom'])?$data['DueDateFrom']:'';
+            $data['DueDateTo'] = $data['DueDateFilter']!=Task::CustomDate?$data['DueDateFilter']:isset($data['DueDateTo'])?$data['DueDateTo']:'';
         }
         if($data['fetchType']=='Grid') {
             $rules['iDisplayStart'] = 'required|Min:1';
@@ -58,7 +58,7 @@ class TaskController extends BaseController {
             $columns = ['Subject', 'DueDate', 'Status', 'Priority','UserID'];
             $sort_column = $columns[$data['iSortCol_0']];
 
-            $query = "call prc_GetTasksGrid (" . $companyID . ", " . $id . ",'" . $data['taskName'] . "','" . $data['AccountOwner'] . "', " . $data['Priority'] .",'".$data['DueDateFrom']."','".$data['DueDateTo']."',".$data['TaskStatus'].",".(ceil($data['iDisplayStart'] / $data['iDisplayLength'])) . " ," . $data['iDisplayLength'] . ",'" . $sort_column . "','" . $data['sSortDir_0'] . "')";
+            $query = "call prc_GetTasksGrid (" . $companyID . ", " . $id . ",'" . $data['taskName'] . "'," . $data['AccountOwner'] . ", " . $data['AccountIDs'] . ", " . $data['Priority'] .",'".$data['DueDateFrom']."','".$data['DueDateTo']."',".$data['TaskStatus'].",".(ceil($data['iDisplayStart'] / $data['iDisplayLength'])) . " ," . $data['iDisplayLength'] . ",'" . $sort_column . "','" . $data['sSortDir_0'] . "')";
             try {
                 $result = DataTableSql::of($query)->make();
                 $reponse_data = ['status' => 'success', 'data' => ['result' => $result], 'status_code' => 200];
@@ -68,7 +68,7 @@ class TaskController extends BaseController {
                 return $this->response->errorInternal($ex->getMessage());
             }
         }elseif($data['fetchType']=='Board') {
-            $query = "call prc_GetTasksBoard (" . $companyID . ", " . $id . ",'" . $data['taskName'] . "','" . $data['AccountOwner'] . "', " . $data['Priority'].",'".$data['DueDateFrom']."','".$data['DueDateTo']."',".$data['TaskStatus'].")";
+            $query = "call prc_GetTasksBoard (" . $companyID . ", " . $id . ",'" . $data['taskName'] . "'," . $data['AccountOwner'] . ", " . $data['AccountIDs'] . ", " . $data['Priority'] .",'".$data['DueDateFrom']."','".$data['DueDateTo']."',".$data['TaskStatus'].")";
             try{
                 $result = DB::select($query);
                 $boardsWithITask = [];
@@ -371,17 +371,10 @@ class TaskController extends BaseController {
         return API::response()->array($reponse_data)->statusCode(200);
     }
 
-/*    public function get_allowed_extensions(){
-        $allowed     		 =  getenv("CRM_ALLOWED_FILE_UPLOAD_EXTENSIONS");
-        $allowedextensions   =  explode(',',$allowed);
-        $allowedextensions   =  array_change_key_case($allowedextensions);
-        return $allowedextensions;
-    }*/
-	
-	public function get_allowed_extensions(){
+    public function get_allowed_extensions(){
         $allowed     =  getenv("CRM_ALLOWED_FILE_UPLOAD_EXTENSIONS");
         $allowedextensions   =  explode(',',$allowed);
-		$allowedextensions   =  array_change_key_case($allowedextensions);
+        $allowedextensions   =  array_change_key_case($allowedextensions);
         $reponse_data = ['status' => 'success', 'data' => ['result' => $allowedextensions], 'status_code' => 200];
         return API::response()->array($reponse_data)->statusCode(200);
     }
