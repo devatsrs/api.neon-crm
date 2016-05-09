@@ -226,7 +226,7 @@ function email_log($data){
 }
 
 
-function email_log_data($data){
+function email_log_data($data,$view = ''){
     $status = array('status' => 0, 'message' => 'Something wrong with Saving log.');
     if(!isset($data['EmailTo']) && empty($data['EmailTo'])){
         $status['message'] = 'Email To not set in Account mail log';
@@ -267,11 +267,20 @@ function email_log_data($data){
 	{
 		$data['AttachmentPaths'] = serialize([]);
 	}
+	
+	if($view!='')
+	{	
+		$body = htmlspecialchars_decode(View::make($view, compact('data'))->render());
+	}
+	else
+	{
+		$body = $data['Message'];	
+	}
 
     $logData = ['EmailFrom'=>\Api\Model\User::get_user_email(),
         'EmailTo'=>$data['EmailTo'],
         'Subject'=>$data['Subject'],
-        'Message'=>$data['Message'],
+        'Message'=>$body,
         'AccountID'=>$data['AccountID'],
         'CompanyID'=>\Api\Model\User::get_companyID(),
         'UserID'=>\Api\Model\User::get_userID(),

@@ -117,7 +117,7 @@ class AccountActivityController extends BaseController {
                 $status = sendMail('emails.account.AccountEmailSend', $data);
             }
 
-            $result 				= 	email_log_data($data);
+            $result 				= 	email_log_data($data,'emails.account.AccountEmailSend');
            	$result['message'] 		= 	'Email Sent Successfully';
 			$user_data 				= 	User::where(["EmailAddress" => $data['email-to']])->get();
             if(count($user_data)>0) {
