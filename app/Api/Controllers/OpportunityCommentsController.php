@@ -27,8 +27,7 @@ class OpportunityCommentsController extends BaseController {
     public function get_comments($id){
         $select = ['CommentText','AttachmentPaths','created_at','CreatedBy'];
         $result = CRMComments::select($select)->where(['ParentID'=>$id,'CommentType'=>CRMComments::opportunityComments])->orderby('created_at','desc')->get();
-        $reponse_data = ['status' => 'success', 'data' => ['result' => $result], 'status_code' => 200];
-        return API::response()->array($reponse_data)->statusCode(200);
+        return generateResponse('',false,false,$result);
     }
 
 	/**
@@ -45,7 +44,7 @@ class OpportunityCommentsController extends BaseController {
         );
         $validator = Validator::make($data, $rules);
         if ($validator->fails()) {
-            return $this->response->error($validator->errors(),'432');
+            return generateResponse($validator->errors(),true);
         }
 
         $commentattachments = [];
@@ -58,17 +57,14 @@ class OpportunityCommentsController extends BaseController {
             foreach ($commentattachment as $attachment) {
                 $ext = $attachment['fileExtension'];
                 if (!in_array(strtolower($ext), $allowedextensions)) {
-                    $message             =  $ext." file type is not allowed. Allowed file types are ".$allowed;
-                    $validator_response  =  json_encode(["Uploaderror"=>[$message]]);
-                    $reponse_data        =  ['status' => 'failed','message' => $validator_response,  'status_code' => 432];
-                    return API::response()->array($reponse_data)->statusCode(432);
+                    return generateResponse($ext." file type is not allowed. Allowed file types are ".$allowed,true,true);
                 }
             }
 
             $commentattachment = uploaded_File_Handler($data['file']);
             $commentattachments=[];
             foreach ($commentattachment as $attachment) {
-                $ext = $ext = $attachment['Extension'];
+                $ext = $attachment['Extension'];
                 $originalfilename = $attachment['fileName'];
                 $file_name = "OpportunityAttachment_" . Uuid::uuid() . '.' . $ext;
 
@@ -76,7 +72,7 @@ class OpportunityCommentsController extends BaseController {
                 $destinationPath = getenv("UPLOAD_PATH") . '/' . $amazonPath;
                 rename_win($attachment['file'],$destinationPath.$file_name);
                 if (!\App\AmazonS3::upload($destinationPath . $file_name, $amazonPath)) {
-                    return $this->response->errorBadRequest('Failed to upload');
+                    return generateResponse('Failed to upload',true,true);
                 }
                 $fullPath = $amazonPath . $file_name;
                 $commentattachments[] = ['filename' => $originalfilename, 'filepath' => $fullPath];
@@ -97,9 +93,9 @@ class OpportunityCommentsController extends BaseController {
         $data ["CompanyID"] = $companyID;
         try{
             CRMComments::create($comment_data);
-            $opportunity = Opportunity::where(['OpportunityID'=>$data["OpportunityID"]])->get();
-            $taggedUsers = explode(',',$opportunity[0]->TaggedUser);
-            $taggedUsers[] = $opportunity[0]->UserID;
+            $opportunity = Opportunity::where(['OpportunityID'=>$data["OpportunityID"]])->get()[0];
+            $taggedUsers = explode(',',$opportunity->TaggedUser);
+            $taggedUsers[] = $opportunity->UserID;
             $users = User::whereIn('UserID',$taggedUsers)->select(['EmailAddress'])->get('EmailAddress');
             $emailTo = [];
             foreach($users as $user){
@@ -111,7 +107,7 @@ class OpportunityCommentsController extends BaseController {
             $emailData['CompanyID'] = $data ["CompanyID"];
             $emailData['EmailToName'] = '';
             $emailData['CreatedBy'] = User::get_user_full_name();
-            $emailData['Task'] = $opportunity[0]->OpportunityName.' Opportunity';
+            $emailData['Task'] = $opportunity->OpportunityName.' Opportunity';
             $emailData['Logo'] = '<img src="'.getCompanyLogo().'" width="120" alt="" />';
             //$emailData['mandrill'] =1;
             if(!empty($emailTo) && count($emailTo)>0){
@@ -129,19 +125,17 @@ class OpportunityCommentsController extends BaseController {
                     $emailData['Message'] = $status['body'];
                     $status = email_log($emailData);
                     if($status['status']==0){
-                        return $this->response->errorBadRequest($status['message']);
+                        return generateResponse($status['message'],true,true);
                     }
                 }
             }else{
-                return $this->response->errorBadRequest($status['message']);
+                return generateResponse($status['message'],true,true);
             }
         }catch (\Exception $ex){
             Log::info($ex);
             return $this->response->errorInternal($ex->getMessage());
         }
-        /*$reponse_data = ['status' => 'success', 'data' => ['result' => $opportunity], 'status_code' => 200];
-        return API::response()->array($reponse_data)->statusCode(200);*/
-        return API::response()->array(['status' => 'success', 'message' => 'Comment added successfully', 'status_code' => 200])->statusCode(200);
+        return generateResponse('Comment added successfully');
 
     }
 

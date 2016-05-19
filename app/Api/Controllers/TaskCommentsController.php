@@ -27,8 +27,7 @@ class TaskCommentsController extends BaseController {
     public function get_comments($id){
         $select = ['CommentText','AttachmentPaths','created_at','CreatedBy'];
         $result = CRMComments::select($select)->where(['ParentID'=>$id,'CommentType'=>CRMComments::taskComments])->orderby('created_at','desc')->get();
-        $reponse_data = ['status' => 'success', 'data' => ['result' => $result], 'status_code' => 200];
-        return API::response()->array($reponse_data)->statusCode(200);
+        return generateResponse('',false,false,$result);
     }
 
 	/**
@@ -45,7 +44,7 @@ class TaskCommentsController extends BaseController {
         );
         $validator = Validator::make($data, $rules);
         if ($validator->fails()) {
-            return $this->response->error($validator->errors(),'432');
+            return generateResponse($validator->errors(),true);
         }
 
         $commentattachments = [];
@@ -58,10 +57,7 @@ class TaskCommentsController extends BaseController {
             foreach ($commentattachment as $attachment) {
                 $ext = $attachment['fileExtension'];
                 if (!in_array(strtolower($ext), $allowedextensions)) {
-                    $message             =  $ext." file type is not allowed. Allowed file types are ".$allowed;
-                    $validator_response  =  json_encode(["Uploaderror"=>[$message]]);
-                    $reponse_data        =  ['status' => 'failed','message' => $validator_response,  'status_code' => 432];
-                    return API::response()->array($reponse_data)->statusCode(432);
+                    return generateResponse($ext." file type is not allowed. Allowed file types are ".$allowed,true,true);
                 }
             }
 
@@ -96,9 +92,9 @@ class TaskCommentsController extends BaseController {
         $data ["CompanyID"] = $companyID;
         try{
             CRMComments::create($comment_data);
-            $task = Task::where(['TaskID'=>$data["TaskID"]])->get();
-            $taggedUsers = explode(',',$task[0]->TaggedUser);
-            $taggedUsers[] = $task[0]->UsersIDs;
+            $task = Task::where(['TaskID'=>$data["TaskID"]])->get()[0];
+            $taggedUsers = explode(',',$task->TaggedUser);
+            $taggedUsers[] = $task->UsersIDs;
             $users = User::whereIn('UserID',$taggedUsers)->select(['EmailAddress'])->get('EmailAddress');
             $emailTo = [];
             foreach($users as $user){
@@ -110,7 +106,7 @@ class TaskCommentsController extends BaseController {
             $emailData['CompanyID'] = $data ["CompanyID"];
             $emailData['EmailToName'] = '';
             $emailData['CreatedBy'] = User::get_user_full_name();
-            $emailData['Task'] = $task[0]->Subject.' Task';
+            $emailData['Task'] = $task->Subject.' Task';
             $emailData['Logo'] = '<img src="'.getCompanyLogo().'" width="120" alt="" />';
             //$emailData['mandrill'] =1;
             if(!empty($emailTo) && count($emailTo)>0){
@@ -128,17 +124,17 @@ class TaskCommentsController extends BaseController {
                     $emailData['Message'] = $status['body'];
                     $status = email_log($emailData);
                     if($status['status']==0){
-                        return $this->response->errorBadRequest($status['message']);
+                        return generateResponse($status['message'],true,true);
                     }
                 }
             }else{
-                return $this->response->errorBadRequest($status['message']);
+                return generateResponse($status['message'],true,true);
             }
         }catch (\Exception $ex){
             Log::info($ex);
             return $this->response->errorInternal($ex->getMessage());
         }
-        return API::response()->array(['status' => 'success', 'message' => 'Comment added successfully', 'status_code' => 200])->statusCode(200);
+        return generateResponse('Comment added successfully');
     }
 
 }

@@ -31,7 +31,7 @@ class OpportunityController extends BaseController {
 
     public function getOpportunities($id){
         if(empty($id) || !is_numeric($id) || $id==0 ) {
-            return API::response()->array(['status' => 'failed', 'message' => 'Board id is not provided or not valid', 'status_code' => 432])->statusCode(432);
+            return generateResponse('Board id is not provided or not valid',true,true);
         }
         $companyID = User::get_companyID();
         $data = Input::all();
@@ -42,27 +42,25 @@ class OpportunityController extends BaseController {
         $data['Tags'] = isset($data['Tags'])?empty($data['Tags'])?'':$data['Tags']:'';
         $data['Status'] = isset($data['Status'])?empty($data['Status'])?$defaultSelectd:implode(',',$data['Status']):$defaultSelectd;
         $query = "call prc_GetOpportunities (".$companyID.", ".$id.",'".$data['opportunityName']."',"."'".$data['Tags']."',".$data['account_owners'].", ".$data['AccountID'].",'".$data['Status']."')";
-        Log::info($query);
         try{
             $result = DB::select($query);
-            $boradsWithOpportunities = [];
+            $columnsWithOpportunities = [];
             $columns = [];
             foreach($result as $row){
                 $columns[$row->BoardColumnID] = ['Name'=>$row->BoardColumnName,'Height'=>$row->Height,'Width'=>$row->Width];
                 if(!empty($row->OpportunityName)) {
                     $users = [];
-                    if(!empty($row->TaggedUser)){
-                        $users = User::whereIn('UserID',explode(',',$row->TaggedUser))->select(['FirstName','LastName','UserID','Color'])->get();
+                    if(!empty($row->TaggedUsers)){
+                        $users = User::whereIn('UserID',explode(',',$row->TaggedUsers))->select(['FirstName','LastName','UserID','Color'])->get();
                     }
-                    $boradsWithOpportunities[$row->BoardColumnID][] = ['TaggedUser'=>$users,'opportunity'=>$row];
+                    $columnsWithOpportunities[$row->BoardColumnID][] = ['TaggedUsers'=>$users,'opportunity'=>$row];
                 }else{
-                    $boradsWithOpportunities[$row->BoardColumnID][] = '';
+                    $columnsWithOpportunities[$row->BoardColumnID][] = '';
                 }
             }
             $return['columns'] = $columns;
-            $return['boradsWithOpportunities'] = $boradsWithOpportunities;
-            $reponse_data = ['status' => 'success', 'data' => ['result' => $return], 'status_code' => 200];
-            return API::response()->array($reponse_data)->statusCode(200);
+            $return['columnsWithOpportunities'] = $columnsWithOpportunities;
+            return generateResponse('',false,false,$return);
         }catch (\Exception $ex){
             Log::info($ex);
             return $this->response->errorInternal($ex->getMessage());
@@ -74,8 +72,7 @@ class OpportunityController extends BaseController {
         if(!empty($attachementPaths)){
             $attachementPaths = json_decode($attachementPaths);
         }
-        $reponse_data = ['status' => 'success', 'data' => ['result' => $attachementPaths], 'status_code' => 200];
-        return API::response()->array($reponse_data)->statusCode(200);
+        return generateResponse('',false,false,$attachementPaths);
     }
 
     public function saveAttachment($id){
@@ -88,7 +85,7 @@ class OpportunityController extends BaseController {
         foreach ($opportunityattachment as $attachment) {
             $ext = $attachment['fileExtension'];
             if (!in_array(strtolower($ext), $allowedextensions)) {
-                return $this->response->errorBadRequest($ext." file type is not allowed. Allowed file types are ".$allowed);
+                return generateResponse($ext." file type is not allowed. Allowed file types are ".$allowed,true,true);
             }
         }
         $opportunityattachment = uploaded_File_Handler($data['file']);
@@ -103,7 +100,7 @@ class OpportunityController extends BaseController {
             $destinationPath = getenv("UPLOAD_PATH") . '/' . $amazonPath;
             rename_win($attachment['file'],$destinationPath.$file_name);
             if (!\App\AmazonS3::upload($destinationPath . $file_name, $amazonPath)) {
-                return $this->response->errorBadRequest('Failed to upload');
+                return generateResponse('Failed to upload',true,true);
             }
             $fullPath = $amazonPath . $file_name;
             $opportunityattachments[] = ['filename' => $originalfilename, 'filepath' => $fullPath];
@@ -117,12 +114,12 @@ class OpportunityController extends BaseController {
             $opportunity_data['AttachmentPaths'] = json_encode($opportunityattachments);
             $result = Opportunity::where(['OpportunityID'=>$id])->update($opportunity_data);
             if($result){
-                return API::response()->array(['status' => 'success', 'message' => 'Attachment saved successfully', 'status_code' => 200])->statusCode(200);
+                return generateResponse('Attachment saved successfully');
             }else{
-                return $this->response->errorInternal('Problem saving attachment.');
+                return generateResponse('Problem saving attachment',true,true);
             }
         } else{
-            return $this->response->errorNotFound('No attachment found');
+            return generateResponse('No attachment found',true,true);
         }
     }
 
@@ -139,9 +136,9 @@ class OpportunityController extends BaseController {
                 Log::info($ex);
                 return $this->response->errorInternal($ex->getMessage());
             }
-            return API::response()->array(['status' => 'success', 'message' => 'Attachment deleted successfully', 'status_code' => 200])->statusCode(200);
+            return generateResponse('Attachment deleted successfully');
         }else{
-            return $this->response->errorNotFound('No attachment found');
+            return generateResponse('No attachment found',true,true);
         }
     }
 	/**
@@ -171,7 +168,7 @@ class OpportunityController extends BaseController {
         }
         $validator = Validator::make($data, $rules);
         if ($validator->fails()) {
-            return $this->response->error($validator->errors(),'432');
+            return generateResponse($validator->errors(),true);
         }
         try {
             if ($data['leadcheck'] == 'No') {
@@ -191,10 +188,10 @@ class OpportunityController extends BaseController {
                 ];
                 if ($AccountType == 0) {
                     $AccountID = Lead::insertGetId($tobeinsert);
-                    $message = 'and lead is created successfully.';
+                    $message = ' And lead is created successfully.';
                 } else {
                     $AccountID = Account::insertGetId($tobeinsert);
-                    $message = 'and Account is created successfully.';
+                    $message = ' And Account is created successfully.';
                 }
                 $data['AccountID'] = $AccountID;
             }
@@ -216,7 +213,7 @@ class OpportunityController extends BaseController {
             Log::info($ex);
             return $this->response->errorInternal($ex->getMessage());
         }
-        return API::response()->array(['status' => 'success', 'message' => 'Opportunity Successfully Created'.$message, 'status_code' => 200])->statusCode(200);
+        return generateResponse('Opportunity Successfully Created'.$message);
     }
 
 
@@ -246,7 +243,7 @@ class OpportunityController extends BaseController {
             $validator = Validator::make($data, $rules);
 
             if ($validator->fails()) {
-                return $this->response->error($validator->errors(),'432');
+                generateResponse($validator->errors(),true);
             }
             try {
                 if(isset($data['TaggedUser']) && !empty($data['TaggedUser'])) {
@@ -264,9 +261,9 @@ class OpportunityController extends BaseController {
                 Log::info($ex);
                 return $this->response->errorInternal($ex->getMessage());
             }
-            return API::response()->array(['status' => 'success', 'message' => $data, 'status_code' => 200])->statusCode(200);
+            return generateResponse('Opportunity Successfully Updated');
         }else {
-            return $this->response->errorBadRequest('Opportunity id is missing');
+            return generateResponse('Opportunity id is missing',true,true);
         }
     }
 
@@ -277,7 +274,7 @@ class OpportunityController extends BaseController {
             foreach ($cardorder as $index => $key) {
                 Opportunity::where(['OpportunityID' => $key])->update(['Order' => $index,'BoardColumnID'=>$data['BoardColumnID']]);
             }
-            return API::response()->array(['status' => 'success', 'message' => 'Opportunity Updated', 'status_code' => 200])->statusCode(200);
+            return generateResponse('Opportunity Updated');
         }
         catch(Exception $ex){
             return $this->response->errorInternal($ex->getMessage());
@@ -286,8 +283,7 @@ class OpportunityController extends BaseController {
 
     public function getLead($id){
         $lead =  Lead::find($id);
-        $reponse_data = ['status' => 'success', 'data' => ['result' => $lead], 'status_code' => 200];
-        return API::response()->array($reponse_data)->statusCode(200);
+        return generateResponse('',false,false,$lead);
     }
 
     public function getDropdownLeadAccount($accountLeadCheck){
@@ -297,9 +293,9 @@ class OpportunityController extends BaseController {
             $filter['Owner'] = $data['UserID'];
         }
         if($accountLeadCheck==1) {
-            return json_encode(['result'=>Lead::getLeadList($filter)]);
+            return generateResponse('',false,false,Lead::getLeadList($filter));
         }else {
-            return json_encode(['result'=>Account::getAccountList($filter)]);
+            return generateResponse('',false,false,Account::getAccountList($filter));
         }
     }
 

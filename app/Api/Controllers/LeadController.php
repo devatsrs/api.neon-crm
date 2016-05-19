@@ -28,7 +28,7 @@ class LeadController extends BaseController
             Log::info($ex);
             return $this->response->errorInternal($ex->getMessage());
         }
-        return API::response()->array(['status' => 'success', 'data'=>['lead'=>$lead] , 'status_code' => 200])->statusCode(200);
+        return generateResponse('',false,false,$lead);
     }
 
     public function GetLeads(){
@@ -38,7 +38,7 @@ class LeadController extends BaseController
             Log::info($ex);
             return $this->response->errorInternal($ex->getMessage());
         }
-        return API::response()->array(['status' => 'success', 'data'=>['leads'=>$leads] , 'status_code' => 200])->statusCode(200);
+        return generateResponse('',false,false,$leads);
     }
 	
 	public function add_lead()
@@ -56,14 +56,13 @@ class LeadController extends BaseController
         $data['created_by'] 			= 		User::get_user_full_name();
 
         if ($validator->fails()) {
-			return $this->response->error($validator->errors(),'432');
+            return generateResponse($validator->errors(),true);
         }
 		
 		unset($data['token']);
         try{
-			$lead 			= 	Lead::create($data);		
-			$reponse_data 	= 	['status' => 'success', "message" => "Lead Successfully Created",'LastID' => $lead->AccountID, 'data' => ['result' => $lead], 'status_code' => 200];
-            return API::response()->array($reponse_data)->statusCode(200);			
+			$lead 			= 	Lead::create($data);
+            return generateResponse('',false,false,$lead);
         }catch (\Exception $ex){
            	  Log::info($ex);
            	 return $this->response->errorInternal($ex->getMessage());
@@ -97,13 +96,12 @@ class LeadController extends BaseController
         $validator = Validator::make($data, $rules);
 
         if ($validator->fails()) {
-            return $this->response->error($validator->errors(),'432');
+            return generateResponse($validator->errors(),true);
         }		
 		unset($data['token']);
 		try{
 	        $lead->update($data);
-            $reponse_data = ['status' => 'success', "message" => "Lead Successfully Updated ",'status_code' => 200];
-            return API::response()->array($reponse_data)->statusCode(200);			
+            return generateResponse("Lead Successfully Updated ");
 		}catch (\Exception $ex){
             Log::info($ex);
            	return $this->response->errorInternal($ex->getMessage());

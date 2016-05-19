@@ -384,3 +384,20 @@ function call_api($post = array()){
     // echo $response;
     return $response;
 }
+
+function generateResponse($message,$isError=false,$isCustomError=false,$data=[]){
+    $status = 'success';
+    if($isError){
+        if($isCustomError) {
+            $message = ["error" => [$message]];
+        }
+        $status='failed';
+    }
+    $reponse_data = ['status' => $status,'message'=>$message];
+    if(count($data)>0){
+        $reponse_data['data'] = $data;
+    }
+    return \Dingo\Api\Facade\API::response()->array($reponse_data)->statusCode(200);
+}
+
+
