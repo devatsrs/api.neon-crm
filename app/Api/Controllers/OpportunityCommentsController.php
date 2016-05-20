@@ -94,7 +94,7 @@ class OpportunityCommentsController extends BaseController {
         try{
             CRMComments::create($comment_data);
             $opportunity = Opportunity::where(['OpportunityID'=>$data["OpportunityID"]])->get()[0];
-            $taggedUsers = explode(',',$opportunity->TaggedUser);
+            $taggedUsers = explode(',',$opportunity->TaggedUsers);
             $taggedUsers[] = $opportunity->UserID;
             $users = User::whereIn('UserID',$taggedUsers)->select(['EmailAddress'])->get('EmailAddress');
             $emailTo = [];

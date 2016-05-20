@@ -246,10 +246,10 @@ class OpportunityController extends BaseController {
                 generateResponse($validator->errors(),true);
             }
             try {
-                if(isset($data['TaggedUser']) && !empty($data['TaggedUser'])) {
+                if(isset($data['TaggedUsers']) && !empty($data['TaggedUsers'])) {
                     Tags::insertNewTags(['tags' => $data['Tags'], 'TagType' => Tags::Opportunity_tag]);
-                    $taggedUser = implode(',', $data['TaggedUser']);
-                    $data['TaggedUser'] = $taggedUser;
+                    $taggedUsers = implode(',', $data['TaggedUsers']);
+                    $data['TaggedUsers'] = $taggedUsers;
                 }
                 if($data['Status']==Opportunity::Close){
                     $data['ClosingDate'] = date('Y-m-d H:i:s');

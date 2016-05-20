@@ -93,7 +93,7 @@ class TaskCommentsController extends BaseController {
         try{
             CRMComments::create($comment_data);
             $task = Task::where(['TaskID'=>$data["TaskID"]])->get()[0];
-            $taggedUsers = explode(',',$task->TaggedUser);
+            $taggedUsers = explode(',',$task->TaggedUsers);
             $taggedUsers[] = $task->UsersIDs;
             $users = User::whereIn('UserID',$taggedUsers)->select(['EmailAddress'])->get('EmailAddress');
             $emailTo = [];
