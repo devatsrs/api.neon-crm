@@ -172,8 +172,7 @@ class AccountController extends BaseController
             Log::info($ex);
             return $this->response->errorInternal($ex->getMessage());
         }
-        $reponse_data = ['status' => 'success', 'data' => ['result' => $account], 'status_code' => 200];
-        return API::response()->array($reponse_data)->statusCode(200);
+        return generateResponse('success',false,false,$account);
     }
 
 	 public function add_note(){
@@ -189,14 +188,12 @@ class AccountController extends BaseController
         $validator = Validator::make($data, $rules);
 
         if ($validator->fails()) {
-            //return $this->response->errorBadRequest($validator->errors());
-            return $this->response->error($validator->errors(),'432');
+            return generateResponse($validator->errors(),true);
         }
 
 		try{
             $result = Note::create($data);
-            $result['message'] = 'Note Successfully Updated';
-			return API::response()->array(['status' => 'success', "NoteID" =>$result['NoteID'], 'data' => ['result' => $result], 'status_code' => 200])->statusCode(200);
+            return generateResponse('',false,false,$result);
         }catch (\Exception $ex){
             Log::info($ex);
             return $this->response->errorInternal($ex->getMessage());
@@ -210,16 +207,15 @@ class AccountController extends BaseController
         $rules['NoteID'] = 'required';
         $validator = Validator::make($data, $rules);
         if ($validator->fails()) {
-            return $this->response->errorBadRequest($validator->errors());
+            return generateResponse($validator->errors(),true);
         }
         try {
-            $Note = Note::where(['NoteID'=>$data['NoteID']])->get();
+            $Note = Note::find($data['NoteID']);
         } catch (\Exception $e) {
             Log::info($e);
             return $this->response->errorInternal($e->getMessage());
         }
-        return API::response()->array(['status' => 'success', 'data'=>['Note'=>$Note] , 'status_code' => 200])->statusCode(200);
-
+        return generateResponse('',false,false,$Note);
     }
 
     public function GetTimeLine()
@@ -232,17 +228,14 @@ class AccountController extends BaseController
 
         $validator = Validator::make($data, $rules);
         if ($validator->fails()) {
-            return $this->response->error($validator->errors(),'432');
+            return generateResponse($validator->errors(),true);
         }
         try {
             $columns =  ['Timeline_type','ActivityTitle','ActivityDescription','ActivityDate','ActivityType','ActivityID','Emailfrom','EmailTo','EmailSubject','EmailMessage','AccountEmailLogID','NoteID','Note','CreatedBy','created_at','updated_at'];
             $query = "call prc_getAccountTimeLine(" . $data['AccountID'] . "," . $companyID . "," . $data['iDisplayStart'] . "," . $data['iDisplayLength'] . ")";
-
             $result_array = DB::select($query);
-            \Illuminate\Support\Facades\Log::info($result_array);
-            $reponse_data = ['status' => 'success', 'data' => ['result' => $result_array], 'status_code' => 200,"query"=>$query];
-            return API::response()->array($reponse_data)->statusCode(200);
-        }
+            return generateResponse('',false,false,$result_array);
+       }
         catch (\Exception $ex){
             Log::info($ex);
             return $this->response->errorInternal($ex->getMessage());
@@ -255,7 +248,7 @@ class AccountController extends BaseController
         $rules['NoteID'] = 'required';
         $validator = Validator::make($data, $rules);
         if ($validator->fails()) {
-            return $this->response->error($validator->errors(),'432');
+            return generateResponse($validator->errors(),true);
         }
 
         try{
@@ -264,7 +257,8 @@ class AccountController extends BaseController
             Log::info($ex);
             return $this->response->errorInternal($ex->getMessage());
         }
-        return API::response()->array(['status' => 'success',"message"=>"successfull", 'status_code' => 200])->statusCode(200);
+        return generateResponse('successfull');
+
     }
 	
 	public function add_account()
@@ -303,11 +297,11 @@ class AccountController extends BaseController
             $validator = Validator::make($data, Account::$rules, Account::$messages);
 
             if ($validator->fails()) {
-				return $this->response->error($validator->errors(),'432');
+                return generateResponse($validator->errors(),true);
             }
 			
 			 if (strpbrk($data['AccountName'], '\/?*:|"<>')) {
-				 return API::response()->array(['status' => 'failed', 'message' => 'Account Name contains illegal character', 'status_code' => 432])->statusCode(432);
+                 return generateResponse("Account Name contains illegal character",true);
             }
 			
 			unset($data['token']);
@@ -319,8 +313,7 @@ class AccountController extends BaseController
                 }
                 $data['NextInvoiceDate'] = Invoice::getNextInvoiceDate($account->AccountID);
                 $account->update($data);
-            	 $reponse_data = ['status' => 'success', "message" => "Account Successfully Created",'LastID' => $account->AccountID, 'data' => ['result' => $account], 'status_code' => 200];
-            return API::response()->array($reponse_data)->statusCode(200);				
+                return generateResponse('Account Successfully Created',false,false,$account);
             }catch (\Exception $ex){
                  Log::info($ex);
            		 return $this->response->errorInternal($ex->getMessage());
@@ -392,7 +385,7 @@ class AccountController extends BaseController
         $validator = Validator::make($data, Account::$rules,Account::$messages);
 
         if ($validator->fails()) {
-			return $this->response->error($validator->errors(),'432');
+            return generateResponse($validator->errors(),true);
             exit;
         }
 		
@@ -432,9 +425,7 @@ class AccountController extends BaseController
                     $result = $AuthorizeNet->UpdateShippingAddress($ProfileID, $ShippingProfileID, $shipping);
                 }
             }
-			 $reponse_data = ['status' => 'success', "message" => "Account Successfully Updated ". $message , 'status_code' => 200];
-            return API::response()->array($reponse_data)->statusCode(200);
-
+           return generateResponse('Account Successfully Updated ');
 			
         }catch (\Exception $ex){
                  Log::info($ex);
@@ -454,7 +445,7 @@ class AccountController extends BaseController
         $validator = Validator::make($data, $rules);
 
         if ($validator->fails()) {
-            return $this->response->error($validator->errors(),'432');
+            return generateResponse($validator->errors(),true);
         }		
 		
 	    try{
@@ -463,8 +454,7 @@ class AccountController extends BaseController
             Log::info($ex);
             return $this->response->errorInternal($ex->getMessage());
         }
-        return API::response()->array(['status' => 'success', 'data'=>['result'=>$account] , 'status_code' => 200])->statusCode(200);
-    
+        return generateResponse('success',false,false,$account);
 	}
 
 }

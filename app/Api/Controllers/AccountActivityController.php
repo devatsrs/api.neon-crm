@@ -48,8 +48,7 @@ class AccountActivityController extends BaseController {
         }
         $validator = Validator::make($data,$rules);
         if ($validator->fails()) {
-            //return $this->response->errorBadRequest($validator->errors());
-            return $this->response->error($validator->errors(),'432');
+            return generateResponse($validator->errors(),true);
         }
 		
 		
@@ -63,14 +62,7 @@ class AccountActivityController extends BaseController {
             foreach ($emailattachment as $attachment) {				
                 $ext = $attachment['fileExtension'];
                 if (!in_array(strtolower($ext), $allowedextensions)) {
-                    $message             =  $ext." file type is not allowed. Allowed file types are ".$allowed;
-                    $validator_response  =  json_encode(["Uploaderror"=>[$message]]);
-                    $reponse_data        =  ['status' => 'failed','message' => $validator_response,  'status_code' => 432];
-                    return API::response()->array($reponse_data)->statusCode(432);
-
-                    //return $this->response->errorBadRequest(json_encode(array("message" => $ext." file type is not allowed. Allowed file types are ".$allowed,"status"=>"failed")));
-                   // $response = $ext." file type is not allowed. Allowed file types are ".$allowed;
-                  //  return $this->response->error($response,'432');
+                    return generateResponse($message,true);
                 }
             }
 
@@ -84,7 +76,7 @@ class AccountActivityController extends BaseController {
                 $destinationPath = getenv("UPLOAD_PATH") . '/' . $amazonPath;
                 rename_win($attachment['file'],$destinationPath.$file_name);
                 if (!AmazonS3::upload($destinationPath . $file_name, $amazonPath)) {
-                    return $this->response->errorBadRequest('Failed to upload');
+                    return generateResponse('Failed to upload',true);
                 }
                 $fullPath = $amazonPath . $file_name;
                 $emailattachments[] = ['filename' => $originalfilename, 'filepath' => $fullPath];
@@ -124,7 +116,7 @@ class AccountActivityController extends BaseController {
 
                 $result->EmailTo = $user_data[0]['FirstName'].' '.$user_data[0]['LastName'];
             }
-            return API::response()->array(['status' => 'success', "LogID" =>$result['AccountEmailLogID'], 'data' => ['result' => $result], 'status_code' => 200])->statusCode(200);
+            return generateResponse('',false,false,$result);
         }catch (Exception $ex){
         	 return $this->response->errorInternal($ex->getMessage());
         }
@@ -137,24 +129,24 @@ class AccountActivityController extends BaseController {
         $rules['EmailID'] = 'required';
         $validator = Validator::make($data, $rules);
         if ($validator->fails()) {
-            return $this->response->errorBadRequest($validator->errors());
+            return generateResponse($validator->errors(),true);
         }
         try {
-            $Email = AccountEmailLog::where(['AccountEmailLogID'=>$data['EmailID']])->get();
+            $Email = AccountEmailLog::find($data['EmailID']);
         } catch (\Exception $e) {
             Log::info($e);
             return $this->response->errorInternal($e->getMessage());
         }
-        return API::response()->array(['status' => 'success', 'data'=>['Email'=>$Email] , 'status_code' => 200])->statusCode(200);
+        return generateResponse('',false,false,$Email);
     }
 
     public function DeleteMail(){
         $data = Input::all();
-        Log::info($data);
+
         $rules['AccountEmailLogID'] = 'required';
         $validator = Validator::make($data, $rules);
         if ($validator->fails()) {
-            return $this->response->error($validator->errors(),'432');
+            return generateResponse($validator->errors(),true);
         }
 
         try{
@@ -163,7 +155,7 @@ class AccountActivityController extends BaseController {
             Log::info($ex);
             return $this->response->errorInternal($ex->getMessage());
         }
-        return API::response()->array(['status' => 'success',"message"=>"successfull", 'status_code' => 200])->statusCode(200);
+        return generateResponse('successfull');
     }
 
 }

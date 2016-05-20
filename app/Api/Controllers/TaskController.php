@@ -198,7 +198,7 @@ class TaskController extends BaseController {
         );
         $validator = Validator::make($data, $rules, $messages);
         if ($validator->fails()) {
-            return $this->response->error($validator->errors(),'432');
+            return generateResponse($validator->errors(),true);
         }
         $data['DueDate'] = isset($data['StartTime']) && !empty($data['StartTime'])?$data['DueDate'].' '.$data['StartTime']:$data['DueDate'];
         $Task_view = isset($data['Task_view'])?1:0;
@@ -225,7 +225,7 @@ class TaskController extends BaseController {
             unset($data["TaskStatus"]);
             unset($data['TaskID']);
 			unset($data['StartTime']);
-            Log::Info($data);
+
             $result  			=   Task::create($data);
           if(isset($data['Task_type']) && $data['Task_type']!=0)
             {
@@ -234,9 +234,7 @@ class TaskController extends BaseController {
                 {
                     $sql = "update tblNote set created_at = '".$new_date."' , updated_at ='".$new_date."'  where NoteID ='".$data['ParentID']."'";
                     db::statement($sql);
-                    Log::Info($sql);
                 }
-
                 if($data['Task_type']==2) //email
                 {
                     $sql = "update AccountEmailLog set created_at = '".$new_date."', updated_at ='".$new_date."'  where AccountEmailLogID ='".$data['ParentID']."'";
@@ -275,12 +273,11 @@ class TaskController extends BaseController {
             return $this->response->errorInternal($ex->getMessage());
         }
 
-        if($Task_view)
-        {
-            return API::response()->array(['status' => 'success', 'message' => 'Task Successfully Created'.$message, 'status_code' => 200])->statusCode(200);
+        if($Task_view){
+            return generateResponse('Task Successfully Created'.$message);
         }
         else {
-            return API::response()->array(['status' => 'success', 'data' => ['result' => $result], 'message' => 'Task Successfully Created' . $message, 'status_code' => 200])->statusCode(200);
+            return generateResponse('Task Successfully Created',false,false,$result);
         }
     }
 
@@ -377,12 +374,11 @@ class TaskController extends BaseController {
         $allowedextensions   =  array_change_key_case($allowedextensions);
         return $allowedextensions;
     }*/
-	
-	public function get_allowed_extensions(){
+
+    public function get_allowed_extensions(){
         $allowed     =  getenv("CRM_ALLOWED_FILE_UPLOAD_EXTENSIONS");
         $allowedextensions   =  explode(',',$allowed);
-        $reponse_data = ['status' => 'success', 'data' => ['result' => $allowedextensions], 'status_code' => 200];
-        return API::response()->array($reponse_data)->statusCode(200);
+        $allowedextensions   =  array_change_key_case($allowedextensions);
+        return generateResponse('',false,false,$allowedextensions);
     }
-
 }
