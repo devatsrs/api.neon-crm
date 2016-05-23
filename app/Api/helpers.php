@@ -136,9 +136,9 @@ function sendMail($view,$data){
             $status['body'] = $body;
         }
 		
-		//\Illuminate\Support\Facades\Log::info($data);
+		\Illuminate\Support\Facades\Log::info($data);
        // \Illuminate\Support\Facades\Log::info($status);
-	//	\Illuminate\Support\Facades\Log::info($mail->ErrorInfo);
+		\Illuminate\Support\Facades\Log::info($mail->ErrorInfo);
     return $status;
 }
 function setMailConfig($CompanyID,$mandrill,$data=array()){
