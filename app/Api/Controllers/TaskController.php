@@ -36,15 +36,15 @@ class TaskController extends BaseController {
         $companyID = User::get_companyID();
         $data = Input::all();
         if(!isset($data['fetchType'])){
-            return $this->response->error('fetch Type field is required','432');
+            $data['fetchType'] = 'Grid';
         }
-        $data['AccountOwner'] = empty($data['AccountOwner'])?0:$data['AccountOwner'];
-        $data['AccountID'] = empty($data['AccountID'])?0:$data['AccountID'];
-        $data['Priority'] = empty($data['Priority']) || $data['Priority']=='false'?0:$data['Priority'];
-        $data['TaskStatus'] = empty($data['TaskStatus'])?0:$data['TaskStatus'];
+        $data['AccountOwner'] = isset($data['AccountOwner'])?empty($data['AccountOwner'])?0:$data['AccountOwner']:'';
+        $data['AccountIDs'] = isset($data['AccountIDs'])?empty($data['AccountIDs'])?0:$data['AccountIDs']:0;
+        $data['Priority'] = isset($data['Priority'])?empty($data['Priority']) || $data['Priority']=='false'?0:$data['Priority']:0;
+        $data['TaskStatus'] = isset($data['TaskStatus'])?empty($data['TaskStatus'])?0:$data['TaskStatus']:0;
         if(isset($data['DueDateFilter'])){
-            $data['DueDateFrom'] = $data['DueDateFilter']!=Task::CustomDate?$data['DueDateFilter']:$data['DueDateFrom'];
-            $data['DueDateTo'] = $data['DueDateFilter']!=Task::CustomDate?$data['DueDateFilter']:$data['DueDateTo'];
+            $data['DueDateFrom'] = $data['DueDateFilter']!=Task::CustomDate?$data['DueDateFilter']:isset($data['DueDateFrom'])?$data['DueDateFrom']:'';
+            $data['DueDateTo'] = $data['DueDateFilter']!=Task::CustomDate?$data['DueDateFilter']:isset($data['DueDateTo'])?$data['DueDateTo']:'';
         }
         if($data['fetchType']=='Grid') {
             $rules['iDisplayStart'] = 'required|Min:1';
@@ -52,43 +52,41 @@ class TaskController extends BaseController {
             $rules['sSortDir_0'] = 'required';
             $validator = Validator::make($data, $rules);
             if ($validator->fails()) {
-                return $this->response->error($validator->errors(), '432');
+                return generateResponse($validator->errors(),true);
             }
 
             $columns = ['Subject', 'DueDate', 'Status', 'Priority','UserID'];
             $sort_column = $columns[$data['iSortCol_0']];
 
-            $query = "call prc_GetTasksGrid (" . $companyID . ", " . $id . ",'" . $data['taskName'] . "','" . $data['AccountOwner'] . "', " . $data['Priority'] .",'".$data['DueDateFrom']."','".$data['DueDateTo']."',".$data['TaskStatus'].",".(ceil($data['iDisplayStart'] / $data['iDisplayLength'])) . " ," . $data['iDisplayLength'] . ",'" . $sort_column . "','" . $data['sSortDir_0'] . "')";
+            $query = "call prc_GetTasksGrid (" . $companyID . ", " . $id . ",'" . $data['taskName'] . "'," . $data['AccountOwner'] . ", " . $data['AccountIDs'] . ", " . $data['Priority'] .",'".$data['DueDateFrom']."','".$data['DueDateTo']."',".$data['TaskStatus'].",".(ceil($data['iDisplayStart'] / $data['iDisplayLength'])) . " ," . $data['iDisplayLength'] . ",'" . $sort_column . "','" . $data['sSortDir_0'] . "')";
             try {
                 $result = DataTableSql::of($query)->make();
-                $reponse_data = ['status' => 'success', 'data' => ['result' => $result], 'status_code' => 200];
-                return API::response()->array($reponse_data)->statusCode(200);
+                return generateResponse('',false,false,$result);
             }catch (\Exception $ex){
                 Log::info($ex);
                 return $this->response->errorInternal($ex->getMessage());
             }
         }elseif($data['fetchType']=='Board') {
-            $query = "call prc_GetTasksBoard (" . $companyID . ", " . $id . ",'" . $data['taskName'] . "','" . $data['AccountOwner'] . "', " . $data['Priority'].",'".$data['DueDateFrom']."','".$data['DueDateTo']."',".$data['TaskStatus'].")";
+            $query = "call prc_GetTasksBoard (" . $companyID . ", " . $id . ",'" . $data['taskName'] . "'," . $data['AccountOwner'] . ", " . $data['AccountIDs'] . ", " . $data['Priority'] .",'".$data['DueDateFrom']."','".$data['DueDateTo']."',".$data['TaskStatus'].")";
             try{
                 $result = DB::select($query);
-                $boardsWithITask = [];
+                $columnsWithITask = [];
                 $columns = [];
                 foreach($result as $row){
                     $columns[$row->BoardColumnID] = ['Name'=>$row->BoardColumnName/*,'Height'=>$row->Height,'Width'=>$row->Width*/];
                     if(!empty($row->Subject)) {
                         $users = [];
-                        if(!empty($row->TaggedUser)){
-                            $users = User::whereIn('UserID',explode(',',$row->TaggedUser))->select(['FirstName','LastName','UserID'])->get();
+                        if(!empty($row->TaggedUsers)){
+                            $users = User::whereIn('UserID',explode(',',$row->TaggedUsers))->select(['FirstName','LastName','UserID'])->get();
                         }
-                        $boardsWithITask[$row->BoardColumnID][] = ['TaggedUser'=>$users,'task'=>$row];
+                        $columnsWithITask[$row->BoardColumnID][] = ['TaggedUsers'=>$users,'task'=>$row];
                     }else{
-                        $boardsWithITask[$row->BoardColumnID][] = '';
+                        $columnsWithITask[$row->BoardColumnID][] = '';
                     }
                 }
                 $return['columns'] = $columns;
-                $return['boardsWithITask'] = $boardsWithITask;
-                $reponse_data = ['status' => 'success', 'data' => ['result' => $return], 'status_code' => 200];
-                return API::response()->array($reponse_data)->statusCode(200);
+                $return['columnsWithITask'] = $columnsWithITask;
+                return generateResponse('',false,false,$return);
             }catch (\Exception $ex){
                 Log::info($ex);
                 return $this->response->errorInternal($ex->getMessage());
@@ -101,8 +99,7 @@ class TaskController extends BaseController {
         if(!empty($attachementPaths)){
             $attachementPaths = json_decode($attachementPaths);
         }
-        $reponse_data = ['status' => 'success', 'data' => ['result' => $attachementPaths], 'status_code' => 200];
-        return API::response()->array($reponse_data)->statusCode(200);
+        return generateResponse('',false,false,$attachementPaths);
     }
 
     public function saveAttachment($id){
@@ -115,10 +112,7 @@ class TaskController extends BaseController {
         foreach ($taskattachment as $attachment) {
             $ext = $attachment['fileExtension'];
             if (!in_array(strtolower($ext), $allowedextensions)) {
-                $message             =  $ext." file type is not allowed. Allowed file types are ".$allowed;
-                $validator_response  =  json_encode(["Uploaderror"=>[$message]]);
-                $reponse_data        =  ['status' => 'failed','message' => $validator_response,  'status_code' => 432];
-                return API::response()->array($reponse_data)->statusCode(432);
+                return generateResponse($ext." file type is not allowed. Allowed file types are ".$allowed,true,true);
             }
         }
         $taskattachment = uploaded_File_Handler($data['file']);
@@ -133,7 +127,7 @@ class TaskController extends BaseController {
             $destinationPath = getenv("UPLOAD_PATH") . '/' . $amazonPath;
             rename_win($attachment['file'],$destinationPath.$file_name);
             if (!\App\AmazonS3::upload($destinationPath . $file_name, $amazonPath)) {
-                return $this->response->errorBadRequest('Failed to upload');
+                return generateResponse('Failed to upload',true,true);
             }
             $fullPath = $amazonPath . $file_name;
             $taskattachments[] = ['filename' => $originalfilename, 'filepath' => $fullPath];
@@ -147,12 +141,12 @@ class TaskController extends BaseController {
             $task_data['AttachmentPaths'] = json_encode($taskattachments);
             $result = Task::where(['TaskID'=>$id])->update($task_data);
             if($result){
-                return API::response()->array(['status' => 'success', 'message' => 'Attachment saved successfully', 'status_code' => 200])->statusCode(200);
+                return generateResponse('Attachment saved successfully');
             }else{
-                return $this->response->errorInternal('Problem saving attachment.');
+                return generateResponse('Problem saving attachment.',true,true);
             }
         } else{
-            return $this->response->errorNotFound('No attachment found');
+            return generateResponse('No attachment found.',true,true);
         }
     }
 
@@ -169,9 +163,9 @@ class TaskController extends BaseController {
                 Log::info($ex);
                 return $this->response->errorInternal($ex->getMessage());
             }
-            return API::response()->array(['status' => 'success', 'message' => 'Attachment deleted successfully', 'status_code' => 200])->statusCode(200);
+            return generateResponse('Attachment deleted successfully');
         }else{
-            return $this->response->errorNotFound('No attachment found');
+            return generateResponse('No attachment found',true,true);
         }
     }
     /**
@@ -230,13 +224,13 @@ class TaskController extends BaseController {
           if(isset($data['Task_type']) && $data['Task_type']!=0)
             {
                 $new_date =  date("Y-m-d H:i:s", time() + 1);
-                if($data['Task_type']==3) //notes
-                {
+                if($data['Task_type']==Task::Note){ //notes
                     $sql = "update tblNote set created_at = '".$new_date."' , updated_at ='".$new_date."'  where NoteID ='".$data['ParentID']."'";
                     db::statement($sql);
                 }
-                if($data['Task_type']==2) //email
+                if($data['Task_type']==Task::Mail) //email
                 {
+
                     $sql = "update AccountEmailLog set created_at = '".$new_date."', updated_at ='".$new_date."'  where AccountEmailLogID ='".$data['ParentID']."'";
                     db::statement($sql);
                     $Email      = AccountEmailLog::where(['AccountEmailLogID'=>$data['ParentID']])->get();
@@ -270,7 +264,7 @@ class TaskController extends BaseController {
         }
         catch (\Exception $ex){
             Log::info($ex);
-            return $this->response->errorInternal($ex->getMessage());
+            return $this->response->errorInternal($ex->getMessage()); 
         }
 
         if($Task_view){
@@ -309,13 +303,13 @@ class TaskController extends BaseController {
             $validator = Validator::make($data, $rules,$messages);
 
             if ($validator->fails()) {
-                return $this->response->error($validator->errors(),'432');
+                return generateResponse($validator->errors(),true);
             }
             try {
                 //Tags::insertNewTags(['tags' => $data['Tags'], 'TagType' => Tags::Task_tag]);
-                if(isset($data['TaggedUser'])) {
-                    $taggedUser = implode(',', $data['TaggedUser']);
-                    $data['TaggedUser'] = $taggedUser;
+                if(isset($data['TaggedUsers'])) {
+                    $taggedUser = implode(',', $data['TaggedUsers']);
+                    $data['TaggedUsers'] = $taggedUser;
                 }
                 $data['BoardColumnID'] = $data["TaskStatus"];
                 $data['DueDate'] = isset($data['StartTime']) && !empty($data['StartTime'])?$data['DueDate'].' '.$data['StartTime']:$data['DueDate'];
@@ -323,15 +317,14 @@ class TaskController extends BaseController {
                 unset($data["TaskStatus"]);
                 unset($data['TaskID']);
                 unset($data['StartTime']);
-                Log::info($data);
                 Task::where(['TaskID' => $id])->update($data);
             } catch (\Exception $ex){
                 Log::info($ex);
                 return $this->response->errorInternal($ex->getMessage());
             }
-            return API::response()->array(['status' => 'success', 'message' => $data, 'status_code' => 200])->statusCode(200);
+            return generateResponse('',false,false,$data);
         }else {
-            return $this->response->errorBadRequest('Task id is missing');
+            return generateResponse('Task id is missing',true,true);
         }
     }
 
@@ -342,7 +335,7 @@ class TaskController extends BaseController {
             foreach ($cardorder as $index => $key) {
                 Task::where(['TaskID' => $key])->update(['Order' => $index,'BoardColumnID'=>$data['BoardColumnID']]);
             }
-            return API::response()->array(['status' => 'success', 'message' => 'Task Updated', 'status_code' => 200])->statusCode(200);
+            return generateResponse('Task Updated');
         }
         catch(Exception $ex){
             return $this->response->errorInternal($ex->getMessage());
@@ -364,8 +357,7 @@ class TaskController extends BaseController {
 
     public function getPriority(){
         $Priorities = Task::$periority;
-        $reponse_data = ['status' => 'success', 'data' => ['result' => $Priorities], 'status_code' => 200];
-        return API::response()->array($reponse_data)->statusCode(200);
+        return generateResponse('',false,false,$Priorities);
     }
 
 /*    public function get_allowed_extensions(){

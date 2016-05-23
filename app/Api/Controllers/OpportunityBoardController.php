@@ -36,12 +36,14 @@ class OpportunityBoardController extends BaseController
         $rules['iDisplayStart'] ='required|Min:1';
         $rules['iDisplayLength']='required';
         $rules['iSortCol_0']='required';
+
         $validator = Validator::make($data, $rules);
         if ($validator->fails()) {
-            return $this->response->error($validator->errors(),'432');
+            return generateResponse($validator->errors(),true);
         }
+
         $columns = ['BoardName' ,'Status','CreatedBy','BoardID'];
-        $data['Active'] = $data['Active']==''?2:$data['Active'];
+        $data['Active'] = $data['Active']==''?CRMBoard::All:$data['Active'];
         $sort_column = $columns[$data['iSortCol_0']];
         $query = "call prc_GetCRMBoard (".$companyID.",".$data['Active'].",'".$data['BoardName']."',".CRMBoard::OpportunityBoard.",".( ceil($data['iDisplayStart']/$data['iDisplayLength']) )." ,".$data['iDisplayLength'].",'".$sort_column."','".$data['sSortDir_0']."'";
         if(isset($data['Export']) && $data['Export'] == 1) {
@@ -50,8 +52,7 @@ class OpportunityBoardController extends BaseController
             $query .=',0)';
             $result = DataTableSql::of($query)->make();
         }
-        $reponse_data = ['status' => 'success', 'data' => ['result' => $result], 'status_code' => 200];
-        return API::response()->array($reponse_data)->statusCode(200);
+        return generateResponse('',false,false,$result);
     }
 
     public function addBoard()
@@ -59,18 +60,19 @@ class OpportunityBoardController extends BaseController
         $data = Input::all();
         $companyID = User::get_companyID();
         $data ["CompanyID"] = $companyID;
+
         $rules = array(
-            'BoardName' => 'required',
+            'BoardName' => 'required|unique:tblCRMBoards,BoardName,NULL,BoardID,CompanyID,' . $data['CompanyID'],
             'CompanyID'=>'required|Numeric',
             'BoardType'=>'required|Numeric'
         );
         $validator = Validator::make($data, $rules);
         if ($validator->fails()) {
-            return $this->response->error($validator->errors(),'432');
+            return generateResponse($validator->errors(),true);
         }
 
         if($data['BoardType']==CRMBoard::TaskBoard && CRMBoard::where(['BoardType'=>CRMBoard::TaskBoard])->count() > 0){
-            return $this->response->error('Task Board already created','432');
+            return generateResponse('Task Board already created',true,true);
         }
 
         $data['Status'] = isset($data['Status']) ? 1 : 0;
@@ -86,7 +88,7 @@ class OpportunityBoardController extends BaseController
             Log::info($ex);
             return $this->response->errorInternal($ex->getMessage());
         }
-        return API::response()->array(['status' => 'success', 'message' => 'Opportunity Board Successfully Created', 'status_code' => 200])->statusCode(200);
+        return generateResponse('Opportunity Board Successfully Created');
     }
 
     public function UpdateBoard($id)
@@ -99,14 +101,15 @@ class OpportunityBoardController extends BaseController
             $data ["CompanyID"] = $companyID;
             $data['Status'] = isset($data['Status']) ? 1 : 0;
             $data["ModifiedBy"] = User::get_user_full_name();
+
             $rules = array(
+                'BoardName' => 'required|unique:tblCRMBoards,BoardName,'.$id.',BoardID,CompanyID,' . $data['CompanyID'],
                 'CompanyID' => 'required',
                 'BoardName' => 'required',
             );
             $validator = Validator::make($data, $rules);
-
             if ($validator->fails()) {
-                return $this->response->error($validator->errors(),'432');
+                return generateResponse($validator->errors(),true);
             }
             try{
                 $Board->update($data);
@@ -114,9 +117,9 @@ class OpportunityBoardController extends BaseController
                 Log::info($ex);
                 return $this->response->errorInternal($ex->getMessage());
             }
-            return API::response()->array(['status' => 'success', 'message' => 'Opportunity Board Successfully Updated', 'status_code' => 200])->statusCode(200);
+            return generateResponse('Opportunity Board Successfully Updated');
         }else {
-            return $this->response->errorBadRequest('Board id is missing');
+            return generateResponse('Board id is missing',true);
         }
     }
 }

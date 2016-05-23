@@ -61,7 +61,7 @@ class LeadController extends BaseController
 		
 		unset($data['token']);
         try{
-			$lead 			= 	Lead::create($data);		
+			$lead 			= 	Lead::create($data);
             return generateResponse('',false,false,$lead);
         }catch (\Exception $ex){
            	  Log::info($ex);
@@ -101,7 +101,7 @@ class LeadController extends BaseController
 		unset($data['token']);
 		try{
 	        $lead->update($data);
-            return generateResponse("Lead Successfully Updated");
+            return generateResponse("Lead Successfully Updated ");
 		}catch (\Exception $ex){
             Log::info($ex);
            	return $this->response->errorInternal($ex->getMessage());

@@ -13,6 +13,10 @@ class CRMBoard extends \Eloquent {
     const OpportunityBoard = 1;
     const TaskBoard = 2;
 
+    const InActive = 0;
+    const Active = 1;
+    const All = 2;
+
     public static function getBoards($BoardType=CRMBoard::OpportunityBoard){
         $compantID = User::get_companyID();
         $opportunity = CRMBoard::select(['BoardID','BoardName'])->where(['CompanyID'=>$compantID,'BoardType'=>$BoardType])->lists('BoardName','BoardID');

@@ -395,8 +395,6 @@ function call_api($post = array()){
     return $response;
 }
 
-
-
 function generateResponse($message,$isError=false,$isCustomError=false,$data=[]){
     $status = 'success';
     if($isError){

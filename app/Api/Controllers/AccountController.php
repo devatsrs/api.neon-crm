@@ -426,7 +426,6 @@ class AccountController extends BaseController
                 }
             }
            return generateResponse('Account Successfully Updated ');
-			
         }catch (\Exception $ex){
                  Log::info($ex);
            		 return $this->response->errorInternal($ex->getMessage());
