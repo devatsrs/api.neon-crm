@@ -63,30 +63,43 @@ function sendMail($view,$data){
         $mail->Body = $body;
         $mail->Subject = $data['Subject'];
 
-        if (is_array($data['EmailTo'])) {
+        
+		add_email_address($mail,$data,'EmailTo');
+		add_email_address($mail,$data,'cc');
+		add_email_address($mail,$data,'bcc');
+		
+		/*if (is_array($data['EmailTo'])) {
             foreach ((array)$data['EmailTo'] as $email_address) {
                 $mail->addAddress(trim($email_address));
             }
         }else{
             $mail->addAddress(trim($data['EmailTo']));
-        }
+        }*/
 
 		//\Illuminate\Support\Facades\Log::info($data);
 		//$cc_array= explode(",",$data['cc']);
 		//$bcc_array= explode(",",$data['bcc']);
 		
-		if(isset($data['cc']))
+		/*if(isset($data['cc']))
 		{
 			if(is_array($data['cc'])){
            		foreach((array)$data['cc'] as $email_address){
                 	$mail->AddCC(trim($email_address));
  	        	}
-    		}else{           
-                $mail->AddCC(trim($data['cc']));           	
+    		}else{
+				$explode_cc_address = explode(",",$data['cc']);
+				if(count($explode_cc_address)>0)
+				{
+					foreach($explode_cc_address as $cc_addresses)
+					{
+						$mail->AddCC(trim($cc_addresses));	
+					}
+				}           
+                           	
 			}
-       }
+       }*/
 	   
-	   if(isset($data['bcc']))
+	  /* if(isset($data['bcc']))
 		{
 			if(is_array($data['bcc'])){
            		foreach((array)$data['bcc'] as $email_address){
@@ -95,7 +108,7 @@ function sendMail($view,$data){
     		}else{           
                 $mail->AddBCC(trim($data['bcc']));           	
 			}
-       }
+       }*/
 		 
 	if(isset($data['AttachmentPaths']) && count($data['AttachmentPaths'])>0)
 	{
@@ -187,6 +200,33 @@ function setMailConfig($CompanyID,$mandrill,$data=array()){
         	$mail->FromName = $from['name'];
 		}
         return $mail;   
+	}
+	
+	function add_email_address($mail,$data,$type='EmailTo') //type add,bcc,cc
+	{ 
+		if(isset($data[$type]))
+		{
+			if(!is_array($data[$type])){
+				$email_addresses = explode(",",$data[$type]);		
+			}
+			else{
+				$email_addresses = $data[$type];
+			}
+		
+			if(count($email_addresses)>0){
+           		foreach($email_addresses as $email_address){
+                	if($type='EmailTo'){
+						$mail->addAddress(trim($email_address));
+					}
+					if($type='cc'){
+						$mail->AddCC(trim($email_address));					
+					}
+					if($type='bcc'){
+						$mail->AddBCC(trim($email_address));	
+					}			
+ 	        	}
+    		}
+       }
 	}
 
 function email_log($data){
