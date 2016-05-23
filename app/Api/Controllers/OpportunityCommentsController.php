@@ -118,8 +118,8 @@ class OpportunityCommentsController extends BaseController {
                 if(isset($data['PrivateComment']) && $data['PrivateComment']==1) {
                     $account = Account::find($data['AccountID']);
                     $emailData['AccountID'] = $account->AccountID;
-                    $emailData['EmailTo'] = $account->Email;
-                    $emailData['EmailToName'] = $account->FirstName.' '.$account->LastName;
+                    $emailData['EmailTo'] = $opportunity->Email;
+                    $emailData['EmailToName'] = $opportunity->FirstName.' '.$opportunity->LastName;
                     $emailData['CompanyID'] = $data ["CompanyID"];
                     $status = sendMail('emails.crm.AccountUserEmailSend',$emailData);
                     $emailData['Message'] = $status['body'];

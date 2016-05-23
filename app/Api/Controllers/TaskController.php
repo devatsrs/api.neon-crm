@@ -307,9 +307,9 @@ class TaskController extends BaseController {
             }
             try {
                 //Tags::insertNewTags(['tags' => $data['Tags'], 'TagType' => Tags::Task_tag]);
-                if(isset($data['TaggedUser'])) {
-                    $taggedUser = implode(',', $data['TaggedUser']);
-                    $data['TaggedUser'] = $taggedUser;
+                if(isset($data['TaggedUsers'])) {
+                    $taggedUser = implode(',', $data['TaggedUsers']);
+                    $data['TaggedUsers'] = $taggedUser;
                 }
                 $data['BoardColumnID'] = $data["TaskStatus"];
                 $data['DueDate'] = isset($data['StartTime']) && !empty($data['StartTime'])?$data['DueDate'].' '.$data['StartTime']:$data['DueDate'];
