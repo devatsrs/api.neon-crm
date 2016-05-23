@@ -43,8 +43,8 @@ class TaskController extends BaseController {
         $data['Priority'] = isset($data['Priority'])?empty($data['Priority']) || $data['Priority']=='false'?0:$data['Priority']:0;
         $data['TaskStatus'] = isset($data['TaskStatus'])?empty($data['TaskStatus'])?0:$data['TaskStatus']:0;
         if(isset($data['DueDateFilter'])){
-            $data['DueDateFrom'] = $data['DueDateFilter']!=Task::CustomDate?$data['DueDateFilter']:isset($data['DueDateFrom'])?$data['DueDateFrom']:'';
-            $data['DueDateTo'] = $data['DueDateFilter']!=Task::CustomDate?$data['DueDateFilter']:isset($data['DueDateTo'])?$data['DueDateTo']:'';
+            $data['DueDateFrom'] = $data['DueDateFilter']!=Task::CustomDate?$data['DueDateFilter']:(isset($data['DueDateFrom'])?$data['DueDateFrom']:'');
+            $data['DueDateTo'] = $data['DueDateFilter']!=Task::CustomDate?$data['DueDateFilter']:(isset($data['DueDateTo'])?$data['DueDateTo']:'');
         }
         if($data['fetchType']=='Grid') {
             $rules['iDisplayStart'] = 'required|Min:1';
