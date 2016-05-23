@@ -35,6 +35,7 @@ function rename_win($oldfile,$newfile) {
 
 
 function sendMail($view,$data){
+    \Illuminate\Support\Facades\Log::info($data);
     $status = array('status' => 0, 'message' => 'Something wrong with sending mail.');
     if(empty($data['companyID']))
     {
