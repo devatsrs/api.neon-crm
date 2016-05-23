@@ -35,7 +35,7 @@ function rename_win($oldfile,$newfile) {
 
 
 function sendMail($view,$data){
-    \Illuminate\Support\Facades\Log::info($data);
+
     $status = array('status' => 0, 'message' => 'Something wrong with sending mail.');
     if(empty($data['companyID']))
     {
@@ -67,49 +67,7 @@ function sendMail($view,$data){
 		add_email_address($mail,$data,'EmailTo');
 		add_email_address($mail,$data,'cc');
 		add_email_address($mail,$data,'bcc');
-		
-		/*if (is_array($data['EmailTo'])) {
-            foreach ((array)$data['EmailTo'] as $email_address) {
-                $mail->addAddress(trim($email_address));
-            }
-        }else{
-            $mail->addAddress(trim($data['EmailTo']));
-        }*/
 
-		//\Illuminate\Support\Facades\Log::info($data);
-		//$cc_array= explode(",",$data['cc']);
-		//$bcc_array= explode(",",$data['bcc']);
-		
-		/*if(isset($data['cc']))
-		{
-			if(is_array($data['cc'])){
-           		foreach((array)$data['cc'] as $email_address){
-                	$mail->AddCC(trim($email_address));
- 	        	}
-    		}else{
-				$explode_cc_address = explode(",",$data['cc']);
-				if(count($explode_cc_address)>0)
-				{
-					foreach($explode_cc_address as $cc_addresses)
-					{
-						$mail->AddCC(trim($cc_addresses));	
-					}
-				}           
-                           	
-			}
-       }*/
-	   
-	  /* if(isset($data['bcc']))
-		{
-			if(is_array($data['bcc'])){
-           		foreach((array)$data['bcc'] as $email_address){
-                	$mail->AddBCC(trim($email_address));
- 	        	}
-    		}else{           
-                $mail->AddBCC(trim($data['bcc']));           	
-			}
-       }*/
-		 
 	if(isset($data['AttachmentPaths']) && count($data['AttachmentPaths'])>0)
 	{
 		foreach($data['AttachmentPaths'] as $attachment_data)
@@ -150,12 +108,11 @@ function sendMail($view,$data){
             $status['body'] = $body;
         }
 		
-		
-		\Illuminate\Support\Facades\Log::info($data);
+	//	\Illuminate\Support\Facades\Log::info($data);
        // \Illuminate\Support\Facades\Log::info($status);
-	   \Illuminate\Support\Facades\Log::info("error start");
-		\Illuminate\Support\Facades\Log::info($mail->ErrorInfo);
-		\Illuminate\Support\Facades\Log::info("error end");
+	 //  \Illuminate\Support\Facades\Log::info("error start");
+	//	\Illuminate\Support\Facades\Log::info($mail->ErrorInfo);
+	//	\Illuminate\Support\Facades\Log::info("error end");
     return $status;
 }
 function setMailConfig($CompanyID,$mandrill,$data=array()){
