@@ -263,6 +263,10 @@ class OpportunityController extends BaseController {
                 if(isset($data['opportunityClosed']) && $data['opportunityClosed']==Opportunity::Close){
                     $data['ClosingDate'] = date('Y-m-d H:i:s');
                     $data['Status'] = Opportunity::Close;
+                }else{
+                    if(empty($data['Status'])){
+                        $data['Status'] = Opportunity::Open;
+                    }
                 }
                 unset($data['opportunityClosed']);
                 unset($data['OpportunityID']);
@@ -270,7 +274,6 @@ class OpportunityController extends BaseController {
                 if($Opportunity->BoardID!=$data['BoardID']){
                     $data["BoardColumnID"] = CRMBoardColumn::where(['BoardID' => $data['BoardID'], 'Order' => 0])->pluck('BoardColumnID');
                 }
-                Log::info($data);
                 $Opportunity->update($data);
             } catch (\Exception $ex){
                 Log::info($ex);
