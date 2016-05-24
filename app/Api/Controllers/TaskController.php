@@ -248,13 +248,13 @@ class TaskController extends BaseController {
                     $extra      = ['{{FirstName}}','{{LastName}}','{{Email}}','{{Address1}}','{{Address2}}','{{Address3}}','{{City}}','{{State}}','{{PostCode}}','{{Country}}','{{Signature}}'];
                     $replace    = [$account->FirstName,$account->LastName,$account->Email,$account->Address1,$account->Address2,$account->Address3,$account->City,$account->State,$account->PostCode,$account->Country,$Signature];
 
-                    $Email['extra'] = $extra;
-                    $Email['replace'] = $replace;
-                    $Email['AttachmentPaths'] = unserialize($Email['AttachmentPaths']);
-                    $Email['cc'] = $Email['Cc'];
-                    $Email['bcc'] = $Email['Bcc'];
-                    $Email['address']   =   $Email['Emailfrom'];
-                    $Email['name']   =  $Email['CreatedBy'];
+                    $Email['extra'] 			= 	$extra;
+                    $Email['replace'] 			= 	$replace;
+                    $Email['AttachmentPaths'] 	= 	unserialize($Email['AttachmentPaths']);
+                    $Email['cc'] 				= 	$Email['Cc'];
+                    $Email['bcc'] 				= 	$Email['Bcc'];
+                    $Email['address']   		=   $Email['Emailfrom'];
+                    $Email['name']   			=  	$Email['CreatedBy'];
 
                     $status = sendMail('emails.account.AccountEmailSend', $Email);
                 }
