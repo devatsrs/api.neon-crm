@@ -42,9 +42,10 @@ class TaskController extends BaseController {
         $data['AccountIDs'] = isset($data['AccountIDs'])?empty($data['AccountIDs'])?0:$data['AccountIDs']:0;
         $data['Priority'] = isset($data['Priority'])?empty($data['Priority']) || $data['Priority']=='false'?0:$data['Priority']:0;
         $data['TaskStatus'] = isset($data['TaskStatus'])?empty($data['TaskStatus'])?0:$data['TaskStatus']:0;
+        $data['taskClosed'] = isset($data['taskClosed'])?empty($data['taskClosed']) || $data['taskClosed']=='false'?0:$data['taskClosed']:0;
         if(isset($data['DueDateFilter'])){
-            $data['DueDateFrom'] = $data['DueDateFilter']!=Task::CustomDate?$data['DueDateFilter']:isset($data['DueDateFrom'])?$data['DueDateFrom']:'';
-            $data['DueDateTo'] = $data['DueDateFilter']!=Task::CustomDate?$data['DueDateFilter']:isset($data['DueDateTo'])?$data['DueDateTo']:'';
+            $data['DueDateFrom'] = $data['DueDateFilter']!=Task::CustomDate?$data['DueDateFilter']:(isset($data['DueDateFrom'])?$data['DueDateFrom']:'');
+            $data['DueDateTo'] = $data['DueDateFilter']!=Task::CustomDate?$data['DueDateFilter']:(isset($data['DueDateTo'])?$data['DueDateTo']:'');
         }
         if($data['fetchType']=='Grid') {
             $rules['iDisplayStart'] = 'required|Min:1';
@@ -55,10 +56,10 @@ class TaskController extends BaseController {
                 return generateResponse($validator->errors(),true);
             }
 
-            $columns = ['Subject', 'DueDate', 'Status', 'Priority','UserID'];
+            $columns = ['Subject', 'DueDate', 'Status','UserID','RelatedTo'];
             $sort_column = $columns[$data['iSortCol_0']];
 
-            $query = "call prc_GetTasksGrid (" . $companyID . ", " . $id . ",'" . $data['taskName'] . "'," . $data['AccountOwner'] . ", " . $data['AccountIDs'] . ", " . $data['Priority'] .",'".$data['DueDateFrom']."','".$data['DueDateTo']."',".$data['TaskStatus'].",".(ceil($data['iDisplayStart'] / $data['iDisplayLength'])) . " ," . $data['iDisplayLength'] . ",'" . $sort_column . "','" . $data['sSortDir_0'] . "')";
+            $query = "call prc_GetTasksGrid (" . $companyID . ", " . $id . ",'" . $data['taskName'] . "'," . $data['AccountOwner'] . ", " . $data['AccountIDs'] . ", " . $data['Priority'] .",'".$data['DueDateFrom']."','".$data['DueDateTo']."',".$data['TaskStatus'].",".$data['taskClosed'].",".(ceil($data['iDisplayStart'] / $data['iDisplayLength'])) . " ," . $data['iDisplayLength'] . ",'" . $sort_column . "','" . $data['sSortDir_0'] . "')";
             try {
                 $result = DataTableSql::of($query)->make();
                 return generateResponse('',false,false,$result);
@@ -67,7 +68,8 @@ class TaskController extends BaseController {
                 return $this->response->errorInternal($ex->getMessage());
             }
         }elseif($data['fetchType']=='Board') {
-            $query = "call prc_GetTasksBoard (" . $companyID . ", " . $id . ",'" . $data['taskName'] . "'," . $data['AccountOwner'] . ", " . $data['AccountIDs'] . ", " . $data['Priority'] .",'".$data['DueDateFrom']."','".$data['DueDateTo']."',".$data['TaskStatus'].")";
+            $query = "call prc_GetTasksBoard (" . $companyID . ", " . $id . ",'" . $data['taskName'] . "'," . $data['AccountOwner'] . ", " . $data['AccountIDs'] . ", " . $data['Priority'] .",'".$data['DueDateFrom']."','".$data['DueDateTo']."',".$data['TaskStatus'].",".$data['taskClosed'].")";
+
             try{
                 $result = DB::select($query);
                 $columnsWithITask = [];
@@ -311,9 +313,14 @@ class TaskController extends BaseController {
                     $taggedUser = implode(',', $data['TaggedUsers']);
                     $data['TaggedUsers'] = $taggedUser;
                 }
+                if(isset($data['taskClosed']) && $data['taskClosed']==Task::Close){
+                    $data['ClosingDate'] = date('Y-m-d H:i:s');
+                    $data['Status'] = Task::Close;
+                }
                 $data['BoardColumnID'] = $data["TaskStatus"];
                 $data['DueDate'] = isset($data['StartTime']) && !empty($data['StartTime'])?$data['DueDate'].' '.$data['StartTime']:$data['DueDate'];
                 $data['Priority'] = isset($data['Priority'])?1:0;
+                unset($data['taskClosed']);
                 unset($data["TaskStatus"]);
                 unset($data['TaskID']);
                 unset($data['StartTime']);
