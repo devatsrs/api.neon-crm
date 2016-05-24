@@ -41,6 +41,9 @@ class OpportunityController extends BaseController {
         $data['opportunityName'] = isset($data['opportunityName'])?empty($data['opportunityName'])?'':$data['opportunityName']:'';
         $data['Tags'] = isset($data['Tags'])?empty($data['Tags'])?'':$data['Tags']:'';
         $data['Status'] = isset($data['Status'])?empty($data['Status'])?$defaultSelectd:implode(',',$data['Status']):$defaultSelectd;
+        if(isset($data['opportunityClosed']) && $data['opportunityClosed']==Opportunity::Close){
+            $data['Status'] = Opportunity::Close;
+        }
         $query = "call prc_GetOpportunities (".$companyID.", ".$id.",'".$data['opportunityName']."',"."'".$data['Tags']."',".$data['account_owners'].", ".$data['AccountID'].",'".$data['Status']."')";
         try{
             $result = DB::select($query);
@@ -156,14 +159,17 @@ class OpportunityController extends BaseController {
             'CompanyID' => 'required',
             'OpportunityName' => 'required',
             'Company'=>'required',
-            'Title'=>'required',
             'FirstName'=>'required',
             'LastName'=>'required',
             'Email'=>'required',
             'Phone'=>'required',
             'BoardID'=>'required',
         );
+
         if($data['leadcheck']=='No') {
+            if($data['leadOrAccount'] == 'Account'){
+                $rules['Title']='required';
+            }
             $rules['Company'] = 'required|unique:tblAccount,AccountName,NULL,CompanyID,CompanyID,' . $companyID . '';
         }
         $validator = Validator::make($data, $rules);
@@ -236,6 +242,8 @@ class OpportunityController extends BaseController {
                 'CompanyID' => 'required',
                 'OpportunityName' => 'required',
                 'Company'=>'required',
+                'FirstName'=>'required',
+                'LastName'=>'required',
                 'Email'=>'required',
                 'Phone'=>'required',
                 'BoardID'=>'required'
@@ -246,17 +254,24 @@ class OpportunityController extends BaseController {
                 generateResponse($validator->errors(),true);
             }
             try {
+                $data['ClosingDate'] = '';
                 if(isset($data['TaggedUsers']) && !empty($data['TaggedUsers'])) {
                     Tags::insertNewTags(['tags' => $data['Tags'], 'TagType' => Tags::Opportunity_tag]);
                     $taggedUsers = implode(',', $data['TaggedUsers']);
                     $data['TaggedUsers'] = $taggedUsers;
                 }
-                if($data['Status']==Opportunity::Close){
+                if(isset($data['opportunityClosed']) && $data['opportunityClosed']==Opportunity::Close){
                     $data['ClosingDate'] = date('Y-m-d H:i:s');
+                    $data['Status'] = Opportunity::Close;
                 }
+                unset($data['opportunityClosed']);
                 unset($data['OpportunityID']);
+                $Opportunity = Opportunity::find($id);
+                if($Opportunity->BoardID!=$data['BoardID']){
+                    $data["BoardColumnID"] = CRMBoardColumn::where(['BoardID' => $data['BoardID'], 'Order' => 0])->pluck('BoardColumnID');
+                }
                 Log::info($data);
-                Opportunity::where(['OpportunityID' => $id])->update($data);
+                $Opportunity->update($data);
             } catch (\Exception $ex){
                 Log::info($ex);
                 return $this->response->errorInternal($ex->getMessage());
