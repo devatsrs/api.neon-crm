@@ -315,12 +315,11 @@ class TaskController extends BaseController {
                 }
                 if(isset($data['taskClosed']) && $data['taskClosed']==Task::Close){
                     $data['ClosingDate'] = date('Y-m-d H:i:s');
-                    $data['Status'] = Task::Close;
+                    $data['taskClosed'] = Task::Close;
                 }
                 $data['BoardColumnID'] = $data["TaskStatus"];
                 $data['DueDate'] = isset($data['StartTime']) && !empty($data['StartTime'])?$data['DueDate'].' '.$data['StartTime']:$data['DueDate'];
                 $data['Priority'] = isset($data['Priority'])?1:0;
-                unset($data['taskClosed']);
                 unset($data["TaskStatus"]);
                 unset($data['TaskID']);
                 unset($data['StartTime']);
