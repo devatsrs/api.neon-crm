@@ -312,6 +312,8 @@ class TaskController extends BaseController {
                 if(isset($data['TaggedUsers'])) {
                     $taggedUser = implode(',', $data['TaggedUsers']);
                     $data['TaggedUsers'] = $taggedUser;
+                }else{
+                    $data['TaggedUsers'] = '';
                 }
                 if(isset($data['taskClosed']) && $data['taskClosed']==Task::Close){
                     $data['ClosingDate'] = date('Y-m-d H:i:s');

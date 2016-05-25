@@ -9,7 +9,7 @@ function check_date_format_db($date){
 }
 function uploaded_File_Handler($fileArray){
     $files_array = [];
-    foreach($fileArray as $Index=>$file){  
+    foreach($fileArray as $Index=>$file){
         $decoded_file = base64_decode($file['file']);
         $fileName = $file['fileName'];
         $tempPath = getenv('TEMP_PATH');
@@ -17,24 +17,25 @@ function uploaded_File_Handler($fileArray){
         $path = $tempPath.'/'.$stamp.$fileName;
         file_put_contents($path, $decoded_file);
         $files_array[] = ['fileName'=>$file['fileName'],
-                            'file'=>$path,
-                            'Extension'=>$file['fileExtension']];
+            'file'=>$path,
+            'Extension'=>$file['fileExtension']];
     }
     return $files_array;
 }
 function rename_win($oldfile,$newfile) {
     //if (!rename($oldfile,$newfile)) {
-        if (copy ($oldfile,$newfile)) {
-            unlink($oldfile);
-            return TRUE;
-        }
-        //return FALSE;
+    if (copy ($oldfile,$newfile)) {
+        unlink($oldfile);
+        return TRUE;
+    }
+    //return FALSE;
     //}
     return TRUE;
 }
 
 
 function sendMail($view,$data){
+
     $status = array('status' => 0, 'message' => 'Something wrong with sending mail.');
     if(empty($data['companyID']))
     {
@@ -42,151 +43,151 @@ function sendMail($view,$data){
     }else{
         $companyID = $data['companyID'];
     }
-	
-	 $mandrill =0;
-        if(isset($data['mandrill']) && $data['mandrill'] ==1){
-            $mandrill = 1;
-        }
-        $mail = setMailConfig($companyID, $mandrill, $data);
 
-        $mail->isHTML(true);
-        if (isset($data['isHTML']) && $data['isHTML'] == 'false') {
-            $mail->isHTML(false);
-        }
+    $mandrill =0;
+    if(isset($data['mandrill']) && $data['mandrill'] ==1){
+        $mandrill = 1;
+    }
+    $mail = setMailConfig($companyID, $mandrill, $data);
 
-        $body = htmlspecialchars_decode(View::make($view, compact('data'))->render());
+    $mail->isHTML(true);
+    if (isset($data['isHTML']) && $data['isHTML'] == 'false') {
+        $mail->isHTML(false);
+    }
 
-        if (getenv('APP_ENV') != 'Production') {
-            $data['Subject'] = 'Test Mail ' . $data['Subject'];
-        }
-        $mail->Body = $body;
-        $mail->Subject = $data['Subject'];
+    $body = htmlspecialchars_decode(View::make($view, compact('data'))->render());
 
-        if (is_array($data['EmailTo'])) {
-            foreach ((array)$data['EmailTo'] as $email_address) {
-                $mail->addAddress(trim($email_address));
+    if (getenv('APP_ENV') != 'Production') {
+        $data['Subject'] = 'Test Mail ' . $data['Subject'];
+    }
+    $mail->Body = $body;
+    $mail->Subject = $data['Subject'];
+
+
+    add_email_address($mail,$data,'EmailTo');
+    add_email_address($mail,$data,'cc');
+    add_email_address($mail,$data,'bcc');
+
+    if(isset($data['AttachmentPaths']) && count($data['AttachmentPaths'])>0)
+    {
+        foreach($data['AttachmentPaths'] as $attachment_data)
+        {
+            if(is_amazon() == true)
+            {
+                $Attachmenturl  =  \App\AmazonS3::preSignedUrl($attachment_data['filepath']);
+                $path 			=   getenv('AWS_URL').'/'.$attachment_data['filepath'];
             }
-        }else{
-            $mail->addAddress(trim($data['EmailTo']));
-        }
+            else
+            {
+                $Attachmenturl = Config::get('app.upload_path')."/".$attachment_data['filepath'];
+                $path 			=   getenv('TEMP_PATH').'/'.$attachment_data['filepath'];
+            }
 
-		//\Illuminate\Support\Facades\Log::info($data);
-		//$cc_array= explode(",",$data['cc']);
-		//$bcc_array= explode(",",$data['bcc']);
-		
-		if(isset($data['cc']))
-		{
-			if(is_array($data['cc'])){
-           		foreach((array)$data['cc'] as $email_address){
-                	$mail->AddCC(trim($email_address));
- 	        	}
-    		}else{           
-                $mail->AddCC(trim($data['cc']));           	
-			}
-       }
-	   
-	   if(isset($data['bcc']))
-		{
-			if(is_array($data['bcc'])){
-           		foreach((array)$data['bcc'] as $email_address){
-                	$mail->AddBCC(trim($email_address));
- 	        	}
-    		}else{           
-                $mail->AddBCC(trim($data['bcc']));           	
-			}
-       }
-		 
-	if(isset($data['AttachmentPaths']) && count($data['AttachmentPaths'])>0)
-	{
-		foreach($data['AttachmentPaths'] as $attachment_data)
-		{
-			 if(is_amazon() == true)
-			{
-				$Attachmenturl  =  \App\AmazonS3::preSignedUrl($attachment_data['filepath']);
-				$path 			=   getenv('AWS_URL').'/'.$attachment_data['filepath'];				
-			}
-			else
-			{
-				$Attachmenturl = Config::get('app.upload_path')."/".$attachment_data['filepath'];
-				$path 			=   getenv('TEMP_PATH').'/'.$attachment_data['filepath'];
-			}
-			
-			\Illuminate\Support\Facades\Log::info($path);
+            \Illuminate\Support\Facades\Log::info($path);
             $file = getenv('TEMP_PATH').'/email_attachment/'.basename($path);
             if(!file_exists(getenv('TEMP_PATH').'/email_attachment')) {
                 mkdir(getenv('TEMP_PATH').'/email_attachment',0777);
             }
             file_put_contents($file,file_get_contents($path));
-			//\Illuminate\Support\Facades\Log::info($file);
-			//\Illuminate\Support\Facades\Log::info($Attachmenturl);
-			$mail->AddAttachment($file,$attachment_data['filename']);
-		}
-	}
-	
-		
-	    $mail->Body = $body;
-        $mail->Subject = $data['Subject'];
-        if (!$mail->send()) {
-            $status['status'] = 0;
-            $status['message'] .= $mail->ErrorInfo;
-            $status['body'] = '';
-        } else {
-            $status['status'] = 1;
-            $status['message'] = 'Email has been sent';
-            $status['body'] = $body;
+            //\Illuminate\Support\Facades\Log::info($file);
+            //\Illuminate\Support\Facades\Log::info($Attachmenturl);
+            $mail->AddAttachment($file,$attachment_data['filename']);
         }
-		
-		//\Illuminate\Support\Facades\Log::info($data);
-       // \Illuminate\Support\Facades\Log::info($status);
-	//	\Illuminate\Support\Facades\Log::info($mail->ErrorInfo);
+    }
+
+
+    $mail->Body = $body;
+    $mail->Subject = $data['Subject'];
+    if (!$mail->send()) {
+        $status['status'] = 0;
+        $status['message'] .= $mail->ErrorInfo;
+        $status['body'] = '';
+    } else {
+        $status['status'] = 1;
+        $status['message'] = 'Email has been sent';
+        $status['body'] = $body;
+    }
+
+    //	\Illuminate\Support\Facades\Log::info($data);
+    // \Illuminate\Support\Facades\Log::info($status);
+    //  \Illuminate\Support\Facades\Log::info("error start");
+    //	\Illuminate\Support\Facades\Log::info($mail->ErrorInfo);
+    //	\Illuminate\Support\Facades\Log::info("error end");
     return $status;
 }
 function setMailConfig($CompanyID,$mandrill,$data=array()){
-	
 
-        $result = \Api\Model\Company::select('SMTPServer','SMTPUsername','CompanyName','SMTPPassword','Port','IsSSL','EmailFrom')->where("CompanyID", '=', $CompanyID)->first();
-        if($mandrill == 1) {
-            Config::set('mail.host', getenv("MANDRILL_SMTP_SERVER"));
-            Config::set('mail.port', getenv("MANDRILL_PORT"));
-            Config::set('mail.from.address', $result->EmailFrom);
-            Config::set('mail.from.name', $result->CompanyName);
-            Config::set('mail.encryption', (getenv("MADRILL_SSL") == 1 ? 'SSL' : 'TLS'));
-            Config::set('mail.username', getenv("MANDRILL_SMTP_USERNAME"));
-            Config::set('mail.password', getenv("MANDRILL_SMTP_PASSWORD"));
-        }else{
-            Config::set('mail.host', $result->SMTPServer);
-            Config::set('mail.port', $result->Port);
-            Config::set('mail.from.address', $result->EmailFrom);
-            Config::set('mail.from.name', $result->CompanyName);
-            Config::set('mail.encryption', ($result->IsSSL == 1 ? 'SSL' : 'TLS'));
-            Config::set('mail.username', $result->SMTPUsername);
-            Config::set('mail.password', $result->SMTPPassword);
+
+    $result = \Api\Model\Company::select('SMTPServer','SMTPUsername','CompanyName','SMTPPassword','Port','IsSSL','EmailFrom')->where("CompanyID", '=', $CompanyID)->first();
+    if($mandrill == 1) {
+        Config::set('mail.host', getenv("MANDRILL_SMTP_SERVER"));
+        Config::set('mail.port', getenv("MANDRILL_PORT"));
+        Config::set('mail.from.address', $result->EmailFrom);
+        Config::set('mail.from.name', $result->CompanyName);
+        Config::set('mail.encryption', (getenv("MADRILL_SSL") == 1 ? 'SSL' : 'TLS'));
+        Config::set('mail.username', getenv("MANDRILL_SMTP_USERNAME"));
+        Config::set('mail.password', getenv("MANDRILL_SMTP_PASSWORD"));
+    }else{
+        Config::set('mail.host', $result->SMTPServer);
+        Config::set('mail.port', $result->Port);
+        Config::set('mail.from.address', $result->EmailFrom);
+        Config::set('mail.from.name', $result->CompanyName);
+        Config::set('mail.encryption', ($result->IsSSL == 1 ? 'SSL' : 'TLS'));
+        Config::set('mail.username', $result->SMTPUsername);
+        Config::set('mail.password', $result->SMTPPassword);
+    }
+
+
+    extract(Config::get('mail'));
+
+    $mail = new \PHPMailer();
+    //$mail->SMTPDebug = 3;                               // Enable verbose debug output
+    $mail->isSMTP();                                      // Set mailer to use SMTP
+    $mail->Host = $host;  // Specify main and backup SMTP servers
+    $mail->SMTPAuth = true;                               // Enable SMTP authentication
+    $mail->Username = $username;                 // SMTP username
+
+    $mail->Password = $password;                           // SMTP password
+    $mail->SMTPSecure = $encryption;                            // Enable TLS encryption, `ssl` also accepted
+
+    $mail->Port = $port;                                    // TCP port to connect to
+
+    if(isset($data['address'])&& $data['name'] ){
+        $mail->From 	= $data['address'];
+        $mail->FromName = $data['name'];
+    }else{
+        $mail->From 	= $from['address'];
+        $mail->FromName = $from['name'];
+    }
+    return $mail;
+}
+
+function add_email_address($mail,$data,$type='EmailTo') //type add,bcc,cc
+{
+    if(isset($data[$type]))
+    {
+        if(!is_array($data[$type])){
+            $email_addresses = explode(",",$data[$type]);
+        }
+        else{
+            $email_addresses = $data[$type];
         }
 
-
-        extract(Config::get('mail'));
-
-        $mail = new \PHPMailer();
-        //$mail->SMTPDebug = 3;                               // Enable verbose debug output
-        $mail->isSMTP();                                      // Set mailer to use SMTP
-        $mail->Host = $host;  // Specify main and backup SMTP servers
-        $mail->SMTPAuth = true;                               // Enable SMTP authentication
-        $mail->Username = $username;                 // SMTP username
-
-        $mail->Password = $password;                           // SMTP password
-        $mail->SMTPSecure = $encryption;                            // Enable TLS encryption, `ssl` also accepted
-
-        $mail->Port = $port;                                    // TCP port to connect to
-		
-		if(isset($data['address'])&& $data['name'] ){
-	       	$mail->From 	= $data['address'];
-        	$mail->FromName = $data['name'];
-		}else{	
-        	$mail->From 	= $from['address'];
-        	$mail->FromName = $from['name'];
-		}
-        return $mail;   
-	}
+        if(count($email_addresses)>0){
+            foreach($email_addresses as $email_address){
+                if($type='EmailTo'){
+                    $mail->addAddress(trim($email_address));
+                }
+                if($type='cc'){
+                    $mail->AddCC(trim($email_address));
+                }
+                if($type='bcc'){
+                    $mail->AddBCC(trim($email_address));
+                }
+            }
+        }
+    }
+}
 
 function email_log($data){
     $status = array('status' => 0, 'message' => 'Something wrong with Saving log.');
@@ -226,7 +227,7 @@ function email_log($data){
 }
 
 
-function email_log_data($data){
+function email_log_data($data,$view = ''){
     $status = array('status' => 0, 'message' => 'Something wrong with Saving log.');
     if(!isset($data['EmailTo']) && empty($data['EmailTo'])){
         $status['message'] = 'Email To not set in Account mail log';
@@ -248,40 +249,49 @@ function email_log_data($data){
     if(is_array($data['EmailTo'])){
         $data['EmailTo'] = implode(',',$data['EmailTo']);
     }
-	
-	if(!isset($data['cc']))
-	{
-		$data['cc'] = '';
-	}
-	
-	if(!isset($data['bcc']))
-	{
-		$data['bcc'] = '';
-	}
-	
-	if(isset($data['AttachmentPaths']) && count($data['AttachmentPaths'])>0)
-	{
-			$data['AttachmentPaths'] = serialize($data['AttachmentPaths']);
-	}
-	else
-	{
-		$data['AttachmentPaths'] = serialize([]);
-	}
+
+    if(!isset($data['cc']))
+    {
+        $data['cc'] = '';
+    }
+
+    if(!isset($data['bcc']))
+    {
+        $data['bcc'] = '';
+    }
+
+    if(isset($data['AttachmentPaths']) && count($data['AttachmentPaths'])>0)
+    {
+        $data['AttachmentPaths'] = serialize($data['AttachmentPaths']);
+    }
+    else
+    {
+        $data['AttachmentPaths'] = serialize([]);
+    }
+
+    if($view!='')
+    {
+        $body = htmlspecialchars_decode(View::make($view, compact('data'))->render());
+    }
+    else
+    {
+        $body = $data['Message'];
+    }
 
     $logData = ['EmailFrom'=>\Api\Model\User::get_user_email(),
         'EmailTo'=>$data['EmailTo'],
         'Subject'=>$data['Subject'],
-        'Message'=>$data['Message'],
+        'Message'=>$body,
         'AccountID'=>$data['AccountID'],
         'CompanyID'=>\Api\Model\User::get_companyID(),
         'UserID'=>\Api\Model\User::get_userID(),
         'CreatedBy'=>\Api\Model\User::get_user_full_name(),
-		'Cc'=>$data['cc'],
-		'Bcc'=>$data['bcc'],
-		"AttachmentPaths"=>$data['AttachmentPaths']
-		];
-		\Illuminate\Support\Facades\Log::info($data);
-     $data =  \Api\Model\AccountEmailLog::Create($logData);
+        'Cc'=>$data['cc'],
+        'Bcc'=>$data['bcc'],
+        "AttachmentPaths"=>$data['AttachmentPaths']
+    ];
+    \Illuminate\Support\Facades\Log::info($data);
+    $data =  \Api\Model\AccountEmailLog::Create($logData);
     return $data;
 }
 
@@ -325,30 +335,30 @@ function create_site_configration_cache(){
 
 
 
-    function validfilepath($path){
-        $path = \App\AmazonS3::unSignedUrl($path);
-        if (!is_numeric(strpos($path, "https://"))) {
-            //$path = str_replace('/', '\\', $path);
-            if (copy($path, './uploads/' . basename($path))) {
+function validfilepath($path){
+    $path = \App\AmazonS3::unSignedUrl($path);
+    if (!is_numeric(strpos($path, "https://"))) {
+        //$path = str_replace('/', '\\', $path);
+        if (copy($path, './uploads/' . basename($path))) {
 
-                $path = \Illuminate\Support\Facades\URL::to('/') . '/uploads/' . basename($path);
-            }
+            $path = \Illuminate\Support\Facades\URL::to('/') . '/uploads/' . basename($path);
         }
-        return $path;
     }
+    return $path;
+}
 
 
- function getCompanyLogo(){
-     $domain_url      =   $_SERVER['HTTP_HOST'];
-     $result       =  \Illuminate\Support\Facades\DB::table('tblCompanyThemes')->where(["DomainUrl" => $domain_url,'ThemeStatus'=>\Api\Model\Themes::ACTIVE])->get();
+function getCompanyLogo(){
+    $domain_url      =   $_SERVER['HTTP_HOST'];
+    $result       =  \Illuminate\Support\Facades\DB::table('tblCompanyThemes')->where(["DomainUrl" => $domain_url,'ThemeStatus'=>\Api\Model\Themes::ACTIVE])->get();
 
-     if($result){  //url found
-         $cache['Logo']       = empty($result[0]->Logo)?\Illuminate\Support\Facades\URL::to('/').'/assets/images/logo@2x.png':validfilepath($result[0]->Logo);
-     }else{
-         $cache['Logo']       = \Illuminate\Support\Facades\URL::to('/').'/assets/images/logo@2x.png';
-     }
+    if($result){  //url found
+        $cache['Logo']       = empty($result[0]->Logo)?\Illuminate\Support\Facades\URL::to('/').'/assets/images/logo@2x.png':validfilepath($result[0]->Logo);
+    }else{
+        $cache['Logo']       = \Illuminate\Support\Facades\URL::to('/').'/assets/images/logo@2x.png';
+    }
     return $cache['Logo'];
- }
+}
 
 function call_api($post = array()){
 
@@ -399,5 +409,3 @@ function generateResponse($message,$isError=false,$isCustomError=false,$data=[])
     }
     return \Dingo\Api\Facade\API::response()->array($reponse_data)->statusCode(200);
 }
-
-

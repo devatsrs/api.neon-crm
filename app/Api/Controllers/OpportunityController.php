@@ -1,14 +1,13 @@
 <?php
 namespace Api\Controllers;
 
+use Api\Model\Account;
 use Api\Model\Opportunity;
 use Api\Model\User;
 use Api\Model\Tags;
 use Api\Model\Lead;
 use Api\Model\CRMBoardColumn;
-use App\AmazonS3;
 use App\Http\Requests;
-use Dingo\Api\Facade\API;
 use Faker\Provider\Uuid;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Input;
@@ -165,6 +164,9 @@ class OpportunityController extends BaseController {
             'Phone'=>'required',
             'BoardID'=>'required',
         );
+        $messages = array(
+            'BoardID.required' => 'Opportunity Board field is required.'
+        );
 
         if($data['leadcheck']=='No') {
             if($data['leadOrAccount'] == 'Account'){
@@ -172,7 +174,7 @@ class OpportunityController extends BaseController {
             }
             $rules['Company'] = 'required|unique:tblAccount,AccountName,NULL,CompanyID,CompanyID,' . $companyID . '';
         }
-        $validator = Validator::make($data, $rules);
+        $validator = Validator::make($data, $rules, $messages);
         if ($validator->fails()) {
             return generateResponse($validator->errors(),true);
         }
@@ -248,7 +250,12 @@ class OpportunityController extends BaseController {
                 'Phone'=>'required',
                 'BoardID'=>'required'
             );
-            $validator = Validator::make($data, $rules);
+
+            $messages = array(
+                'BoardID.required' => 'Opportunity Board field is required.'
+            );
+
+            $validator = Validator::make($data, $rules, $messages);
 
             if ($validator->fails()) {
                 generateResponse($validator->errors(),true);
@@ -259,6 +266,8 @@ class OpportunityController extends BaseController {
                     Tags::insertNewTags(['tags' => $data['Tags'], 'TagType' => Tags::Opportunity_tag]);
                     $taggedUsers = implode(',', $data['TaggedUsers']);
                     $data['TaggedUsers'] = $taggedUsers;
+                }else{
+                    $data['TaggedUsers'] = '';
                 }
                 if(isset($data['opportunityClosed']) && $data['opportunityClosed']==Opportunity::Close){
                     $data['ClosingDate'] = date('Y-m-d H:i:s');
