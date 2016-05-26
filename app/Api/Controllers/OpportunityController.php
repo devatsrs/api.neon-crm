@@ -34,16 +34,16 @@ class OpportunityController extends BaseController {
         }
         $companyID = User::get_companyID();
         $data = Input::all();
-        $defaultSelectd = implode(',',Opportunity::$defaultSelectedStatus);
         $data['account_owners'] = isset($data['account_owners'])?empty($data['account_owners'])?0:$data['account_owners']:0;
         $data['AccountID'] = isset($data['AccountID'])?empty($data['AccountID'])?0:$data['AccountID']:0;
         $data['opportunityName'] = isset($data['opportunityName'])?empty($data['opportunityName'])?'':$data['opportunityName']:'';
         $data['Tags'] = isset($data['Tags'])?empty($data['Tags'])?'':$data['Tags']:'';
-        $data['Status'] = isset($data['Status'])?empty($data['Status'])?$defaultSelectd:implode(',',$data['Status']):$defaultSelectd;
+        $data['Status'] = isset($data['Status'])?empty($data['Status'])?'':implode(',',$data['Status']):'';
         if(isset($data['opportunityClosed']) && $data['opportunityClosed']==Opportunity::Close){
             $data['Status'] = Opportunity::Close;
         }
         $query = "call prc_GetOpportunities (".$companyID.", ".$id.",'".$data['opportunityName']."',"."'".$data['Tags']."',".$data['account_owners'].", ".$data['AccountID'].",'".$data['Status']."')";
+        Log::info($query);
         try{
             $result = DB::select($query);
             $columnsWithOpportunities = [];
@@ -210,6 +210,7 @@ class OpportunityController extends BaseController {
             $count = Opportunity::where(['CompanyID' => $companyID, 'BoardID' => $data['BoardID'], 'BoardColumnID' => $data["BoardColumnID"]])->count();
             $data['Order'] = $count;
             $data["CreatedBy"] = User::get_user_full_name();
+            $data['Status'] = isset($data['Status']) && !empty($data['Status'])?$data['Status']:Opportunity::Open;
 
             unset($data['OppertunityID']);
             unset($data['leadcheck']);
