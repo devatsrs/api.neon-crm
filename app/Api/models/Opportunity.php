@@ -19,6 +19,6 @@ class Opportunity extends \Eloquent {
     public static $defaultSelectedStatus = [Opportunity::Open,Opportunity::Won,Opportunity::Lost,Opportunity::Abandoned];
 
     public static $status = [Opportunity::Open=>'Open',Opportunity::Won=>'Won',Opportunity::Lost=>'Lost',
-        Opportunity::Abandoned=>'Abandoned',Opportunity::Close=>'Close'];
+        Opportunity::Abandoned=>'Abandoned'];
 
 }

@@ -20,12 +20,6 @@ $api->version('v1', function ($api) {
 			//token validation
 			$api->get('users/me', 'AuthController@me');
 			$api->get('validate_token', 'AuthController@validateToken');
-			
-			$api->get('dogs', 'DogsController@index');
-			$api->post('dogs', 'DogsController@store');
-			$api->get('dogs/{id}', 'DogsController@show');
-			$api->delete('dogs/{id}', 'DogsController@destroy');
-			$api->put('dogs/{id}', 'DogsController@update');
 
             //leads
             $api->get('lead/{id}/get_account', 'LeadController@GetLead');
@@ -81,7 +75,6 @@ $api->version('v1', function ($api) {
             $api->post('opportunity/add_opportunity','OpportunityController@addOpportunity');
             $api->post('opportunity/{id}/update_opportunity','OpportunityController@updateOpportunity');
             $api->post('opportunity/{id}/update_columnorder','OpportunityController@updateColumnOrder');
-            $api->post('opportunity/{id}/update_taggeduser','OpportunityController@updateTaggedUser');
             $api->get('opportunity/{id}/get_lead','OpportunityController@getLead');
             $api->get('opportunity/{id}/get_dropdownleadaccount','OpportunityController@getDropdownLeadAccount');
 
@@ -97,7 +90,6 @@ $api->version('v1', function ($api) {
             $api->post('task/add_task','TaskController@addTask');
             $api->post('task/{id}/update_task','TaskController@updateTask');
             $api->post('task/{id}/update_columnorder','TaskController@updateColumnOrder');
-            $api->post('task/{id}/update_taggeduser','TaskController@updateTaggedUser');
             $api->get('task/{id}/get_lead','TaskController@getLead');
             $api->get('task/{id}/get_dropdownleadaccount','TaskController@getDropdownLeadAccount');
             $api->get('task/get_priorities','TaskController@getPriority');
