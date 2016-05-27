@@ -312,10 +312,14 @@ class TaskController extends BaseController {
                 if(isset($data['TaggedUsers'])) {
                     $taggedUser = implode(',', $data['TaggedUsers']);
                     $data['TaggedUsers'] = $taggedUser;
+                }else{
+                    $data['TaggedUsers'] = '';
                 }
                 if(isset($data['taskClosed']) && $data['taskClosed']==Task::Close){
                     $data['ClosingDate'] = date('Y-m-d H:i:s');
                     $data['taskClosed'] = Task::Close;
+                }else{
+                    $data['taskClosed'] = Task::Open;
                 }
                 $data['BoardColumnID'] = $data["TaskStatus"];
                 $data['DueDate'] = isset($data['StartTime']) && !empty($data['StartTime'])?$data['DueDate'].' '.$data['StartTime']:$data['DueDate'];
@@ -365,13 +369,6 @@ class TaskController extends BaseController {
         $Priorities = Task::$periority;
         return generateResponse('',false,false,$Priorities);
     }
-
-/*    public function get_allowed_extensions(){
-        $allowed     		 =  getenv("CRM_ALLOWED_FILE_UPLOAD_EXTENSIONS");
-        $allowedextensions   =  explode(',',$allowed);
-        $allowedextensions   =  array_change_key_case($allowedextensions);
-        return $allowedextensions;
-    }*/
 
     public function get_allowed_extensions(){
         $allowed     =  getenv("CRM_ALLOWED_FILE_UPLOAD_EXTENSIONS");

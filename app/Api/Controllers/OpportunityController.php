@@ -1,14 +1,13 @@
 <?php
 namespace Api\Controllers;
 
+use Api\Model\Account;
 use Api\Model\Opportunity;
 use Api\Model\User;
 use Api\Model\Tags;
 use Api\Model\Lead;
 use Api\Model\CRMBoardColumn;
-use App\AmazonS3;
 use App\Http\Requests;
-use Dingo\Api\Facade\API;
 use Faker\Provider\Uuid;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Input;
@@ -35,16 +34,16 @@ class OpportunityController extends BaseController {
         }
         $companyID = User::get_companyID();
         $data = Input::all();
-        $defaultSelectd = implode(',',Opportunity::$defaultSelectedStatus);
         $data['account_owners'] = isset($data['account_owners'])?empty($data['account_owners'])?0:$data['account_owners']:0;
         $data['AccountID'] = isset($data['AccountID'])?empty($data['AccountID'])?0:$data['AccountID']:0;
         $data['opportunityName'] = isset($data['opportunityName'])?empty($data['opportunityName'])?'':$data['opportunityName']:'';
         $data['Tags'] = isset($data['Tags'])?empty($data['Tags'])?'':$data['Tags']:'';
-        $data['Status'] = isset($data['Status'])?empty($data['Status'])?$defaultSelectd:implode(',',$data['Status']):$defaultSelectd;
+        $data['Status'] = isset($data['Status'])?empty($data['Status'])?'':implode(',',$data['Status']):'';
         if(isset($data['opportunityClosed']) && $data['opportunityClosed']==Opportunity::Close){
             $data['Status'] = Opportunity::Close;
         }
         $query = "call prc_GetOpportunities (".$companyID.", ".$id.",'".$data['opportunityName']."',"."'".$data['Tags']."',".$data['account_owners'].", ".$data['AccountID'].",'".$data['Status']."')";
+        Log::info($query);
         try{
             $result = DB::select($query);
             $columnsWithOpportunities = [];
@@ -165,6 +164,9 @@ class OpportunityController extends BaseController {
             'Phone'=>'required',
             'BoardID'=>'required',
         );
+        $messages = array(
+            'BoardID.required' => 'Opportunity Board field is required.'
+        );
 
         if($data['leadcheck']=='No') {
             if($data['leadOrAccount'] == 'Account'){
@@ -172,7 +174,7 @@ class OpportunityController extends BaseController {
             }
             $rules['Company'] = 'required|unique:tblAccount,AccountName,NULL,CompanyID,CompanyID,' . $companyID . '';
         }
-        $validator = Validator::make($data, $rules);
+        $validator = Validator::make($data, $rules, $messages);
         if ($validator->fails()) {
             return generateResponse($validator->errors(),true);
         }
@@ -208,6 +210,7 @@ class OpportunityController extends BaseController {
             $count = Opportunity::where(['CompanyID' => $companyID, 'BoardID' => $data['BoardID'], 'BoardColumnID' => $data["BoardColumnID"]])->count();
             $data['Order'] = $count;
             $data["CreatedBy"] = User::get_user_full_name();
+            $data['Status'] = isset($data['Status']) && !empty($data['Status'])?$data['Status']:Opportunity::Open;
 
             unset($data['OppertunityID']);
             unset($data['leadcheck']);
@@ -248,7 +251,12 @@ class OpportunityController extends BaseController {
                 'Phone'=>'required',
                 'BoardID'=>'required'
             );
-            $validator = Validator::make($data, $rules);
+
+            $messages = array(
+                'BoardID.required' => 'Opportunity Board field is required.'
+            );
+
+            $validator = Validator::make($data, $rules, $messages);
 
             if ($validator->fails()) {
                 generateResponse($validator->errors(),true);
@@ -259,10 +267,16 @@ class OpportunityController extends BaseController {
                     Tags::insertNewTags(['tags' => $data['Tags'], 'TagType' => Tags::Opportunity_tag]);
                     $taggedUsers = implode(',', $data['TaggedUsers']);
                     $data['TaggedUsers'] = $taggedUsers;
+                }else{
+                    $data['TaggedUsers'] = '';
                 }
                 if(isset($data['opportunityClosed']) && $data['opportunityClosed']==Opportunity::Close){
                     $data['ClosingDate'] = date('Y-m-d H:i:s');
                     $data['Status'] = Opportunity::Close;
+                }else{
+                    if(empty($data['Status'])){
+                        $data['Status'] = Opportunity::Open;
+                    }
                 }
                 unset($data['opportunityClosed']);
                 unset($data['OpportunityID']);
@@ -270,7 +284,6 @@ class OpportunityController extends BaseController {
                 if($Opportunity->BoardID!=$data['BoardID']){
                     $data["BoardColumnID"] = CRMBoardColumn::where(['BoardID' => $data['BoardID'], 'Order' => 0])->pluck('BoardColumnID');
                 }
-                Log::info($data);
                 $Opportunity->update($data);
             } catch (\Exception $ex){
                 Log::info($ex);

@@ -19,6 +19,7 @@ class Task extends \Eloquent {
 	const Mail  = 2;
 	const Tasks = 1;
 
+    const Open =0;
     const Close = 1;
 
     public static $tasks = [Task::All=>'All',Task::Overdue=>'Overdue',Task::DueSoon=>'Due Soon',
