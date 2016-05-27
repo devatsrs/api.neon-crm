@@ -33,8 +33,9 @@ class AccountActivityController extends BaseController {
 		
         $data = Input::all();
         $rules = array(
+			"email-to" =>'required',
             'Subject'=>'required',
-            'Message'=>'required'
+            'Message'=>'required'			
         );
 
 	    $CompanyID  = User::get_companyID();
@@ -111,11 +112,14 @@ class AccountActivityController extends BaseController {
 
             $result 				= 	email_log_data($data,'emails.account.AccountEmailSend');
            	$result['message'] 		= 	'Email Sent Successfully';
-			$user_data 				= 	User::where(["EmailAddress" => $data['email-to']])->get();
-            if(count($user_data)>0) {
+			$multiple_addresses		= 	strpos($data['EmailTo'],',');
 
-                $result->EmailTo = $user_data[0]['FirstName'].' '.$user_data[0]['LastName'];
-            }
+			if($multiple_addresses == false){
+				$user_data 				= 	User::where(["EmailAddress" => $data['EmailTo']])->get();
+				if(count($user_data)>0) {
+					$result->EmailTo = $user_data[0]['FirstName'].' '.$user_data[0]['LastName'];
+				}
+			}
             return generateResponse('',false,false,$result);
         }catch (Exception $ex){
         	 return $this->response->errorInternal($ex->getMessage());

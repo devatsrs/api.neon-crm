@@ -221,18 +221,18 @@ class TaskController extends BaseController {
             unset($data["TaskStatus"]);
             unset($data['TaskID']);
 			unset($data['StartTime']);
-            Log::Info($data);
+
             $result  			=   Task::create($data);
           if(isset($data['Task_type']) && $data['Task_type']!=0)
             {
                 $new_date =  date("Y-m-d H:i:s", time() + 1);
-                if($data['Task_type']==3){ //notes
+                if($data['Task_type']==Task::Note){ //notes
                     $sql = "update tblNote set created_at = '".$new_date."' , updated_at ='".$new_date."'  where NoteID ='".$data['ParentID']."'";
                     db::statement($sql);
-                    Log::Info($sql);
                 }
+                if($data['Task_type']==Task::Mail) //email
+                {
 
-                if($data['Task_type']==2){ //email
                     $sql = "update AccountEmailLog set created_at = '".$new_date."', updated_at ='".$new_date."'  where AccountEmailLogID ='".$data['ParentID']."'";
                     db::statement($sql);
                     $Email      = AccountEmailLog::where(['AccountEmailLogID'=>$data['ParentID']])->get();
@@ -250,13 +250,13 @@ class TaskController extends BaseController {
                     $extra      = ['{{FirstName}}','{{LastName}}','{{Email}}','{{Address1}}','{{Address2}}','{{Address3}}','{{City}}','{{State}}','{{PostCode}}','{{Country}}','{{Signature}}'];
                     $replace    = [$account->FirstName,$account->LastName,$account->Email,$account->Address1,$account->Address2,$account->Address3,$account->City,$account->State,$account->PostCode,$account->Country,$Signature];
 
-                    $Email['extra'] = $extra;
-                    $Email['replace'] = $replace;
-                    $Email['AttachmentPaths'] = unserialize($Email['AttachmentPaths']);
-                    $Email['cc'] = $Email['Cc'];
-                    $Email['bcc'] = $Email['Bcc'];
-                    $Email['address']   =   $Email['Emailfrom'];
-                    $Email['name']   =  $Email['CreatedBy'];
+                    $Email['extra'] 			= 	$extra;
+                    $Email['replace'] 			= 	$replace;
+                    $Email['AttachmentPaths'] 	= 	unserialize($Email['AttachmentPaths']);
+                    $Email['cc'] 				= 	$Email['Cc'];
+                    $Email['bcc'] 				= 	$Email['Bcc'];
+                    $Email['address']   		=   $Email['Emailfrom'];
+                    $Email['name']   			=  	$Email['CreatedBy'];
 
                     $status = sendMail('emails.account.AccountEmailSend', $Email);
                 }
@@ -266,14 +266,14 @@ class TaskController extends BaseController {
         }
         catch (\Exception $ex){
             Log::info($ex);
-            return $this->response->errorInternal($ex->getMessage());
+            return $this->response->errorInternal($ex->getMessage()); 
         }
 
-        if($Task_view) {
+        if($Task_view){
             return generateResponse('Task Successfully Created'.$message);
         }
         else {
-            return generateResponse($message,false,false,$result);
+            return generateResponse('Task Successfully Created',false,false,$result);
         }
     }
 
@@ -376,5 +376,4 @@ class TaskController extends BaseController {
         $allowedextensions   =  array_change_key_case($allowedextensions);
         return generateResponse('',false,false,$allowedextensions);
     }
-
 }

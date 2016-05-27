@@ -425,8 +425,7 @@ class AccountController extends BaseController
                     $result = $AuthorizeNet->UpdateShippingAddress($ProfileID, $ShippingProfileID, $shipping);
                 }
             }
-           return generateResponse('Account Successfully Updated ',true);
-			
+           return generateResponse('Account Successfully Updated ');
         }catch (\Exception $ex){
                  Log::info($ex);
            		 return $this->response->errorInternal($ex->getMessage());
