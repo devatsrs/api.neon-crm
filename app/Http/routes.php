@@ -44,7 +44,8 @@ $api->version('v1', function ($api) {
 			$api->post('account/add_note', 'AccountController@add_note');
             $api->get('account/get_note','AccountController@GetNote');
             $api->post('account/delete_note','AccountController@DeleteNote');
-
+			$api->post('account/update_note','AccountController@UpdateNote');
+			
 
             $api->get('account/GetTimeLine', 'AccountController@GetTimeLine');
             $api->post('accounts/sendemail', 'AccountActivityController@sendMail');
@@ -93,7 +94,9 @@ $api->version('v1', function ($api) {
             $api->get('task/{id}/get_lead','TaskController@getLead');
             $api->get('task/{id}/get_dropdownleadaccount','TaskController@getDropdownLeadAccount');
             $api->get('task/get_priorities','TaskController@getPriority');
-
+            $api->get('task/GetTask','TaskController@GetTask');
+			$api->post('task/deletetask','TaskController@DeleteTask');		
+			
 
 
             //Allowed extensions

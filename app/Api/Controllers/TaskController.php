@@ -170,6 +170,25 @@ class TaskController extends BaseController {
             return generateResponse('No attachment found',true,true);
         }
     }
+ 
+    public function GetTask(){
+        $data = Input::all();
+
+        $rules['TaskID'] = 'required';
+        $validator = Validator::make($data, $rules);
+        if ($validator->fails()) {
+            return generateResponse($validator->errors(),true);
+        }
+        try {
+           $sql 				= 	"CALL `prc_GetTasksSingle`(".$data['TaskID'].")";
+		   $result  			= 	DB::select($sql);
+        } catch (\Exception $e) {
+            Log::info($e);
+            return $this->response->errorInternal($e->getMessage());
+        }
+         return generateResponse('Task Successfully Created',false,false,$result[0]);
+    }
+	
     /**
      * Show the form for creating a new resource.
      * GET /dealboard/create
@@ -289,6 +308,7 @@ class TaskController extends BaseController {
     public function updateTask($id)
     {
         if( $id > 0 ) {
+			$required_data = 0;
             $data = Input::all();
             $companyID = User::get_companyID();
             $data["CompanyID"] = $companyID;
@@ -298,7 +318,7 @@ class TaskController extends BaseController {
                 'UsersIDs'=>'required',
                 'TaskStatus'=>'required'
             );
-
+			
             $messages = array(
                 'UsersIDs' => 'User field is required.',
             );
@@ -307,7 +327,7 @@ class TaskController extends BaseController {
             if ($validator->fails()) {
                 return generateResponse($validator->errors(),true);
             }
-            try {
+            try {				
                 //Tags::insertNewTags(['tags' => $data['Tags'], 'TagType' => Tags::Task_tag]);
                 if(isset($data['TaggedUsers'])) {
                     $taggedUser = implode(',', $data['TaggedUsers']);
@@ -324,18 +344,48 @@ class TaskController extends BaseController {
                 $data['BoardColumnID'] = $data["TaskStatus"];
                 $data['DueDate'] = isset($data['StartTime']) && !empty($data['StartTime'])?$data['DueDate'].' '.$data['StartTime']:$data['DueDate'];
                 $data['Priority'] = isset($data['Priority'])?1:0;
+				if(isset($data['required_data']) && $data['required_data']!=''){
+					$required_data = 1;
+				}
+				
                 unset($data["TaskStatus"]);
                 unset($data['TaskID']);
                 unset($data['StartTime']);
+				unset($data['required_data']);
                 Task::where(['TaskID' => $id])->update($data);
             } catch (\Exception $ex){
                 Log::info($ex);
                 return $this->response->errorInternal($ex->getMessage());
             }
-            return generateResponse('',false,false,$data);
+			if($required_data==1){
+				$sql 				= 	"CALL `prc_GetTasksSingle`(".$id.")";
+		   		$result  			= 	DB::select($sql);
+				return generateResponse('Task Successfully Created',false,false,$result);	
+			}else{
+            	return generateResponse('',false,false,$data);
+			}
         }else {
             return generateResponse('Task id is missing',true,true);
         }
+
+    }
+	
+	 public function DeleteTask(){
+        $data = Input::all();
+
+        $rules['TaskID'] = 'required';
+        $validator = Validator::make($data, $rules);
+        if ($validator->fails()) {
+            return generateResponse($validator->errors(),true);
+        }
+
+        try{
+            Task::where(['TaskID'=>$data['TaskID']])->delete();
+        }catch (\Exception $ex){
+            Log::info($ex);
+            return $this->response->errorInternal($ex->getMessage());
+        }
+        return generateResponse('successfull');
     }
 
     function updateColumnOrder($id){
