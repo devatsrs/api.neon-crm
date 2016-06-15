@@ -1,5 +1,7 @@
 <?php
 namespace Api\Controllers;
+
+use Dingo\Api\Http\Request;
 use Api\Model\AccountBalance;
 use Api\Model\Account;
 use Api\Model\Note;
@@ -17,10 +19,11 @@ use Faker\Provider\Uuid;
 use App\AmazonS3;
 
 class AccountActivityController extends BaseController {
-	
-	public function __construct()
+
+    public function __construct(Request $request)
     {
         $this->middleware('jwt.auth');
+        Parent::__Construct($request);
     }
 	/**
 	 * Store a newly created resource in storage.
