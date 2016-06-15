@@ -161,7 +161,7 @@ class OpportunityController extends BaseController {
             'FirstName'=>'required',
             'LastName'=>'required',
             'Email'=>'required',
-            'Phone'=>'required',
+            //'Phone'=>'required',
             'BoardID'=>'required',
         );
         $messages = array(
@@ -248,7 +248,7 @@ class OpportunityController extends BaseController {
                 'FirstName'=>'required',
                 'LastName'=>'required',
                 'Email'=>'required',
-                'Phone'=>'required',
+                //'Phone'=>'required',
                 'BoardID'=>'required'
             );
 

@@ -33,7 +33,6 @@ function rename_win($oldfile,$newfile) {
     return TRUE;
 }
 
-
 function sendMail($view,$data){
 
     $status = array('status' => 0, 'message' => 'Something wrong with sending mail.');

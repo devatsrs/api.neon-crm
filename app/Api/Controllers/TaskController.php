@@ -242,6 +242,7 @@ class TaskController extends BaseController {
 			unset($data['StartTime']);
 
             $result  			=   Task::create($data);
+			$this->SendTaskMail($data); //send task email to assign user
           if(isset($data['Task_type']) && $data['Task_type']!=0)
             {
                 $new_date =  date("Y-m-d H:i:s", time() + 1);
@@ -252,8 +253,9 @@ class TaskController extends BaseController {
                 if($data['Task_type']==Task::Mail) //email
                 {
 
-                    $sql = "update AccountEmailLog set created_at = '".$new_date."', updated_at ='".$new_date."'  where AccountEmailLogID ='".$data['ParentID']."'";
-                    db::statement($sql);
+                   // $sql = "update AccountEmailLog set created_at = '".$new_date."', updated_at ='".$new_date."'  where AccountEmailLogID ='".$data['ParentID']."'";				
+					AccountEmailLog::find($data['ParentID'])->update(["created_at"=>$new_date,"updated_at"=>$new_date]);
+                    //db::statement($sql);
                     $Email      = AccountEmailLog::where(['AccountEmailLogID'=>$data['ParentID']])->get();
                     $Email      = $Email[0];
                     $account    = Account::find($data['AccountIDs']);
@@ -308,6 +310,7 @@ class TaskController extends BaseController {
     public function updateTask($id)
     {
         if( $id > 0 ) {
+			$old_task_data = Task::find($id);
 			$required_data = 0;
             $data = Input::all();
             $companyID = User::get_companyID();
@@ -353,6 +356,7 @@ class TaskController extends BaseController {
                 unset($data['StartTime']);
 				unset($data['required_data']);
                 Task::where(['TaskID' => $id])->update($data);
+				$this->SendTaskMailUpdate($data,$old_task_data); //send task email to assign user
             } catch (\Exception $ex){
                 Log::info($ex);
                 return $this->response->errorInternal($ex->getMessage());
@@ -426,4 +430,34 @@ class TaskController extends BaseController {
         $allowedextensions   =  array_change_key_case($allowedextensions);
         return generateResponse('',false,false,$allowedextensions);
     }
+	
+	public function SendTaskMail($data){
+		$LogginedUser = User::get_userID();
+		$AssignedUser = $data['UsersIDs'];
+		if($LogginedUser != $AssignedUser){ //if assigned user and logined user are not same then send email		
+		
+			$AssignedUserData 	 	 =		User::find($AssignedUser); 			
+			$data['EmailTo'] 	 	 = 		$AssignedUserData->EmailAddress;
+			$data['cc'] 		 	 = 		"umer.ahmed@code-desk.com";		
+			$data['Subject_task'] 	 = 		$data['Subject'];					
+			$data['Subject']  	 	 = 		"Task Assignment Email";			
+			$status 			 	 = 		sendMail('emails.task.TaskEmailSend', $data);								
+		}
+	}
+	
+	function SendTaskMailUpdate($NewData,$OldData){
+		if($OldData['UsersIDs']!=$NewData['UsersIDs']){ // new and old assigned user are not same
+			$LogginedUser = User::get_userID();
+			if($LogginedUser!=$NewData['UsersIDs']){ //new user and logined user are not same
+						
+				$AssignedUserData 	 	 	 =		User::find($NewData['UsersIDs']); 			
+				$NewData['EmailTo'] 	 	 = 		$AssignedUserData->EmailAddress;
+				$NewData['cc'] 		 	 	 = 		"umer.ahmed@code-desk.com";		
+				$NewData['Subject_task'] 	 = 		$NewData['Subject'];					
+				$NewData['Subject']  	 	 = 		"Task Assignment Email";
+				$NewData['CreatedBy']  	 	 = 		$OldData['CreatedBy'];							
+				$status 			 		 = 		sendMail('emails.task.TaskEmailSend', $NewData);							
+			}
+		}
+	}
 }
