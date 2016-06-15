@@ -8,6 +8,7 @@ use Api\Model\Tags;
 use Api\Model\Lead;
 use Api\Model\CRMBoardColumn;
 use Api\Model\AccountEmailLog;
+use Api\Model\Note;
 use Api\Model\Account;
 use App\AmazonS3;
 use App\Http\Requests;
@@ -247,8 +248,9 @@ class TaskController extends BaseController {
             {
                 $new_date =  date("Y-m-d H:i:s", time() + 1);
                 if($data['Task_type']==Task::Note){ //notes
-                    $sql = "update tblNote set created_at = '".$new_date."' , updated_at ='".$new_date."'  where NoteID ='".$data['ParentID']."'";
-                    db::statement($sql);
+                    //$sql = "update tblNote set created_at = '".$new_date."' , updated_at ='".$new_date."'  where NoteID ='".$data['ParentID']."'";
+					Note::find($data['ParentID'])->update(['created_at'=>$new_date,'updated_at'=>$new_date]);
+                    //db::statement($sql);
                 }
                 if($data['Task_type']==Task::Mail) //email
                 {
