@@ -441,8 +441,7 @@ class TaskController extends BaseController {
 			$AssignedUserData 	 	 =		User::find($AssignedUser); 			
 			$data['EmailTo'] 	 	 = 		$AssignedUserData->EmailAddress;
 			$data['cc'] 		 	 = 		"umer.ahmed@code-desk.com";		
-			$data['Subject_task'] 	 = 		$data['Subject'];					
-			$data['Subject']  	 	 = 		"Task Assignment Email";			
+			$data['Subject']  	 	 = 		"(Neon) ".$data['Subject'];			
 			$status 			 	 = 		sendMail('emails.task.TaskEmailSend', $data);								
 		}
 	}
@@ -455,8 +454,7 @@ class TaskController extends BaseController {
 				$AssignedUserData 	 	 	 =		User::find($NewData['UsersIDs']); 			
 				$NewData['EmailTo'] 	 	 = 		$AssignedUserData->EmailAddress;
 				$NewData['cc'] 		 	 	 = 		"umer.ahmed@code-desk.com";		
-				$NewData['Subject_task'] 	 = 		$NewData['Subject'];					
-				$NewData['Subject']  	 	 = 		"Task Assignment Email";
+				$NewData['Subject'] 		 = 		"(Neon) ".$NewData['Subject'];					
 				$NewData['CreatedBy']  	 	 = 		$OldData['CreatedBy'];							
 				$status 			 		 = 		sendMail('emails.task.TaskEmailSend', $NewData);							
 			}
