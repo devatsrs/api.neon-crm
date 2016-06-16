@@ -1,6 +1,7 @@
 <?php
 namespace Api\Controllers;
 
+use Dingo\Api\Http\Request;
 use Api\Model\DataTableSql;
 use Api\Model\Task;
 use Api\Model\User;
@@ -19,11 +20,13 @@ use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
-class TaskController extends BaseController {
 
-    public function __construct()
+class TaskController extends BaseController {
+    
+    public function __construct(Request $request)
     {
         $this->middleware('jwt.auth');
+        Parent::__Construct($request);
     }
     /**
      * Display a listing of the resource.
@@ -203,6 +206,7 @@ class TaskController extends BaseController {
         $companyID = User::get_companyID();
         $message = '';
         $data ["CompanyID"] = $companyID;
+		$TaskBoardUrl	= '';
         $rules = array(
             'CompanyID' => 'required',
             'Subject' => 'required',
@@ -221,8 +225,8 @@ class TaskController extends BaseController {
         unset($data['StartTime']);
 		unset($data['scrol']);
         unset($data['Task_view']);
-
-        try {
+		
+		try {
 
             $count = Task::where(['CompanyID' => $companyID, 'BoardID' => $data['BoardID'], 'BoardColumnID' => $data["TaskStatus"]])->count();
             $data['Order'] = $count;
@@ -237,13 +241,19 @@ class TaskController extends BaseController {
                 	$data['AccountIDs'] = $taggedUser;
 				}
             }
+			
+			if(isset($data['TaskBoardUrl']) && $data['TaskBoardUrl']!=''){
+					$TaskBoardUrl	=	$data['TaskBoardUrl'];
+			}
 
             unset($data["TaskStatus"]);
             unset($data['TaskID']);
-			unset($data['StartTime']);
+			unset($data['StartTime']);			
+			unset($data['TaskBoardUrl']);
 
-            $result  			=   Task::create($data);
-			$this->SendTaskMail($data); //send task email to assign user
+            $result  				=   Task::create($data);
+			$data['TaskBoardUrl']	=	$TaskBoardUrl;
+			$this->SendTaskMail($data); //send task email to assign user			
           if(isset($data['Task_type']) && $data['Task_type']!=0)
             {
                 $new_date =  date("Y-m-d H:i:s", time() + 1);
@@ -316,6 +326,7 @@ class TaskController extends BaseController {
 			$required_data = 0;
             $data = Input::all();
             $companyID = User::get_companyID();
+			$TaskBoardUrl=	'';
             $data["CompanyID"] = $companyID;
             $rules = array(
                 'CompanyID' => 'required',
@@ -352,12 +363,17 @@ class TaskController extends BaseController {
 				if(isset($data['required_data']) && $data['required_data']!=''){
 					$required_data = 1;
 				}
+				if(isset($data['TaskBoardUrl']) && $data['TaskBoardUrl']!=''){
+					$TaskBoardUrl	=	$data['TaskBoardUrl'];
+				}
 				
                 unset($data["TaskStatus"]);
                 unset($data['TaskID']);
                 unset($data['StartTime']);
 				unset($data['required_data']);
+				unset($data['TaskBoardUrl']);
                 Task::where(['TaskID' => $id])->update($data);
+				$data['TaskBoardUrl']	=	$TaskBoardUrl;				
 				$this->SendTaskMailUpdate($data,$old_task_data); //send task email to assign user
             } catch (\Exception $ex){
                 Log::info($ex);
@@ -441,6 +457,7 @@ class TaskController extends BaseController {
 			$AssignedUserData 	 	 =		User::find($AssignedUser); 			
 			$data['EmailTo'] 	 	 = 		$AssignedUserData->EmailAddress;
 			$data['cc'] 		 	 = 		"umer.ahmed@code-desk.com";		
+			$data['Subject_task'] 	 = 		$data['Subject'];					
 			$data['Subject']  	 	 = 		"(Neon) ".$data['Subject'];			
 			$status 			 	 = 		sendMail('emails.task.TaskEmailSend', $data);								
 		}
@@ -454,8 +471,10 @@ class TaskController extends BaseController {
 				$AssignedUserData 	 	 	 =		User::find($NewData['UsersIDs']); 			
 				$NewData['EmailTo'] 	 	 = 		$AssignedUserData->EmailAddress;
 				$NewData['cc'] 		 	 	 = 		"umer.ahmed@code-desk.com";		
-				$NewData['Subject'] 		 = 		"(Neon) ".$NewData['Subject'];					
+				$NewData['Subject_task'] 	 = 		$NewData['Subject'];		
+				$NewData['Subject']  	 	 = 		"(Neon) ".$NewData['Subject'];
 				$NewData['CreatedBy']  	 	 = 		$OldData['CreatedBy'];							
+				Log::info($this->request->getBaseUrl());
 				$status 			 		 = 		sendMail('emails.task.TaskEmailSend', $NewData);							
 			}
 		}
