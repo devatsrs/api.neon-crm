@@ -27,11 +27,9 @@ class DBSelector
         $credentials = $request->only('LoggedEmailAddress', 'password');
         $UserID = $request->only('LoggedUserID');
         $LicenceKey  = $request->only('LicenceKey','CompanyName');
-        $LicenceKey['LicenceHost'] = $request->getHttpHost();
-        $LicenceKey['LicenceIP'] = $request->getClientIp();
-        if (!empty($LicenceKey['LicenceKey']) || !empty($LicenceKey['CompanyName'])) {
+        if (!empty($LicenceKey['LicenceKey']) && !empty($LicenceKey['CompanyName'])) {
             if(!empty($credentials['LoggedEmailAddress']) || !empty($UserID['LoggedUserID'])){
-                $license = 	Company::getLicenceResponse($LicenceKey);
+                $license = 	Company::getLicenceResponse($request);
                 if($license['Status']!=1) {
                     return response()->json(['error' => $license['Message']], 401);
                 }

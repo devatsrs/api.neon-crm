@@ -288,7 +288,7 @@ class AccountController extends BaseController
             }
             $data['Number'] = trim($data['Number']);
 
-        if(Company::isBillingLicence($this->request->only('LicenceKey')['LicenceKey'])) {
+        if(Company::isBillingLicence($this->request)) {
             Account::$rules['BillingType'] = 'required';
             Account::$rules['BillingTimezone'] = 'required';
         }
@@ -372,7 +372,7 @@ class AccountController extends BaseController
         }
         $data['Number'] = trim($data['Number']);
 
-       if(Company::isBillingLicence($this->request->only('LicenceKey')['LicenceKey'])) {
+       if(Company::isBillingLicence($this->request)) {
             Account::$rules['BillingType'] = 'required';
             Account::$rules['BillingTimezone'] = 'required';
             $icount = Invoice::where(["AccountID" => $id])->count();

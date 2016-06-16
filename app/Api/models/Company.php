@@ -1,6 +1,7 @@
 <?php
 namespace Api\Model;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 
@@ -145,8 +146,8 @@ class Company extends \Eloquent {
 
     }
 
-    public static function isBillingLicence($LicenceKey,$billing=0){
-        $LicenceApiResponse = Cache::get('LicenceApiResponse' . $LicenceKey);
+    public static function isBillingLicence($request,$billing=0){
+        $LicenceApiResponse = Company::getLicenceResponse($request);
         if(!empty($LicenceApiResponse) && isset($LicenceApiResponse['Type'])) {
             if ($billing == 0 && $LicenceApiResponse['Type'] == Company::LICENCE_ALL || $LicenceApiResponse['Type'] == Company::LICENCE_BILLING) {
                 return true;
@@ -158,8 +159,8 @@ class Company extends \Eloquent {
 
     }
 
-    public static function isRMLicence($LicenceKey){
-        $LicenceApiResponse = Cache::get('LicenceApiResponse' . $LicenceKey);
+    public static function isRMLicence($request){
+        $LicenceApiResponse = Company::getLicenceResponse($request);
         if(!empty($LicenceApiResponse) && isset($LicenceApiResponse['Type'])) {
             if ($LicenceApiResponse['Type'] == Company::LICENCE_ALL || $LicenceApiResponse['Type'] == Company::LICENCE_RM) {
                 return true;
@@ -169,20 +170,26 @@ class Company extends \Eloquent {
 
     }
 
-    public static function getLicenceResponse($license){
+    public static function getLicenceResponse($request){
+        $minutes = Carbon::now()->addMinutes(60);
+        $license  = $request->only('LicenceKey','CompanyName');
+        $license['LicenceHost'] = $request->getHttpHost();
+        $license['LicenceIP'] = $request->getClientIp();
         $licenseCacheKey = 'LicenceApiResponse' . $license['LicenceKey'];
-        $LicenceApiResponse = Company::ValidateLicenceKey($license);
-        if(!empty($LicenceApiResponse)) {
-            if ($LicenceApiResponse['Status'] != 1) {
-                return $LicenceApiResponse;
+        if (!Cache::has($licenseCacheKey)) {
+            $LicenceApiResponse = Company::ValidateLicenceKey($license);
+            if (!empty($LicenceApiResponse)) {
+                if ($LicenceApiResponse['Status'] != 1) {
+                    return $LicenceApiResponse;
+                }
+                Cache::add($licenseCacheKey, $LicenceApiResponse, $minutes);
+                //Cache::forever($licenseCacheKey, $LicenceApiResponse);
+            } else {
+                $LicenceApiResponse['Status'] = 0;
+                $LicenceApiResponse['Message'] = 'Some thing wrong with license';
             }
-            if (Cache::has($licenseCacheKey)) {
-                Cache::forget($licenseCacheKey);
-            }
-            Cache::forever($licenseCacheKey, $LicenceApiResponse);
         }else{
-            $LicenceApiResponse['Status']=0;
-            $LicenceApiResponse['Message']='Some thing wrong with license';
+            $LicenceApiResponse = Cache::get($licenseCacheKey);
         }
         return $LicenceApiResponse;
     }
