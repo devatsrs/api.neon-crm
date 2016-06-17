@@ -66,7 +66,7 @@ class Company extends \Eloquent {
 
     }
 
-    public static function ValidateLicenceKey(){
+    public static function ValidateLicenceKey($credentials_license){
         $LICENCE_KEY = getenv('LICENCE_KEY');
         $result = array();
         $result['LicenceHost'] = $_SERVER['HTTP_HOST'];
@@ -79,7 +79,7 @@ class Company extends \Eloquent {
         //$result['CompanyName'] = 'abc';
         if(!empty($LICENCE_KEY)) {
 
-            $post = array("host" => $_SERVER['HTTP_HOST'], "ip" => $_SERVER['SERVER_ADDR'], "licence_key" => getenv('LICENCE_KEY'), "company_name" => $result['CompanyName']);
+            $post = array("host" => $credentials_license['LicenceHost'], "ip" =>$credentials_license['LicenceIP'], "licence_key" => $credentials_license['LicenceKey'], "company_name" => $result['CompanyName']);
             $response = call_api($post);
             if (!empty($response)) {
                 $response = json_decode($response,TRUE);
@@ -171,11 +171,11 @@ class Company extends \Eloquent {
 
     }
 
-    public static function getLicenceResponse(){
+    public static function getLicenceResponse($credentials_license){
         $LicenceApiResponse = Session::get('LicenceApiResponse','');
 
         if(empty($LicenceApiResponse)) { // if first time login ...
-            $valresponse = Company::ValidateLicenceKey();
+            $valresponse = Company::ValidateLicenceKey($credentials_license);
             Session::set('LicenceApiResponse', $valresponse);
             $LicenceApiResponse = $valresponse;
         }

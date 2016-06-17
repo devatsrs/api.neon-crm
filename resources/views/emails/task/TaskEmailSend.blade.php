@@ -15,7 +15,7 @@
           <tbody>
             <tr>
               <td id="header-avatar-image-container" valign="top" style="padding: 0px; border-collapse: collapse; vertical-align: top; width: 32px; padding-right: 8px" width="32"><!-- <img id="header-avatar-image" class="image_fix" src="cid:jira-generated-image-avatar-38afc849-f5e0-4d4c-b964-47f8e72189ea" height="32" width="32" border="0" style="border-radius: 3px; vertical-align: top"> --></td>
-              <td id="header-text-container" valign="middle" style="padding: 0px; border-collapse: collapse; vertical-align: middle; font-family: Arial, sans-serif; font-size: 14px; line-height: 20px; mso-line-height-rule: exactly; mso-text-raise: 1px"><a class="user-hover"   href="#" style="color:#8cc8c6;; color: #3b73af; text-decoration: none">{{$data['CreatedBy']}}</a> <strong>Assigned</strong> a Task to you</td>
+              <td id="header-text-container" valign="middle" style="padding: 0px; border-collapse: collapse; vertical-align: middle; font-family: Arial, sans-serif; font-size: 14px; line-height: 20px; mso-line-height-rule: exactly; mso-text-raise: 1px"><a class="user-hover"   href="#" style="color:#8cc8c6;; color: #3b73af; text-decoration: none">{{$data['TitleHeading']}}</a></td>
             </tr>
           </tbody>
         </table></td>

@@ -374,7 +374,7 @@ class TaskController extends BaseController {
 				unset($data['TaskBoardUrl']);
                 Task::where(['TaskID' => $id])->update($data);
 				$data['TaskBoardUrl']	=	$TaskBoardUrl;				
-				$this->SendTaskMailUpdate($data,$old_task_data); //send task email to assign user
+				$this->SendTaskMailUpdate($data,$old_task_data,'Task'); //send task email to assign user
             } catch (\Exception $ex){
                 Log::info($ex);
                 return $this->response->errorInternal($ex->getMessage());
@@ -463,18 +463,42 @@ class TaskController extends BaseController {
 		}
 	}
 	
-	function SendTaskMailUpdate($NewData,$OldData){
-		if($OldData['UsersIDs']!=$NewData['UsersIDs']){ // new and old assigned user are not same
-			$LogginedUser = User::get_userID();
-			if($LogginedUser!=$NewData['UsersIDs']){ //new user and logined user are not same
-						
+	function SendTaskMailUpdate($NewData,$OldData,$type='Task'){
+		$LogginedUser 		= 	User::get_userID();		
+		$LogginedUserName 	= 	User::get_user_full_name();
+		
+		//Tagged Users Email
+		if($NewData['TaggedUsers']!=''){
+			$TaggedUsersNew 		= 	explode(",",$NewData['TaggedUsers']);
+			$TaggedUsersOld 		= 	explode(",",$OldData['TaggedUsers']);
+			$TaggedUsersDiff		= 	array_diff($TaggedUsersNew, $TaggedUsersOld);		
+			$TaggedUsersDiffEmail 	= 	array();
+			if(count($TaggedUsersDiff)>0){
+				foreach($TaggedUsersDiff as $TaggedUsersDiffData){
+					$TaggedUserData 	 	 	 =		User::find($TaggedUsersDiffData);
+					$TaggedUsersDiffEmail[]		 =		$TaggedUserData->EmailAddress;
+				}			 			
+				$NewData['EmailTo'] 	 	 = 		$TaggedUsersDiffEmail;
+				$NewData['cc'] 		 	 	 = 		"umer.ahmed@code-desk.com";		
+				$NewData['Subject_task'] 	 = 		$NewData['Subject'];		
+				$NewData['Subject']  	 	 = 		"(Neon) ".$NewData['Subject'];
+				$NewData['CreatedBy']  	 	 = 		$OldData['CreatedBy'];		
+				$NewData['TitleHeading']	 = 		$LogginedUserName." <strong>Tagged</strong> you in a ".$type;
+				$status 			 		 = 		sendMail('emails.task.TaskEmailSend', $NewData);								
+			}
+		}
+		
+		//Assign Users Email
+		if($OldData['UsersIDs']!=$NewData['UsersIDs']){ // new and old assigned user are not same				
+			if($LogginedUser!=$NewData['UsersIDs']){ //new user and logined user are not same			
+				
 				$AssignedUserData 	 	 	 =		User::find($NewData['UsersIDs']); 			
 				$NewData['EmailTo'] 	 	 = 		$AssignedUserData->EmailAddress;
 				$NewData['cc'] 		 	 	 = 		"umer.ahmed@code-desk.com";		
 				$NewData['Subject_task'] 	 = 		$NewData['Subject'];		
 				$NewData['Subject']  	 	 = 		"(Neon) ".$NewData['Subject'];
-				$NewData['CreatedBy']  	 	 = 		$OldData['CreatedBy'];							
-				Log::info($this->request->getBaseUrl());
+				$NewData['CreatedBy']  	 	 = 		$OldData['CreatedBy'];		
+				$NewData['TitleHeading']	 = 		$LogginedUserName." <strong>Assigned</strong> you a ".$type;
 				$status 			 		 = 		sendMail('emails.task.TaskEmailSend', $NewData);							
 			}
 		}

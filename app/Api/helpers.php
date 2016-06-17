@@ -305,27 +305,27 @@ function is_amazon(){
     return true;
 }
 
-function create_site_configration_cache(){
+function create_site_configration_cache(){ 
+	
     $domain_url      =   $_SERVER['HTTP_HOST'];
-    $result       =  \Illuminate\Support\Facades\DB::table('tblCompanyThemes')->where(["DomainUrl" => $domain_url,'ThemeStatus'=>\Api\Model\Themes::ACTIVE])->get();
-
+    $result       =  \Illuminate\Support\Facades\DB::table('tblCompanyThemes')->where(["DomainUrl" => $domain_url,'ThemeStatus'=>\Api\Model\Themes::ACTIVE])->first();	
     if($result){  //url found
-        $cache['FavIcon']    = empty($result[0]->Favicon)?\Illuminate\Support\Facades\URL::to('/').'/assets/images/favicon.ico':validfilepath($result[0]->Favicon);
-        $cache['Logo']       = empty($result[0]->Logo)?\Illuminate\Support\Facades\URL::to('/').'/assets/images/logo@2x.png':validfilepath($result[0]->Logo);
-        $cache['Title']    = $result[0]->Title;
-        $cache['FooterText']  = $result[0]->FooterText;
-        $cache['FooterUrl']   = $result[0]->FooterUrl;
-        $cache['LoginMessage']  = $result[0]->LoginMessage;
-        $cache['CustomCss']   = $result[0]->CustomCss;
+        $cache['FavIcon']    	= empty($result->Favicon)?\Illuminate\Support\Facades\URL::to('/').'/assets/images/favicon.ico':validfilepath($result->Favicon);
+        $cache['Logo']       	= empty($result->Logo)?\Illuminate\Support\Facades\URL::to('/').'/assets/images/logo@2x.png':validfilepath($result->Logo);
+        $cache['Title']    		= $result->Title;
+        $cache['FooterText']  	= $result->FooterText;
+        $cache['FooterUrl']   	= $result->FooterUrl;
+        $cache['LoginMessage']  = $result->LoginMessage;
+        $cache['CustomCss']   	= $result->CustomCss;
     }else{
-        $cache['FavIcon']    = \Illuminate\Support\Facades\URL::to('/').'/assets/images/favicon.ico';
-        $cache['Logo']       = \Illuminate\Support\Facades\URL::to('/').'/assets/images/logo@2x.png';
-        $cache['Title']    = 'Neon';
-        $cache['FooterText']  = '&copy; '.date('Y').' Code Desk';
-        $cache['FooterUrl']   = 'http://www.code-desk.com';
+        $cache['FavIcon']    	= \Illuminate\Support\Facades\URL::to('/').'/assets/images/favicon.ico';
+        $cache['Logo']       	= \Illuminate\Support\Facades\URL::to('/').'/assets/images/logo@2x.png';
+        $cache['Title']    	 	= 'Neon';
+        $cache['FooterText']  	= '&copy; '.date('Y').' Code Desk';
+        $cache['FooterUrl']   	= 'http://www.code-desk.com';
         $cache['LoginMessage']  = 'Dear user, log in to access RM!';
-        $cache['CustomCss']   = '';
-    }
+        $cache['CustomCss']     = '';
+    } 
 
     \Illuminate\Support\Facades\Log::info($cache);
     \Illuminate\Support\Facades\Session::put('user_site_configrations', $cache);
@@ -335,11 +335,13 @@ function create_site_configration_cache(){
 
 
 function validfilepath($path){
+	 \Illuminate\Support\Facades\Log::info("first ".$path);
     $path = \App\AmazonS3::unSignedUrl($path);
+		\Illuminate\Support\Facades\Log::info("second ".$path);
     if (!is_numeric(strpos($path, "https://"))) {
         //$path = str_replace('/', '\\', $path);
+		    \Illuminate\Support\Facades\Log::info($path);
         if (copy($path, './uploads/' . basename($path))) {
-
             $path = \Illuminate\Support\Facades\URL::to('/') . '/uploads/' . basename($path);
         }
     }
