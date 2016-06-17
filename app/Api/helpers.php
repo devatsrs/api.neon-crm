@@ -306,34 +306,39 @@ function is_amazon(){
     return true;
 }
 
-function create_site_configration_cache($request){
+function site_configration_cache(){
+    $request = new \Dingo\Api\Http\Request;
+    $minutes = \Carbon\Carbon::now()->addMinutes(getenv('CACHE_EXPIRE'));
     $LicenceKey = $request->only('LicenceKey')['LicenceKey'];
-    $domain_url      =   $request->getHttpHost();
-    $result       =  \Illuminate\Support\Facades\DB::table('tblCompanyThemes')->where(["DomainUrl" => $domain_url,'ThemeStatus'=>\Api\Model\Themes::ACTIVE])->get();
+    $CompanyName = $request->only('CompanyName')['CompanyName'];
+    $siteConfigretion = 'siteConfiguration' . $LicenceKey.$CompanyName;
 
-    if($result){  //url found
-        $cache['FavIcon']    = empty($result[0]->Favicon)?\Illuminate\Support\Facades\URL::to('/').'/assets/images/favicon.ico':validfilepath($result[0]->Favicon);
-        $cache['Logo']       = empty($result[0]->Logo)?\Illuminate\Support\Facades\URL::to('/').'/assets/images/logo@2x.png':validfilepath($result[0]->Logo);
-        $cache['Title']    = $result[0]->Title;
-        $cache['FooterText']  = $result[0]->FooterText;
-        $cache['FooterUrl']   = $result[0]->FooterUrl;
-        $cache['LoginMessage']  = $result[0]->LoginMessage;
-        $cache['CustomCss']   = $result[0]->CustomCss;
-    }else{
-        $cache['FavIcon']    = \Illuminate\Support\Facades\URL::to('/').'/assets/images/favicon.ico';
-        $cache['Logo']       = \Illuminate\Support\Facades\URL::to('/').'/assets/images/logo@2x.png';
-        $cache['Title']    = 'Neon';
-        $cache['FooterText']  = '&copy; '.date('Y').' Code Desk';
-        $cache['FooterUrl']   = 'http://www.code-desk.com';
-        $cache['LoginMessage']  = 'Dear user, log in to access RM!';
-        $cache['CustomCss']   = '';
-    }
+    if (!Cache::has($siteConfigretion)) {
+        $domain_url      =   $request->getHttpHost();
+        $result       =  \Illuminate\Support\Facades\DB::table('tblCompanyThemes')->where(["DomainUrl" => $domain_url,'ThemeStatus'=>\Api\Model\Themes::ACTIVE])->first();
 
-    $siteConfigretion = 'siteConfiguration' . $LicenceKey;
-        if (\Illuminate\Support\Facades\Cache::has($siteConfigretion)) {
-            \Illuminate\Support\Facades\Cache::forget($siteConfigretion);
+        if(!empty($result)){  //url found
+            $cache['FavIcon']    = empty($result->Favicon)?\Illuminate\Support\Facades\URL::to('/').'/assets/images/favicon.ico':get_image_data($result->Favicon);
+            $cache['Logo']       = empty($result->Logo)?\Illuminate\Support\Facades\URL::to('/').'/assets/images/logo@2x.png':get_image_data($result->Logo);
+            $cache['Title']    = empty($result->Title)?'Neon':$result->Title;
+            $cache['FooterText']  = empty($result->FooterText)?'&copy; '.date('Y').' Code Desk':$result->FooterText;
+            $cache['FooterUrl']   = empty($result->FooterUrl)?'http://www.code-desk.com':$result->FooterUrl;
+            $cache['LoginMessage']  = empty($result->LoginMessage)?'Dear user, log in to access RM!':$result->LoginMessage;
+            $cache['CustomCss']   = $result->CustomCss;empty($result->CustomCss)?'':$result->CustomCss;
+        }else{
+            $cache['FavIcon']    = \Illuminate\Support\Facades\URL::to('/').'/assets/images/favicon.ico';
+            $cache['Logo']       = \Illuminate\Support\Facades\URL::to('/').'/assets/images/logo@2x.png';
+            $cache['Title']    = 'Neon';
+            $cache['FooterText']  = '&copy; '.date('Y').' Code Desk';
+            $cache['FooterUrl']   = 'http://www.code-desk.com';
+            $cache['LoginMessage']  = 'Dear user, log in to access RM!';
+            $cache['CustomCss']   = '';
         }
-    \Illuminate\Support\Facades\Cache::forever($siteConfigretion, $cache);
+        \Illuminate\Support\Facades\Cache::add($siteConfigretion, $cache, $minutes);
+    }
+    $cache = Cache::get($siteConfigretion);
+    return $cache;
+
 }
 
 
@@ -344,18 +349,27 @@ function validfilepath($path){
     if (!is_numeric(strpos($path, "https://"))) {
         //$path = str_replace('/', '\\', $path);
         if (copy($path, './uploads/' . basename($path))) {
-
             $path = \Illuminate\Support\Facades\URL::to('/') . '/uploads/' . basename($path);
         }
     }
     return $path;
 }
 
+function get_image_data($path){
+    $type = pathinfo($path, PATHINFO_EXTENSION);
+    try{
+        $data = file_get_contents($path);
+        $base64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
+    }catch (Exception $e){
+        return "";
+    }
 
-function getCompanyLogo($request){
-    $LicenceKey = $request->only('LicenceKey')['LicenceKey'];
-    $siteConfigretion = 'siteConfiguration' . $LicenceKey;
-    $cache = Cache::get($siteConfigretion);
+    return $base64;
+}
+
+
+function getCompanyLogo(){
+    $cache = site_configration_cache();
     return $cache['Logo'];
 }
 
@@ -407,4 +421,18 @@ function generateResponse($message,$isError=false,$isCustomError=false,$data=[])
         $reponse_data['data'] = $data;
     }
     return \Dingo\Api\Facade\API::response()->array($reponse_data)->statusCode(200);
+}
+
+function getRequestParam($key){
+    $request = new \Dingo\Api\Http\Request;
+    $param = $request->only($key)[$key];
+    return $param;
+}
+
+function cleanarray($data = [],$unset=[]){
+        $unset=['LicenceKey','CompanyName'];
+    foreach($unset as $item){
+        unset($data[$item]);
+    }
+    return $data;
 }

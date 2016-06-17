@@ -27,7 +27,7 @@ class OpportunityCommentsController extends BaseController {
      * @return mixed
      */
     public function get_comments($id){
-        $select = ['CommentText','AttachmentPaths','created_at','CreatedBy'];
+        $select = ['CommentText','AttachmentPaths','created_at','CreatedBy','CommentID'];
         $result = CRMComments::select($select)->where(['ParentID'=>$id,'CommentType'=>CRMComments::opportunityComments])->orderby('created_at','desc')->get();
         return generateResponse('',false,false,$result);
     }
@@ -93,6 +93,7 @@ class OpportunityCommentsController extends BaseController {
         $comment_data["UserID"] = User::get_userID();
         $companyID = User::get_companyID();
         $data ["CompanyID"] = $companyID;
+        $data = cleanarray($data);
         try{
             CRMComments::create($comment_data);
             $opportunity = Opportunity::where(['OpportunityID'=>$data["OpportunityID"]])->get()[0];
@@ -139,6 +140,21 @@ class OpportunityCommentsController extends BaseController {
         }
         return generateResponse('Comment added successfully');
 
+    }
+
+    public function getAttachment($commentdID,$attachmentID){
+        if(intval($commentdID)>0) {
+            $comment = CRMComments::find($commentdID);
+            $attachments = json_decode($comment->AttachmentPaths,true);
+            $attachment = $attachments[$attachmentID];
+            if(!empty($attachment)){
+                return generateResponse('',false,false,$attachment);
+            }else{
+
+            }
+        }else{
+            return generateResponse('Not found',true,true);
+        }
     }
 
 }

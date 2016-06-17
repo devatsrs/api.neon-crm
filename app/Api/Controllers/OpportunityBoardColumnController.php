@@ -50,7 +50,7 @@ class OpportunityBoardColumnController extends BaseController
         $data ["CompanyID"] = $companyID;
         $data["CreatedBy"] = User::get_user_full_name();
         $data['Order'] = $count;
-        unset($data['BoardColumnID']);
+        $data = cleanarray($data,['BoardColumnID']);
 
         $rules = array(
             'CompanyID' => 'required',
@@ -81,6 +81,7 @@ class OpportunityBoardColumnController extends BaseController
             $data["CompanyID"] = $companyID;
             $data["ModifiedBy"] = User::get_user_full_name();
             $data['SetCompleted'] = isset($data['SetCompleted'])?1:0;
+            $data = cleanarray($data,['BoardColumnID']);
 
             $rules = array(
                 'CompanyID' => 'required',

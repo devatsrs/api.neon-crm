@@ -113,7 +113,7 @@ class AmazonS3 {
 
         //When no amazon ;
         if($s3 == 'NoAmazon'){
-            $Uploadpath = Config::get('app.upload_path')."/".$key;
+            $Uploadpath = getenv('UPLOAD_PATH')."/".$key;
             if ( file_exists($Uploadpath) ) {
                 return $Uploadpath;
             } else {

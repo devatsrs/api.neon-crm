@@ -42,7 +42,7 @@ class AuthController extends BaseController
             // something went wrong whilst attempting to encode the token
             return response()->json(['error' => 'could_not_create_token'], 500);
         }
-        create_site_configration_cache($this->request);
+        site_configration_cache();
 
         // all good so return the token
         return response()->json(compact('token'));

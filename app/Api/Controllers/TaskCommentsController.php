@@ -92,6 +92,7 @@ class TaskCommentsController extends BaseController {
         $comment_data["UserID"] = User::get_userID();
         $companyID = User::get_companyID();
         $data ["CompanyID"] = $companyID;
+        $data = cleanarray($data);
         try{
             CRMComments::create($comment_data);
             $task = Task::where(['TaskID'=>$data["TaskID"]])->get()[0];

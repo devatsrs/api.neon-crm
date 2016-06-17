@@ -171,7 +171,7 @@ class Company extends \Eloquent {
     }
 
     public static function getLicenceResponse($request){
-        $minutes = Carbon::now()->addMinutes(60);
+        $minutes = Carbon::now()->addMinutes(getenv('CACHE_EXPIRE'));
         $license  = $request->only('LicenceKey','CompanyName');
         $license['LicenceHost'] = $request->getHttpHost();
         $license['LicenceIP'] = $request->getClientIp();

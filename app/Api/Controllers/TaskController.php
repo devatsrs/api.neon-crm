@@ -201,9 +201,8 @@ class TaskController extends BaseController {
         }
         $data['DueDate'] = isset($data['StartTime']) && !empty($data['StartTime'])?$data['DueDate'].' '.$data['StartTime']:$data['DueDate'];
         $Task_view = isset($data['Task_view'])?1:0;
-        unset($data['StartTime']);
-		unset($data['scrol']);
-        unset($data['Task_view']);
+
+        $data = cleanarray($data,['StartTime','scrol','Task_view']);
 
         try {
 
@@ -221,9 +220,7 @@ class TaskController extends BaseController {
 				}
             }
 
-            unset($data["TaskStatus"]);
-            unset($data['TaskID']);
-			unset($data['StartTime']);
+            $data = cleanarray($data,['TaskStatus','TaskID','StartTime']);
             Log::Info($data);
             $result  			=   Task::create($data);
           if(isset($data['Task_type']) && $data['Task_type']!=0)
@@ -327,9 +324,8 @@ class TaskController extends BaseController {
                 $data['BoardColumnID'] = $data["TaskStatus"];
                 $data['DueDate'] = isset($data['StartTime']) && !empty($data['StartTime'])?$data['DueDate'].' '.$data['StartTime']:$data['DueDate'];
                 $data['Priority'] = isset($data['Priority'])?1:0;
-                unset($data["TaskStatus"]);
-                unset($data['TaskID']);
-                unset($data['StartTime']);
+
+                $data = cleanarray($data,['TaskStatus','TaskID','StartTime']);
                 Task::where(['TaskID' => $id])->update($data);
             } catch (\Exception $ex){
                 Log::info($ex);

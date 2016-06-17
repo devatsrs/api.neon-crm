@@ -213,9 +213,7 @@ class OpportunityController extends BaseController {
             $data["CreatedBy"] = User::get_user_full_name();
             $data['Status'] = isset($data['Status']) && !empty($data['Status'])?$data['Status']:Opportunity::Open;
 
-            unset($data['OppertunityID']);
-            unset($data['leadcheck']);
-            unset($data['leadOrAccount']);
+            $data = cleanarray($data,['OppertunityID','leadcheck','leadOrAccount']);
 
             Opportunity::create($data);
         }
@@ -279,8 +277,7 @@ class OpportunityController extends BaseController {
                         $data['Status'] = Opportunity::Open;
                     }
                 }
-                unset($data['opportunityClosed']);
-                unset($data['OpportunityID']);
+                $data = cleanarray($data,['opportunityClosed','OpportunityID']);
                 $Opportunity = Opportunity::find($id);
                 if($Opportunity->BoardID!=$data['BoardID']){
                     $data["BoardColumnID"] = CRMBoardColumn::where(['BoardID' => $data['BoardID'], 'Order' => 0])->pluck('BoardColumnID');
