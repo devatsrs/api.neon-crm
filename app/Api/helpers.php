@@ -318,8 +318,8 @@ function site_configration_cache(){
         $result       =  \Illuminate\Support\Facades\DB::table('tblCompanyThemes')->where(["DomainUrl" => $domain_url,'ThemeStatus'=>\Api\Model\Themes::ACTIVE])->first();
 
         if(!empty($result)){  //url found
-            $cache['FavIcon']    = empty($result->Favicon)?\Illuminate\Support\Facades\URL::to('/').'/assets/images/favicon.ico':get_image_data($result->Favicon);
-            $cache['Logo']       = empty($result->Logo)?\Illuminate\Support\Facades\URL::to('/').'/assets/images/logo@2x.png':get_image_data($result->Logo);
+            $cache['FavIcon']    = empty($result->Favicon)?\Illuminate\Support\Facades\URL::to('/').'/assets/images/favicon.ico':validfilepath($result->Favicon);
+            $cache['Logo']       = empty($result->Logo)?\Illuminate\Support\Facades\URL::to('/').'/assets/images/logo@2x.png':validfilepath($result->Logo);
             $cache['Title']    = empty($result->Title)?'Neon':$result->Title;
             $cache['FooterText']  = empty($result->FooterText)?'&copy; '.date('Y').' Code Desk':$result->FooterText;
             $cache['FooterUrl']   = empty($result->FooterUrl)?'http://www.code-desk.com':$result->FooterUrl;
@@ -348,9 +348,7 @@ function validfilepath($path){
     $path = \App\AmazonS3::unSignedUrl($path);
     if (!is_numeric(strpos($path, "https://"))) {
         //$path = str_replace('/', '\\', $path);
-        if (copy($path, './uploads/' . basename($path))) {
-            $path = \Illuminate\Support\Facades\URL::to('/') . '/uploads/' . basename($path);
-        }
+        $path = get_image_data($path);
     }
     return $path;
 }
