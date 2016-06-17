@@ -181,8 +181,6 @@ class AmazonS3 {
             //When no amazon ;
             if($s3 == 'NoAmazon'){
 				$Uploadpath = getenv('UPLOAD_PATH') . "/"."".$file;
-				\Illuminate\Support\Facades\Log::info("Uploadpath ".$Uploadpath);
-
                 if ( file_exists($Uploadpath) ) {
                     @unlink($Uploadpath);
                     return true;
