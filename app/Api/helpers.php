@@ -68,29 +68,11 @@ function sendMail($view,$data){
     add_email_address($mail,$data,'cc');
     add_email_address($mail,$data,'bcc');
 
-    if(isset($data['AttachmentPaths']) && count($data['AttachmentPaths'])>0)
-    {
-        foreach($data['AttachmentPaths'] as $attachment_data)
-        {
-            if(is_amazon() == true)
-            {
-                $Attachmenturl  =  \App\AmazonS3::preSignedUrl($attachment_data['filepath']);
-                $path 			=   getenv('AWS_URL').'/'.$attachment_data['filepath'];
-            }
-            else
-            {
-                $Attachmenturl = Config::get('app.upload_path')."/".$attachment_data['filepath'];
-                $path 			=   getenv('TEMP_PATH').'/'.$attachment_data['filepath'];
-            }
-
-
-            $file = getenv('TEMP_PATH').'/email_attachment/'.basename($path);
-            if(!file_exists(getenv('TEMP_PATH').'/email_attachment')) {
-                mkdir(getenv('TEMP_PATH').'/email_attachment',0777);
-            }
-            file_put_contents($file,file_get_contents($path));
-            //\Illuminate\Support\Facades\Log::info($file);
-            //\Illuminate\Support\Facades\Log::info($Attachmenturl);
+    if(isset($data['AttachmentPaths']) && count($data['AttachmentPaths'])>0) {
+        foreach($data['AttachmentPaths'] as $attachment_data) {
+            $file = '';
+            $Attachmenturl = \App\AmazonS3::unSignedUrl($attachment_data['filepath']);
+            file_put_contents($file,file_get_contents($Attachmenturl));
             $mail->AddAttachment($file,$attachment_data['filename']);
         }
     }
@@ -107,12 +89,6 @@ function sendMail($view,$data){
         $status['message'] = 'Email has been sent';
         $status['body'] = $body;
     }
-
-    //	\Illuminate\Support\Facades\Log::info($data);
-    // \Illuminate\Support\Facades\Log::info($status);
-    //  \Illuminate\Support\Facades\Log::info("error start");
-    //	\Illuminate\Support\Facades\Log::info($mail->ErrorInfo);
-    //	\Illuminate\Support\Facades\Log::info("error end");
     return $status;
 }
 function setMailConfig($CompanyID,$mandrill,$data=array()){
@@ -318,14 +294,15 @@ function site_configration_cache(){
         $result       =  \Illuminate\Support\Facades\DB::table('tblCompanyThemes')->where(["DomainUrl" => $domain_url,'ThemeStatus'=>\Api\Model\Themes::ACTIVE])->first();
 
         if(!empty($result)){  //url found
-            $cache['FavIcon']    = empty($result->Favicon)?\Illuminate\Support\Facades\URL::to('/').'/assets/images/favicon.ico':validfilepath($result->Favicon);
-            $cache['Logo']       = empty($result->Logo)?\Illuminate\Support\Facades\URL::to('/').'/assets/images/logo@2x.png':validfilepath($result->Logo);
+            $cache['FavIcon']    = empty($result->Favicon)?\Illuminate\Support\Facades\URL::to('/').'/assets/images/favicon.ico':get_image_src($result->Favicon);
+            $cache['Logo']       = empty($result->Logo)?\Illuminate\Support\Facades\URL::to('/').'/assets/images/logo@2x.png':get_image_src($result->Logo);
             $cache['Title']    = empty($result->Title)?'Neon':$result->Title;
             $cache['FooterText']  = empty($result->FooterText)?'&copy; '.date('Y').' Code Desk':$result->FooterText;
             $cache['FooterUrl']   = empty($result->FooterUrl)?'http://www.code-desk.com':$result->FooterUrl;
             $cache['LoginMessage']  = empty($result->LoginMessage)?'Dear user, log in to access RM!':$result->LoginMessage;
             $cache['CustomCss']   = $result->CustomCss;empty($result->CustomCss)?'':$result->CustomCss;
         }else{
+            //@TODO: move constant to env file
             $cache['FavIcon']    = \Illuminate\Support\Facades\URL::to('/').'/assets/images/favicon.ico';
             $cache['Logo']       = \Illuminate\Support\Facades\URL::to('/').'/assets/images/logo@2x.png';
             $cache['Title']    = 'Neon';
@@ -342,12 +319,13 @@ function site_configration_cache(){
 }
 
 
-
-
-function validfilepath($path){
+/** Send Amazone url or image data for <img src=
+ * @param $path
+ * @return string
+ */
+function get_image_src($path){
     $path = \App\AmazonS3::unSignedUrl($path);
-    if (!is_numeric(strpos($path, "https://"))) {
-        //$path = str_replace('/', '\\', $path);
+    if(file_exists($path)){
         $path = get_image_data($path);
     }
     return $path;
