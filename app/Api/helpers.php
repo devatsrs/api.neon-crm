@@ -70,7 +70,7 @@ function sendMail($view,$data){
 
     if(isset($data['AttachmentPaths']) && count($data['AttachmentPaths'])>0) {
         foreach($data['AttachmentPaths'] as $attachment_data) {
-            $file = '';
+            $file = \Webpatser\Uuid\Uuid::generate()."_". basename($attachment_data['filepath']);
             $Attachmenturl = \App\AmazonS3::unSignedUrl($attachment_data['filepath']);
             file_put_contents($file,file_get_contents($Attachmenturl));
             $mail->AddAttachment($file,$attachment_data['filename']);
