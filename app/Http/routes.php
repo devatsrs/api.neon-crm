@@ -5,13 +5,13 @@ $api = app('Dingo\Api\Routing\Router');
 $api->version('v1', function ($api) {
 
 	// Set our namespace for the underlying routes
-	$api->group(['namespace' => 'Api\Controllers', 'middleware' => 'cors'], function ($api) {
+	$api->group(['namespace' => 'Api\Controllers', 'middleware' => ['cors','dbselector']], function ($api) {
 
 		// Login route
 		$api->post('login', 'AuthController@authenticate');
         $api->post('logout', 'AuthController@logout');
 		$api->post('register', 'AuthController@register');
-        $api->get('l/{id}', 'AuthController@byId');
+        $api->post('l/{id}', 'AuthController@authenticate');
 
 		// Dogs! All routes in here are protected and thus need a valid token
 		//$api->group( [ 'protected' => true, 'middleware' => 'jwt.refresh' ], function ($api) {
@@ -81,7 +81,7 @@ $api->version('v1', function ($api) {
             //Opportunity Comments
             $api->post('opportunitycomment/add_comment', 'OpportunityCommentsController@add_comment');
             $api->get('opportunitycomments/{id}/get_comments', 'OpportunityCommentsController@get_comments');
-			
+
 			 //Task
 			$api->post('task/{id}/get_tasks','TaskController@getTasks');
             $api->get('task/{id}/get_attachments','TaskController@getAttachments');

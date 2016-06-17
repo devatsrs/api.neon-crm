@@ -1,6 +1,7 @@
 <?php
 namespace Api\Controllers;
 
+use Dingo\Api\Http\Request;
 use Api\Model\Account;
 use Api\Model\Task;
 use Api\Model\CRMComments;
@@ -15,9 +16,10 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 class TaskCommentsController extends BaseController {
 
-    public function __construct()
+    public function __construct(Request $request)
     {
         $this->middleware('jwt.auth');
+        Parent::__Construct($request);
     }
 
     /** Return opportunity comment and its attachments.
@@ -107,7 +109,7 @@ class TaskCommentsController extends BaseController {
             $emailData['EmailToName'] = '';
             $emailData['CreatedBy'] = User::get_user_full_name();
             $emailData['Task'] = $task->Subject.' Task';
-            $emailData['Logo'] = '<img src="'.getCompanyLogo().'" width="120" alt="" />';
+            $emailData['Logo'] = '<img src="'.getCompanyLogo($this->request).'" width="120" alt="" />';
             //$emailData['mandrill'] =1;
             if(!empty($emailTo) && count($emailTo)>0){
                 $emailData['EmailTo'] = $emailTo;

@@ -1,6 +1,8 @@
 <?php
 namespace Api\Controllers;
 
+use Dingo\Api\Http\Request;
+use Api\Model\Company;
 use Api\Model\DataTableSql;
 use Api\Model\Task;
 use Api\Model\User;
@@ -20,9 +22,10 @@ use Illuminate\Support\Facades\Validator;
 
 class TaskController extends BaseController {
 
-    public function __construct()
+    public function __construct(Request $request)
     {
         $this->middleware('jwt.auth');
+        Parent::__Construct($request);
     }
     /**
      * Display a listing of the resource.

@@ -83,7 +83,7 @@ function sendMail($view,$data){
                 $path 			=   getenv('TEMP_PATH').'/'.$attachment_data['filepath'];
             }
 
-            \Illuminate\Support\Facades\Log::info($path);
+
             $file = getenv('TEMP_PATH').'/email_attachment/'.basename($path);
             if(!file_exists(getenv('TEMP_PATH').'/email_attachment')) {
                 mkdir(getenv('TEMP_PATH').'/email_attachment',0777);
@@ -290,7 +290,7 @@ function email_log_data($data,$view = ''){
         'Bcc'=>$data['bcc'],
         "AttachmentPaths"=>$data['AttachmentPaths']
     ];
-    \Illuminate\Support\Facades\Log::info($data);
+
     $data =  \Api\Model\AccountEmailLog::Create($logData);
     return $data;
 }
@@ -306,8 +306,9 @@ function is_amazon(){
     return true;
 }
 
-function create_site_configration_cache(){
-    $domain_url      =   $_SERVER['HTTP_HOST'];
+function create_site_configration_cache($request){
+    $LicenceKey = $request->only('LicenceKey')['LicenceKey'];
+    $domain_url      =   $request->getHttpHost();
     $result       =  \Illuminate\Support\Facades\DB::table('tblCompanyThemes')->where(["DomainUrl" => $domain_url,'ThemeStatus'=>\Api\Model\Themes::ACTIVE])->get();
 
     if($result){  //url found
@@ -328,8 +329,11 @@ function create_site_configration_cache(){
         $cache['CustomCss']   = '';
     }
 
-    \Illuminate\Support\Facades\Log::info($cache);
-    \Illuminate\Support\Facades\Session::put('user_site_configrations', $cache);
+    $siteConfigretion = 'siteConfiguration' . $LicenceKey;
+        if (\Illuminate\Support\Facades\Cache::has($siteConfigretion)) {
+            \Illuminate\Support\Facades\Cache::forget($siteConfigretion);
+        }
+    \Illuminate\Support\Facades\Cache::forever($siteConfigretion, $cache);
 }
 
 
@@ -348,15 +352,10 @@ function validfilepath($path){
 }
 
 
-function getCompanyLogo(){
-    $domain_url      =   $_SERVER['HTTP_HOST'];
-    $result       =  \Illuminate\Support\Facades\DB::table('tblCompanyThemes')->where(["DomainUrl" => $domain_url,'ThemeStatus'=>\Api\Model\Themes::ACTIVE])->get();
-
-    if($result){  //url found
-        $cache['Logo']       = empty($result[0]->Logo)?\Illuminate\Support\Facades\URL::to('/').'/assets/images/logo@2x.png':validfilepath($result[0]->Logo);
-    }else{
-        $cache['Logo']       = \Illuminate\Support\Facades\URL::to('/').'/assets/images/logo@2x.png';
-    }
+function getCompanyLogo($request){
+    $LicenceKey = $request->only('LicenceKey')['LicenceKey'];
+    $siteConfigretion = 'siteConfiguration' . $LicenceKey;
+    $cache = Cache::get($siteConfigretion);
     return $cache['Logo'];
 }
 
