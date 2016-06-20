@@ -35,9 +35,9 @@ class AmazonS3 {
     // Instantiate an S3 client
     private static function getS3Client(){
 
-        $AMAZONS3_KEY  = getenv("AMAZONS3_KEY");
-        $AMAZONS3_SECRET = getenv("AMAZONS3_SECRET");
-        $AWS_REGION = getenv("AWS_REGION");
+        $AMAZONS3_KEY  = '';
+        $AMAZONS3_SECRET = '';
+        $AWS_REGION = '';
         $cache = CompanyConfiguration::getConfiguration();
         $amazoneJson = $cache['amazone'];
         if(!empty($amazoneJson)){
