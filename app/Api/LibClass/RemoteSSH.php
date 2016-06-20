@@ -26,10 +26,10 @@ class RemoteSSH{
         $status = ['status'=>0,'message'=>'SSH is not configured','filePath'=>''];
         self::setConfig();
         if(count(self::$config) && isset(self::$config['host']) && isset(self::$config['username']) && isset(self::$config['password'])){
-            if(isset($addparams['filename']) && !empty($addparams['filename'])) {
+            if(!empty($key)) {
                 $source = $key;
                 if (!empty(self::$uploadPath)) {
-                    $source = rtrim(self::$uploadPath, '/') . '/' . $addparams['filename'];
+                    $source = rtrim(self::$uploadPath, '/') . '/' . $key;
                 }
                 try {
                     $tempPath = getenv('TEMP_PATH');
