@@ -39,7 +39,7 @@ class AmazonS3 {
         $AMAZONS3_SECRET = '';
         $AWS_REGION = '';
         $cache = CompanyConfiguration::getConfiguration();
-        $amazoneJson = $cache['amazone'];
+        $amazoneJson = $cache['AMAZONE'];
         if(!empty($amazoneJson)){
             $amazone = json_decode($amazoneJson,true);
             $AMAZONS3_KEY  = $amazone['AMAZONS3_KEY'];
