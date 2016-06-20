@@ -23,7 +23,7 @@ class CompanyConfiguration extends \Eloquent {
             self::$cache['CompanyConfiguration'] = $cache['CompanyConfiguration'];
         } else {
             $CompanyID = User::get_companyID();
-            self::$cache['CompanyConfiguration'] = CompanyConfiguration::where(['CompanyID'=>$CompanyID])->lists('Key','Value');
+            self::$cache['CompanyConfiguration'] = CompanyConfiguration::where(['CompanyID'=>$CompanyID])->lists('Value','Key');
             Cache::forever($CompanyConfiguration, array('CompanyConfiguration' => self::$cache['CompanyConfiguration']));
         }
 
