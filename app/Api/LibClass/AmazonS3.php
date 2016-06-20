@@ -1,5 +1,6 @@
 <?php
 namespace App;
+use Api\Model\CompanyConfiguration;
 use Api\Model\User;
 use Aws\S3\S3Client;
 
@@ -37,6 +38,14 @@ class AmazonS3 {
         $AMAZONS3_KEY  = getenv("AMAZONS3_KEY");
         $AMAZONS3_SECRET = getenv("AMAZONS3_SECRET");
         $AWS_REGION = getenv("AWS_REGION");
+        $cache = CompanyConfiguration::getConfiguration();
+        $amazoneJson = $cache['amazone'];
+        if(!empty($amazoneJson)){
+            $amazone = json_decode($amazoneJson,true);
+            $AMAZONS3_KEY  = $amazone['AMAZONS3_KEY'];
+            $AMAZONS3_SECRET = $amazone['AMAZONS3_SECRET'];
+            $AWS_REGION = $amazone['AWS_REGION'];
+        }
 
         if(empty($AMAZONS3_KEY) || empty($AMAZONS3_SECRET) || empty($AWS_REGION) ){
             return 'NoAmazon';
