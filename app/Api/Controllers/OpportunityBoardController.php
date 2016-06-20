@@ -2,6 +2,7 @@
 
 namespace Api\Controllers;
 
+use Dingo\Api\Http\Request;
 use Api\Model\CRMBoard;
 use Api\Model\CRMBoardColumn;
 use Api\Model\User;
@@ -17,9 +18,10 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 class OpportunityBoardController extends BaseController
 {
 
-    public function __construct()
+    public function __construct(Request $request)
     {
         $this->middleware('jwt.auth');
+        Parent::__Construct($request);
     }
 
     /**

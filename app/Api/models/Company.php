@@ -1,8 +1,9 @@
 <?php
 namespace Api\Model;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Cache;
 
 class Company extends \Eloquent {
     protected $guarded = array();
@@ -66,20 +67,21 @@ class Company extends \Eloquent {
 
     }
 
-    public static function ValidateLicenceKey($credentials_license){
-        $LICENCE_KEY = getenv('LICENCE_KEY');
+    public static function ValidateLicenceKey($license){
+        $LICENCE_KEY = $license['LicenceKey'];
+        $HTTP_HOST = $license['LicenceHost'];
+        $SERVER_ADDR = $license['LicenceIP'];
+        $COMPANY_NAME = $license['CompanyName'];;
         $result = array();
-        $result['LicenceHost'] = $_SERVER['HTTP_HOST'];
-        $result['LicenceIP'] = $_SERVER['SERVER_ADDR'];
+        $result['LicenceHost'] = $HTTP_HOST;
+        $result['LicenceIP'] = $SERVER_ADDR;
         $result['LicenceKey'] = $LICENCE_KEY;
+        $result['CompanyName'] = $COMPANY_NAME;
         $result['Type'] = '';
         $result['LicenceProperties'] = '';
-        $company_id = User::get_companyID();
-        $result['CompanyName'] = company::getName($company_id);
-        //$result['CompanyName'] = 'abc';
-        if(!empty($LICENCE_KEY)) {
 
-            $post = array("host" => $credentials_license['LicenceHost'], "ip" =>$credentials_license['LicenceIP'], "licence_key" => $credentials_license['LicenceKey'], "company_name" => $result['CompanyName']);
+        if(!empty($LICENCE_KEY)) {
+            $post = array("host" => $HTTP_HOST, "ip" => $SERVER_ADDR, "licence_key" => $LICENCE_KEY, "company_name" => $COMPANY_NAME);
             $response = call_api($post);
             if (!empty($response)) {
                 $response = json_decode($response,TRUE);
@@ -127,9 +129,8 @@ class Company extends \Eloquent {
         }
     }
 
-    public static function getLicenceType(){
-
-        $LicenceApiResponse = Session::get('LicenceApiResponse','');
+    public static function getLicenceType($LicenceKey){
+        $LicenceApiResponse = Cache::get('LicenceApiResponse' . $LicenceKey);
         if(!empty($LicenceApiResponse) && isset($LicenceApiResponse['Type'])) {
             if ($LicenceApiResponse['Type'] == Company::LICENCE_ALL) {
                 return Company::LICENCE_ALL;
@@ -145,9 +146,8 @@ class Company extends \Eloquent {
 
     }
 
-    public static function isBillingLicence($billing=0){
-
-        $LicenceApiResponse = Session::get('LicenceApiResponse','');
+    public static function isBillingLicence($request,$billing=0){
+        $LicenceApiResponse = Company::getLicenceResponse($request);
         if(!empty($LicenceApiResponse) && isset($LicenceApiResponse['Type'])) {
             if ($billing == 0 && $LicenceApiResponse['Type'] == Company::LICENCE_ALL || $LicenceApiResponse['Type'] == Company::LICENCE_BILLING) {
                 return true;
@@ -159,9 +159,8 @@ class Company extends \Eloquent {
 
     }
 
-    public static function isRMLicence(){
-
-        $LicenceApiResponse = Session::get('LicenceApiResponse','');
+    public static function isRMLicence($request){
+        $LicenceApiResponse = Company::getLicenceResponse($request);
         if(!empty($LicenceApiResponse) && isset($LicenceApiResponse['Type'])) {
             if ($LicenceApiResponse['Type'] == Company::LICENCE_ALL || $LicenceApiResponse['Type'] == Company::LICENCE_RM) {
                 return true;
@@ -171,13 +170,26 @@ class Company extends \Eloquent {
 
     }
 
-    public static function getLicenceResponse($credentials_license){
-        $LicenceApiResponse = Session::get('LicenceApiResponse','');
-
-        if(empty($LicenceApiResponse)) { // if first time login ...
-            $valresponse = Company::ValidateLicenceKey($credentials_license);
-            Session::set('LicenceApiResponse', $valresponse);
-            $LicenceApiResponse = $valresponse;
+    public static function getLicenceResponse($request){
+        $minutes = Carbon::now()->addMinutes(60);
+        $license  = $request->only('LicenceKey','CompanyName');
+        $license['LicenceHost'] = $request->getHttpHost();
+        $license['LicenceIP'] = $request->getClientIp();
+        $licenseCacheKey = 'LicenceApiResponse' . $license['LicenceKey'];
+        if (!Cache::has($licenseCacheKey)) {
+            $LicenceApiResponse = Company::ValidateLicenceKey($license);
+            if (!empty($LicenceApiResponse)) {
+                if ($LicenceApiResponse['Status'] != 1) {
+                    return $LicenceApiResponse;
+                }
+                Cache::add($licenseCacheKey, $LicenceApiResponse, $minutes);
+                //Cache::forever($licenseCacheKey, $LicenceApiResponse);
+            } else {
+                $LicenceApiResponse['Status'] = 0;
+                $LicenceApiResponse['Message'] = 'Some thing wrong with license';
+            }
+        }else{
+            $LicenceApiResponse = Cache::get($licenseCacheKey);
         }
         return $LicenceApiResponse;
     }

@@ -2,6 +2,7 @@
 namespace Api\Controllers;
 
 use Dingo\Api\Http\Request;
+use Api\Model\Company;
 use Api\Model\DataTableSql;
 use Api\Model\Task;
 use Api\Model\User;
@@ -9,7 +10,6 @@ use Api\Model\Tags;
 use Api\Model\Lead;
 use Api\Model\CRMBoardColumn;
 use Api\Model\AccountEmailLog;
-use Api\Model\Note;
 use Api\Model\Account;
 use App\AmazonS3;
 use App\Http\Requests;
@@ -20,9 +20,8 @@ use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
-
 class TaskController extends BaseController {
-    
+
     public function __construct(Request $request)
     {
         $this->middleware('jwt.auth');
@@ -174,25 +173,6 @@ class TaskController extends BaseController {
             return generateResponse('No attachment found',true,true);
         }
     }
- 
-    public function GetTask(){
-        $data = Input::all();
-
-        $rules['TaskID'] = 'required';
-        $validator = Validator::make($data, $rules);
-        if ($validator->fails()) {
-            return generateResponse($validator->errors(),true);
-        }
-        try {
-           $sql 				= 	"CALL `prc_GetTasksSingle`(".$data['TaskID'].")";
-		   $result  			= 	DB::select($sql);
-        } catch (\Exception $e) {
-            Log::info($e);
-            return $this->response->errorInternal($e->getMessage());
-        }
-         return generateResponse('Task Successfully Created',false,false,$result[0]);
-    }
-	
     /**
      * Show the form for creating a new resource.
      * GET /dealboard/create
@@ -206,7 +186,6 @@ class TaskController extends BaseController {
         $companyID = User::get_companyID();
         $message = '';
         $data ["CompanyID"] = $companyID;
-		$TaskBoardUrl	= '';
         $rules = array(
             'CompanyID' => 'required',
             'Subject' => 'required',
@@ -225,8 +204,8 @@ class TaskController extends BaseController {
         unset($data['StartTime']);
 		unset($data['scrol']);
         unset($data['Task_view']);
-		
-		try {
+
+        try {
 
             $count = Task::where(['CompanyID' => $companyID, 'BoardID' => $data['BoardID'], 'BoardColumnID' => $data["TaskStatus"]])->count();
             $data['Order'] = $count;
@@ -241,33 +220,24 @@ class TaskController extends BaseController {
                 	$data['AccountIDs'] = $taggedUser;
 				}
             }
-			
-			if(isset($data['TaskBoardUrl']) && $data['TaskBoardUrl']!=''){
-					$TaskBoardUrl	=	$data['TaskBoardUrl'];
-			}
 
             unset($data["TaskStatus"]);
             unset($data['TaskID']);
-			unset($data['StartTime']);			
-			unset($data['TaskBoardUrl']);
+			unset($data['StartTime']);
 
-            $result  				=   Task::create($data);
-			$data['TaskBoardUrl']	=	$TaskBoardUrl;
-			SendTaskMail($data); //send task email to assign user			
+            $result  			=   Task::create($data);
           if(isset($data['Task_type']) && $data['Task_type']!=0)
             {
                 $new_date =  date("Y-m-d H:i:s", time() + 1);
                 if($data['Task_type']==Task::Note){ //notes
-                    //$sql = "update tblNote set created_at = '".$new_date."' , updated_at ='".$new_date."'  where NoteID ='".$data['ParentID']."'";
-					Note::find($data['ParentID'])->update(['created_at'=>$new_date,'updated_at'=>$new_date]);
-                    //db::statement($sql);
+                    $sql = "update tblNote set created_at = '".$new_date."' , updated_at ='".$new_date."'  where NoteID ='".$data['ParentID']."'";
+                    db::statement($sql);
                 }
                 if($data['Task_type']==Task::Mail) //email
                 {
 
-                   // $sql = "update AccountEmailLog set created_at = '".$new_date."', updated_at ='".$new_date."'  where AccountEmailLogID ='".$data['ParentID']."'";				
-					AccountEmailLog::find($data['ParentID'])->update(["created_at"=>$new_date,"updated_at"=>$new_date]);
-                    //db::statement($sql);
+                    $sql = "update AccountEmailLog set created_at = '".$new_date."', updated_at ='".$new_date."'  where AccountEmailLogID ='".$data['ParentID']."'";
+                    db::statement($sql);
                     $Email      = AccountEmailLog::where(['AccountEmailLogID'=>$data['ParentID']])->get();
                     $Email      = $Email[0];
                     $account    = Account::find($data['AccountIDs']);
@@ -322,11 +292,8 @@ class TaskController extends BaseController {
     public function updateTask($id)
     {
         if( $id > 0 ) {
-			$old_task_data = Task::find($id);
-			$required_data = 0;
             $data = Input::all();
             $companyID = User::get_companyID();
-			$TaskBoardUrl=	'';
             $data["CompanyID"] = $companyID;
             $rules = array(
                 'CompanyID' => 'required',
@@ -334,7 +301,7 @@ class TaskController extends BaseController {
                 'UsersIDs'=>'required',
                 'TaskStatus'=>'required'
             );
-			
+
             $messages = array(
                 'UsersIDs' => 'User field is required.',
             );
@@ -343,7 +310,7 @@ class TaskController extends BaseController {
             if ($validator->fails()) {
                 return generateResponse($validator->errors(),true);
             }
-            try {				
+            try {
                 //Tags::insertNewTags(['tags' => $data['Tags'], 'TagType' => Tags::Task_tag]);
                 if(isset($data['TaggedUsers'])) {
                     $taggedUser = implode(',', $data['TaggedUsers']);
@@ -360,54 +327,18 @@ class TaskController extends BaseController {
                 $data['BoardColumnID'] = $data["TaskStatus"];
                 $data['DueDate'] = isset($data['StartTime']) && !empty($data['StartTime'])?$data['DueDate'].' '.$data['StartTime']:$data['DueDate'];
                 $data['Priority'] = isset($data['Priority'])?1:0;
-				if(isset($data['required_data']) && $data['required_data']!=''){
-					$required_data = 1;
-				}
-				if(isset($data['TaskBoardUrl']) && $data['TaskBoardUrl']!=''){
-					$TaskBoardUrl	=	$data['TaskBoardUrl'];
-				}
-				
                 unset($data["TaskStatus"]);
                 unset($data['TaskID']);
                 unset($data['StartTime']);
-				unset($data['required_data']);
-				unset($data['TaskBoardUrl']);
                 Task::where(['TaskID' => $id])->update($data);
-				$data['TaskBoardUrl']	=	$TaskBoardUrl;				
-				SendTaskMailUpdate($data,$old_task_data,'Task'); //send task email to assign user
             } catch (\Exception $ex){
                 Log::info($ex);
                 return $this->response->errorInternal($ex->getMessage());
             }
-			if($required_data==1){
-				$sql 				= 	"CALL `prc_GetTasksSingle`(".$id.")";
-		   		$result  			= 	DB::select($sql);
-				return generateResponse('Task Successfully Created',false,false,$result);	
-			}else{
-            	return generateResponse('',false,false,$data);
-			}
+            return generateResponse('',false,false,$data);
         }else {
             return generateResponse('Task id is missing',true,true);
         }
-
-    }
-	
-	 public function DeleteTask(){
-        $data = Input::all();
-
-        $rules['TaskID'] = 'required';
-        $validator = Validator::make($data, $rules);
-        if ($validator->fails()) {
-            return generateResponse($validator->errors(),true);
-        }
-
-        try{
-            Task::where(['TaskID'=>$data['TaskID']])->delete();
-        }catch (\Exception $ex){
-            Log::info($ex);
-            return $this->response->errorInternal($ex->getMessage());
-        }
-        return generateResponse('successfull');
     }
 
     function updateColumnOrder($id){
@@ -448,6 +379,4 @@ class TaskController extends BaseController {
         $allowedextensions   =  array_change_key_case($allowedextensions);
         return generateResponse('',false,false,$allowedextensions);
     }
-	
-	
 }

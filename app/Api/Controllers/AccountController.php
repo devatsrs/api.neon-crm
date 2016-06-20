@@ -2,6 +2,7 @@
 
 namespace Api\Controllers;
 
+use Dingo\Api\Http\Request;
 use Api\Model\AccountBalance;
 use Api\Model\Account;
 use Api\Model\Note;
@@ -25,9 +26,10 @@ use Api\Model\AccountPaymentProfile;
 class AccountController extends BaseController
 {
 
-    public function __construct()
+    public function __construct(Request $request)
     {
         $this->middleware('jwt.auth');
+        Parent::__Construct($request);
     }
 
     /**
@@ -312,7 +314,7 @@ class AccountController extends BaseController
             }
             $data['Number'] = trim($data['Number']);
 
-        if(Company::isBillingLicence()) {
+        if(Company::isBillingLicence($this->request)) {
             Account::$rules['BillingType'] = 'required';
             Account::$rules['BillingTimezone'] = 'required';
         }
@@ -396,7 +398,7 @@ class AccountController extends BaseController
         }
         $data['Number'] = trim($data['Number']);
 
-       if(Company::isBillingLicence()) {
+       if(Company::isBillingLicence($this->request)) {
             Account::$rules['BillingType'] = 'required';
             Account::$rules['BillingTimezone'] = 'required';
             $icount = Invoice::where(["AccountID" => $id])->count();

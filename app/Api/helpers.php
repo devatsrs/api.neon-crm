@@ -33,6 +33,7 @@ function rename_win($oldfile,$newfile) {
     return TRUE;
 }
 
+
 function sendMail($view,$data){
 
     $status = array('status' => 0, 'message' => 'Something wrong with sending mail.');
@@ -82,7 +83,7 @@ function sendMail($view,$data){
                 $path 			=   getenv('TEMP_PATH').'/'.$attachment_data['filepath'];
             }
 
-            \Illuminate\Support\Facades\Log::info($path);
+
             $file = getenv('TEMP_PATH').'/email_attachment/'.basename($path);
             if(!file_exists(getenv('TEMP_PATH').'/email_attachment')) {
                 mkdir(getenv('TEMP_PATH').'/email_attachment',0777);
@@ -289,7 +290,7 @@ function email_log_data($data,$view = ''){
         'Bcc'=>$data['bcc'],
         "AttachmentPaths"=>$data['AttachmentPaths']
     ];
-    \Illuminate\Support\Facades\Log::info($data);
+
     $data =  \Api\Model\AccountEmailLog::Create($logData);
     return $data;
 }
@@ -305,30 +306,34 @@ function is_amazon(){
     return true;
 }
 
-function create_site_configration_cache(){ 
-	
-    $domain_url      =   $_SERVER['HTTP_HOST'];
-    $result       =  \Illuminate\Support\Facades\DB::table('tblCompanyThemes')->where(["DomainUrl" => $domain_url,'ThemeStatus'=>\Api\Model\Themes::ACTIVE])->first();	
-    if($result){  //url found
-        $cache['FavIcon']    	= empty($result->Favicon)?\Illuminate\Support\Facades\URL::to('/').'/assets/images/favicon.ico':validfilepath($result->Favicon);
-        $cache['Logo']       	= empty($result->Logo)?\Illuminate\Support\Facades\URL::to('/').'/assets/images/logo@2x.png':validfilepath($result->Logo);
-        $cache['Title']    		= $result->Title;
-        $cache['FooterText']  	= $result->FooterText;
-        $cache['FooterUrl']   	= $result->FooterUrl;
-        $cache['LoginMessage']  = $result->LoginMessage;
-        $cache['CustomCss']   	= $result->CustomCss;
-    }else{
-        $cache['FavIcon']    	= \Illuminate\Support\Facades\URL::to('/').'/assets/images/favicon.ico';
-        $cache['Logo']       	= \Illuminate\Support\Facades\URL::to('/').'/assets/images/logo@2x.png';
-        $cache['Title']    	 	= 'Neon';
-        $cache['FooterText']  	= '&copy; '.date('Y').' Code Desk';
-        $cache['FooterUrl']   	= 'http://www.code-desk.com';
-        $cache['LoginMessage']  = 'Dear user, log in to access RM!';
-        $cache['CustomCss']     = '';
-    } 
+function create_site_configration_cache($request){
+    $LicenceKey = $request->only('LicenceKey')['LicenceKey'];
+    $domain_url      =   $request->getHttpHost();
+    $result       =  \Illuminate\Support\Facades\DB::table('tblCompanyThemes')->where(["DomainUrl" => $domain_url,'ThemeStatus'=>\Api\Model\Themes::ACTIVE])->get();
 
-    \Illuminate\Support\Facades\Log::info($cache);
-    \Illuminate\Support\Facades\Session::put('user_site_configrations', $cache);
+    if($result){  //url found
+        $cache['FavIcon']    = empty($result[0]->Favicon)?\Illuminate\Support\Facades\URL::to('/').'/assets/images/favicon.ico':validfilepath($result[0]->Favicon);
+        $cache['Logo']       = empty($result[0]->Logo)?\Illuminate\Support\Facades\URL::to('/').'/assets/images/logo@2x.png':validfilepath($result[0]->Logo);
+        $cache['Title']    = $result[0]->Title;
+        $cache['FooterText']  = $result[0]->FooterText;
+        $cache['FooterUrl']   = $result[0]->FooterUrl;
+        $cache['LoginMessage']  = $result[0]->LoginMessage;
+        $cache['CustomCss']   = $result[0]->CustomCss;
+    }else{
+        $cache['FavIcon']    = \Illuminate\Support\Facades\URL::to('/').'/assets/images/favicon.ico';
+        $cache['Logo']       = \Illuminate\Support\Facades\URL::to('/').'/assets/images/logo@2x.png';
+        $cache['Title']    = 'Neon';
+        $cache['FooterText']  = '&copy; '.date('Y').' Code Desk';
+        $cache['FooterUrl']   = 'http://www.code-desk.com';
+        $cache['LoginMessage']  = 'Dear user, log in to access RM!';
+        $cache['CustomCss']   = '';
+    }
+
+    $siteConfigretion = 'siteConfiguration' . $LicenceKey;
+        if (\Illuminate\Support\Facades\Cache::has($siteConfigretion)) {
+            \Illuminate\Support\Facades\Cache::forget($siteConfigretion);
+        }
+    \Illuminate\Support\Facades\Cache::forever($siteConfigretion, $cache);
 }
 
 
@@ -338,8 +343,8 @@ function validfilepath($path){
     $path = \App\AmazonS3::unSignedUrl($path);
     if (!is_numeric(strpos($path, "https://"))) {
         //$path = str_replace('/', '\\', $path);
-		    \Illuminate\Support\Facades\Log::info($path);
         if (copy($path, './uploads/' . basename($path))) {
+
             $path = \Illuminate\Support\Facades\URL::to('/') . '/uploads/' . basename($path);
         }
     }
@@ -347,15 +352,10 @@ function validfilepath($path){
 }
 
 
-function getCompanyLogo(){
-    $domain_url      =   $_SERVER['HTTP_HOST'];
-    $result       =  \Illuminate\Support\Facades\DB::table('tblCompanyThemes')->where(["DomainUrl" => $domain_url,'ThemeStatus'=>\Api\Model\Themes::ACTIVE])->get();
-
-    if($result){  //url found
-        $cache['Logo']       = empty($result[0]->Logo)?\Illuminate\Support\Facades\URL::to('/').'/assets/images/logo@2x.png':validfilepath($result[0]->Logo);
-    }else{
-        $cache['Logo']       = \Illuminate\Support\Facades\URL::to('/').'/assets/images/logo@2x.png';
-    }
+function getCompanyLogo($request){
+    $LicenceKey = $request->only('LicenceKey')['LicenceKey'];
+    $siteConfigretion = 'siteConfiguration' . $LicenceKey;
+    $cache = Cache::get($siteConfigretion);
     return $cache['Logo'];
 }
 
@@ -408,68 +408,3 @@ function generateResponse($message,$isError=false,$isCustomError=false,$data=[])
     }
     return \Dingo\Api\Facade\API::response()->array($reponse_data)->statusCode(200);
 }
-
-function SendTaskMail($data){
-		$LogginedUser		 = \Api\Model\User::get_userID();
-		$LogginedUserName 	 = 	\Api\Model\User::get_user_full_name();
-		$AssignedUser 		 = $data['UsersIDs'];
-		if($LogginedUser != $AssignedUser){ //if assigned user and logined user are not same then send email		
-		
-			$AssignedUserData 	 	 =		\Api\Model\User::find($AssignedUser); 			
-			$data['EmailTo'] 	 	 = 		$AssignedUserData->EmailAddress;
-			$data['cc'] 		 	 = 		"umer.ahmed@code-desk.com";		
-			$data['Subject_task'] 	 = 		$data['Subject'];					
-			$data['Subject']  	 	 = 		"(Neon) ".$data['Subject'];			
-			$data['TitleHeading'] 	 = 		$LogginedUserName." <strong>Assigned</strong> you a Task";
-			$status 			 	 = 		sendMail('emails.task.TaskEmailSend', $data);								
-		}
-	}
-	
-function SendTaskMailUpdate($NewData,$OldData,$type='Task'){
-		$LogginedUser 		= 	\Api\Model\User::get_userID();		
-		$LogginedUserName 	= 	\Api\Model\User::get_user_full_name();
-		
-		//Tagged Users Email
-		if($NewData['TaggedUsers']!=''){
-			$TaggedUsersNew 		= 	explode(",",$NewData['TaggedUsers']);
-			$TaggedUsersOld 		= 	explode(",",$OldData['TaggedUsers']);
-			$TaggedUsersDiff		= 	array_diff($TaggedUsersNew, $TaggedUsersOld);		
-			$TaggedUsersDiffEmail 	= 	array();
-			if(count($TaggedUsersDiff)>0){
-				foreach($TaggedUsersDiff as $TaggedUsersDiffData){
-					$TaggedUserData 	 	 	 =		\Api\Model\User::find($TaggedUsersDiffData);
-					$TaggedUsersDiffEmail[]		 =		$TaggedUserData->EmailAddress;
-				}			 			
-				$NewData['EmailTo'] 	 	 = 		$TaggedUsersDiffEmail;
-				$NewData['cc'] 		 	 	 = 		"umer.ahmed@code-desk.com";	
-				if($type=='Opportunity'){	
-					$NewData['Subject_task'] 	 = 		$NewData['OpportunityName'];		
-					$NewData['Subject']  	 	 = 		"(Neon) ".$NewData['OpportunityName'];
-					$NewData['Description']  	 = 		"";				
-				}else if($type=='Task'){
-					$NewData['Subject_task'] 	 = 		$NewData['Subject'];		
-					$NewData['Subject']  	 	 = 		"(Neon) ".$NewData['Subject'];
-				}
-				$NewData['CreatedBy']  	 	 = 		$OldData['CreatedBy'];		
-				$NewData['TitleHeading']	 = 		$LogginedUserName." <strong>Tagged</strong> you in a ".$type;
-				$status 			 		 = 		sendMail('emails.task.TaskEmailSend', $NewData);								
-			}
-		}
-		
-		if($type=='Task'){
-			//Assign Users Email
-			if($OldData['UsersIDs']!=$NewData['UsersIDs']){ // new and old assigned user are not same				
-				if($LogginedUser!=$NewData['UsersIDs']){ //new user and logined user are not same			
-					
-					$AssignedUserData 	 	 	 =		\Api\Model\User::find($NewData['UsersIDs']); 			
-					$NewData['EmailTo'] 	 	 = 		$AssignedUserData->EmailAddress;
-					$NewData['cc'] 		 	 	 = 		"umer.ahmed@code-desk.com";		
-					$NewData['Subject_task'] 	 = 		$NewData['Subject'];		
-					$NewData['Subject']  	 	 = 		"(Neon) ".$NewData['Subject'];
-					$NewData['CreatedBy']  	 	 = 		$OldData['CreatedBy'];		
-					$NewData['TitleHeading']	 = 		$LogginedUserName." <strong>Assigned</strong> you a ".$type;
-					$status 			 		 = 		sendMail('emails.task.TaskEmailSend', $NewData);							
-				}
-			}
-		}
-	}

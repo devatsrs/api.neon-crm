@@ -1,6 +1,7 @@
 <?php
 namespace Api\Controllers;
 
+use Dingo\Api\Http\Request;
 use Api\Model\Account;
 use Api\Model\Opportunity;
 use Api\Model\User;
@@ -16,9 +17,10 @@ use Illuminate\Support\Facades\Validator;
 
 class OpportunityController extends BaseController {
 
-    public function __construct()
+    public function __construct(Request $request)
     {
         $this->middleware('jwt.auth');
+        Parent::__Construct($request);
     }
 	/**
 	 * Display a listing of the resource.
@@ -43,7 +45,6 @@ class OpportunityController extends BaseController {
             $data['Status'] = Opportunity::Close;
         }
         $query = "call prc_GetOpportunities (".$companyID.", ".$id.",'".$data['opportunityName']."',"."'".$data['Tags']."',".$data['account_owners'].", ".$data['AccountID'].",'".$data['Status']."')";
-        Log::info($query);
         try{
             $result = DB::select($query);
             $columnsWithOpportunities = [];
