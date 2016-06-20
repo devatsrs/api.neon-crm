@@ -113,9 +113,7 @@ class AmazonS3 {
 
         //When no amazon ;
         if($s3 == 'NoAmazon'){
-            $fileToBeDownload['downloadPath'] = getenv('DOWNLOAD_PATH');
-            $fileToBeDownload['filename'] = $key;
-            $status = RemoteSSH::downloadFile($fileToBeDownload);
+            $status = RemoteSSH::downloadFile($key);
             return $status['filePath'];
         }
 
