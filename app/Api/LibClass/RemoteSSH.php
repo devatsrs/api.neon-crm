@@ -11,7 +11,7 @@ class RemoteSSH{
     private static $config = array();
     public static $uploadPath = '';
 
-    public function __construct(){
+    public static function setConfig(){
         $Configuration = CompanyConfiguration::getConfiguration();
         if(!empty($Configuration)){
             self::$config = json_decode($Configuration['SSH'],true);
@@ -24,6 +24,7 @@ class RemoteSSH{
 
     public static function downloadFile($key){
         $status = ['status'=>0,'message'=>'SSH is not configured','filePath'=>''];
+        self::setConfig();
         if(count(self::$config) && isset(self::$config['host']) && isset(self::$config['username']) && isset(self::$config['password'])){
             if(isset($addparams['filename']) && !empty($addparams['filename'])) {
                 $source = $key;
