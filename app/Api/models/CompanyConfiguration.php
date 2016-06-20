@@ -2,6 +2,7 @@
 namespace Api\Model;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 
 class CompanyConfiguration extends \Eloquent {
 
