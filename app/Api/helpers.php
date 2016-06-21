@@ -334,8 +334,12 @@ function get_image_src($path){
 function get_image_data($path){
     $type = pathinfo($path, PATHINFO_EXTENSION);
     try{
-        $data = file_get_contents($path);
-        $base64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
+        // Read image path, convert to base64 encoding
+        $imageData = base64_encode(file_get_contents($path));
+        // Format the image SRC:  data:{mime};base64,{data};
+        $base64 = 'data: '.mime_content_type($path).';base64,'.$imageData;
+        //$data = file_get_contents($path);
+        //$base64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
     }catch (Exception $e){
         return "";
     }
