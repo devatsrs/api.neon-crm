@@ -283,7 +283,8 @@ function is_amazon(){
 }
 
 function site_configration_cache($request){
-    $minutes = \Carbon\Carbon::now()->addMinutes(getenv('CACHE_EXPIRE'));
+    $time = empty(getenv('CACHE_EXPIRE'))?60:getenv('CACHE_EXPIRE');
+    $minutes = \Carbon\Carbon::now()->addMinutes($time);
     $LicenceKey = $request->only('LicenceKey')['LicenceKey'];
     $CompanyName = $request->only('CompanyName')['CompanyName'];
     $siteConfigretion = 'siteConfiguration' . $LicenceKey.$CompanyName;
@@ -323,17 +324,13 @@ function site_configration_cache($request){
  * @return string
  */
 function get_image_src($path){
-    \Illuminate\Support\Facades\Log::info($path);
     $path = \App\AmazonS3::unSignedUrl($path);
-    \Illuminate\Support\Facades\Log::info($path);
     if(file_exists($path)){
-        \Illuminate\Support\Facades\Log::info('file exist');
         if (copy($path, './uploads/' . basename($path))) {
             $path = URL::to('/') . '/uploads/' . basename($path);
         }
         //$path = get_image_data($path);
     }
-    \Illuminate\Support\Facades\Log::info($path);
     return $path;
 }
 
