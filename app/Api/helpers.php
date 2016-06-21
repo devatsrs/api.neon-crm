@@ -282,8 +282,7 @@ function is_amazon(){
     return true;
 }
 
-function site_configration_cache(){
-    $request = new \Dingo\Api\Http\Request;
+function site_configration_cache($request){
     $minutes = \Carbon\Carbon::now()->addMinutes(getenv('CACHE_EXPIRE'));
     $LicenceKey = $request->only('LicenceKey')['LicenceKey'];
     $CompanyName = $request->only('CompanyName')['CompanyName'];
@@ -324,10 +323,17 @@ function site_configration_cache(){
  * @return string
  */
 function get_image_src($path){
+    \Illuminate\Support\Facades\Log::info($path);
     $path = \App\AmazonS3::unSignedUrl($path);
+    \Illuminate\Support\Facades\Log::info($path);
     if(file_exists($path)){
-        $path = get_image_data($path);
+        \Illuminate\Support\Facades\Log::info('file exist');
+        if (copy($path, './uploads/' . basename($path))) {
+            $path = URL::to('/') . '/uploads/' . basename($path);
+        }
+        //$path = get_image_data($path);
     }
+    \Illuminate\Support\Facades\Log::info($path);
     return $path;
 }
 
@@ -348,9 +354,10 @@ function get_image_data($path){
 }
 
 
-function getCompanyLogo(){
-    $cache = site_configration_cache();
-    return $cache['Logo'];
+function getCompanyLogo($request){
+    $cache = site_configration_cache($request);
+    return get_image_src($cache['Logo']);
+    //return $cache['Logo'];
 }
 
 function call_api($post = array()){

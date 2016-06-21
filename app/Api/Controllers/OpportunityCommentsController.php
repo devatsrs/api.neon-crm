@@ -111,7 +111,7 @@ class OpportunityCommentsController extends BaseController {
             $emailData['EmailToName'] = '';
             $emailData['CreatedBy'] = User::get_user_full_name();
             $emailData['Task'] = $opportunity->OpportunityName.' Opportunity';
-            $emailData['Logo'] = getCompanyLogo();
+            $emailData['Logo'] = getCompanyLogo($this->request);
             //$emailData['mandrill'] =1;
             if(!empty($emailTo) && count($emailTo)>0){
                 $emailData['EmailTo'] = $emailTo;
