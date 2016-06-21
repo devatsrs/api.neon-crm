@@ -356,8 +356,7 @@ function get_image_data($path){
 
 function getCompanyLogo($request){
     $cache = site_configration_cache($request);
-    return get_image_src($cache['Logo']);
-    //return $cache['Logo'];
+    return $cache['Logo'];
 }
 
 function call_api($post = array()){
