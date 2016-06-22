@@ -334,9 +334,9 @@ function get_image_src($path){
     return $path;
 }
 
-function get_image_data($path){
-    $type = pathinfo($path, PATHINFO_EXTENSION);
+function getFileData($path){
     try{
+        $path = \App\AmazonS3::unSignedUrl($path);
         // Read image path, convert to base64 encoding
         $imageData = base64_encode(file_get_contents($path));
         // Format the image SRC:  data:{mime};base64,{data};

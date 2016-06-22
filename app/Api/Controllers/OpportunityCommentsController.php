@@ -49,7 +49,7 @@ class OpportunityCommentsController extends BaseController {
             return generateResponse($validator->errors(),true);
         }
 
-        $commentattachments = [];
+        /*$commentattachments = [];
         $comment_data=[];
         if (isset($data['file'])) {
             $commentattachment = $data['file'];
@@ -80,10 +80,10 @@ class OpportunityCommentsController extends BaseController {
                 $commentattachments[] = ['filename' => $originalfilename, 'filepath' => $fullPath];
             }
         }
-
-        if(!empty($commentattachments)){
-            $comment_data['AttachmentPaths'] = json_encode($commentattachments);
-            $emailData['AttachmentPaths'] = $commentattachments;
+        */
+        if (isset($data['file'])) {
+            $comment_data['AttachmentPaths'] = $data['file'];
+            $emailData['AttachmentPaths'] = json_decode($data['file'],true);
         }
 
         $comment_data["CommentText"] = $data["CommentText"];
