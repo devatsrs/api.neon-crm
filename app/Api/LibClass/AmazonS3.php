@@ -38,7 +38,7 @@ class AmazonS3 {
         $AMAZONS3_SECRET = getenv("AMAZONS3_SECRET");
         $AWS_REGION = getenv("AWS_REGION");
 
-        if(empty($AMAZONS3_KEY) || empty($AMAZONS3_SECRET) || empty($AWS_REGION) ){
+        if(empty($AMAZONS3_KEY) || empty($AMAZONS3_SECRET) || empty($AWS_REGION) ){			
             return 'NoAmazon';
         }else {
 
@@ -110,10 +110,10 @@ class AmazonS3 {
     static function preSignedUrl($key=''){
 
         $s3 = self::getS3Client();
-
+		
         //When no amazon ;
         if($s3 == 'NoAmazon'){
-            $Uploadpath = Config::get('app.upload_path')."/".$key;
+            $Uploadpath = getenv('upload_path')."/".$key;			
             if ( file_exists($Uploadpath) ) {
                 return $Uploadpath;
             } else {
@@ -142,7 +142,6 @@ class AmazonS3 {
     static function unSignedUrl($key=''){
 
         $s3 = self::getS3Client();
-
         //When no amazon ;
         if($s3 == 'NoAmazon'){
             return  self::preSignedUrl($key);
@@ -181,7 +180,7 @@ class AmazonS3 {
 
             //When no amazon ;
             if($s3 == 'NoAmazon'){
-                $Uploadpath = getenv('UPLOAD_PATH') . "/"."".$file;
+				$Uploadpath = getenv('UPLOAD_PATH') . "/"."".$file;
                 if ( file_exists($Uploadpath) ) {
                     @unlink($Uploadpath);
                     return true;

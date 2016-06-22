@@ -220,6 +220,32 @@ class AccountController extends BaseController
         return generateResponse('',false,false,$Note);
     }
 
+	 public function UpdateNote(){
+
+       $data 	= 	Input::all();
+
+	   $rules = array(
+            'NoteID' => 'required',
+            'Note' => 'required',
+        );
+
+        $validator = Validator::make($data, $rules);
+
+        if ($validator->fails()) {
+            return generateResponse($validator->errors(),true);
+        }
+
+		try{
+			$result = Note::find($data['NoteID'])->update($data);
+			$result = Note::find($data['NoteID']);
+
+            return generateResponse('',false,false,$result);
+        }catch (\Exception $ex){
+            Log::info($ex);
+            return $this->response->errorInternal($ex->getMessage());
+        }
+    }
+
     public function GetTimeLine()
     {
         $data                       =   Input::all();

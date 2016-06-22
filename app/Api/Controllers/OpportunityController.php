@@ -162,7 +162,7 @@ class OpportunityController extends BaseController {
             'FirstName'=>'required',
             'LastName'=>'required',
             'Email'=>'required',
-            'Phone'=>'required',
+            //'Phone'=>'required',
             'BoardID'=>'required',
         );
         $messages = array(
@@ -239,9 +239,11 @@ class OpportunityController extends BaseController {
     {
         if( $id > 0 ) {
             $data = Input::all();
-
+			Log::info($data);
+			$old_Opportunity_data = Opportunity::find($id);
             $companyID = User::get_companyID();
             $data["CompanyID"] = $companyID;
+			$TaskBoardUrl=	'';
             $rules = array(
                 'CompanyID' => 'required',
                 'OpportunityName' => 'required',
@@ -249,7 +251,7 @@ class OpportunityController extends BaseController {
                 'FirstName'=>'required',
                 'LastName'=>'required',
                 'Email'=>'required',
-                'Phone'=>'required',
+                //'Phone'=>'required',
                 'BoardID'=>'required'
             );
 
@@ -262,7 +264,12 @@ class OpportunityController extends BaseController {
             if ($validator->fails()) {
                 generateResponse($validator->errors(),true);
             }
+			if(isset($data['TaskBoardUrl']) && $data['TaskBoardUrl']!=''){
+					$TaskBoardUrl	=	$data['TaskBoardUrl'];
+				}
+			unset($data['TaskBoardUrl']);
             try {
+				
                 $data['ClosingDate'] = '';
                 if(isset($data['TaggedUsers']) && !empty($data['TaggedUsers'])) {
                     Tags::insertNewTags(['tags' => $data['Tags'], 'TagType' => Tags::Opportunity_tag]);
@@ -286,6 +293,8 @@ class OpportunityController extends BaseController {
                     $data["BoardColumnID"] = CRMBoardColumn::where(['BoardID' => $data['BoardID'], 'Order' => 0])->pluck('BoardColumnID');
                 }
                 $Opportunity->update($data);
+				$data['TaskBoardUrl']	=	$TaskBoardUrl;				
+				SendTaskMailUpdate($data,$old_Opportunity_data,'Opportunity'); //send task email to assign user
             } catch (\Exception $ex){
                 Log::info($ex);
                 return $this->response->errorInternal($ex->getMessage());
