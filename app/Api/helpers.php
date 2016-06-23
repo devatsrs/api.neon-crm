@@ -424,7 +424,6 @@ function cleanarray($data = [],$unset=array()){
     return $data;
 }
 
-
 function SendTaskMail($data){
 		$LogginedUser		 = \Api\Model\User::get_userID();
 		$LogginedUserName 	 = 	\Api\Model\User::get_user_full_name();
@@ -453,8 +452,10 @@ function SendTaskMailUpdate($NewData,$OldData,$type='Task'){
 			$TaggedUsersDiffEmail 	= 	array();
 			if(count($TaggedUsersDiff)>0){
 				foreach($TaggedUsersDiff as $TaggedUsersDiffData){
-					$TaggedUserData 	 	 	 =		\Api\Model\User::find($TaggedUsersDiffData);
-					$TaggedUsersDiffEmail[]		 =		$TaggedUserData->EmailAddress;
+					if($LogginedUser!=$TaggedUsersDiffData){
+						$TaggedUserData 	 	 	 =		\Api\Model\User::find($TaggedUsersDiffData);
+						$TaggedUsersDiffEmail[]		 =		$TaggedUserData->EmailAddress;
+					}
 				}			 			
 				$NewData['EmailTo'] 	 	 = 		$TaggedUsersDiffEmail;
 				$NewData['cc'] 		 	 	 = 		"umer.ahmed@code-desk.com";	
