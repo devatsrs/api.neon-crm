@@ -53,41 +53,9 @@ class AccountActivityController extends BaseController {
         if ($validator->fails()) {
             return generateResponse($validator->errors(),true);
         }
-		
-		
-		// image upload start
-        $emailattachments 		= 		[];
-        if (isset($data['file'])) {
-            $emailattachment = $data['file'];
-            $allowed = getenv("CRM_ALLOWED_FILE_UPLOAD_EXTENSIONS");
-            $allowedextensions = explode(',',$allowed);
-            $allowedextensions = array_change_key_case($allowedextensions);
-            foreach ($emailattachment as $attachment) {				
-                $ext = $attachment['fileExtension'];
-                if (!in_array(strtolower($ext), $allowedextensions)) {
-                    return generateResponse($message,true);
-                }
-            }
 
-            $emailattachment = uploaded_File_Handler($data['file']);
-            $emailattachments  = [];
-            foreach ($emailattachment as $attachment) {
-                $ext = $ext = $attachment['Extension'];
-                $originalfilename = $attachment['fileName'];
-                $file_name = "EmailAttachment_" . Uuid::uuid() . '.' . $ext;
-                $amazonPath = AmazonS3::generate_upload_path(AmazonS3::$dir['EMAIL_ATTACHMENT']);
-                $destinationPath = getenv("UPLOAD_PATH") . '/' . $amazonPath;
-                rename_win($attachment['file'],$destinationPath.$file_name);
-                if (!AmazonS3::upload($destinationPath . $file_name, $amazonPath)) {
-                    return generateResponse('Failed to upload',true);
-                }
-                $fullPath = $amazonPath . $file_name;
-                $emailattachments[] = ['filename' => $originalfilename, 'filepath' => $fullPath];
-            }
-        }
-		
-		   if(!empty($emailattachments)){
-            $data['AttachmentPaths'] = $emailattachments;
+        if (isset($data['file']) && !empty($data['file'])) {
+            $data['AttachmentPaths'] = json_decode($data['file']);
         }
 
         $JobLoggedUser = User::find(User::get_userID());

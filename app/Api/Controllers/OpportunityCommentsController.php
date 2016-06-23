@@ -49,49 +49,17 @@ class OpportunityCommentsController extends BaseController {
             return generateResponse($validator->errors(),true);
         }
 
-        /*$commentattachments = [];
-        $comment_data=[];
-        if (isset($data['file'])) {
-            $commentattachment = $data['file'];
-            $allowed = getenv("CRM_ALLOWED_FILE_UPLOAD_EXTENSIONS");
-            $allowedextensions = explode(',',$allowed);
-            $allowedextensions = array_change_key_case($allowedextensions);
-            foreach ($commentattachment as $attachment) {
-                $ext = $attachment['fileExtension'];
-                if (!in_array(strtolower($ext), $allowedextensions)) {
-                    return generateResponse($ext." file type is not allowed. Allowed file types are ".$allowed,true,true);
-                }
-            }
-
-            $commentattachment = uploaded_File_Handler($data['file']);
-            $commentattachments=[];
-            foreach ($commentattachment as $attachment) {
-                $ext = $attachment['Extension'];
-                $originalfilename = $attachment['fileName'];
-                $file_name = "OpportunityAttachment_" . Uuid::uuid() . '.' . $ext;
-
-                $amazonPath = \App\AmazonS3::generate_upload_path(\App\AmazonS3::$dir['OPPORTUNITY_ATTACHMENT']);
-                $destinationPath = getenv("UPLOAD_PATH") . '/' . $amazonPath;
-                rename_win($attachment['file'],$destinationPath.$file_name);
-                if (!\App\AmazonS3::upload($destinationPath . $file_name, $amazonPath)) {
-                    return generateResponse('Failed to upload',true,true);
-                }
-                $fullPath = $amazonPath . $file_name;
-                $commentattachments[] = ['filename' => $originalfilename, 'filepath' => $fullPath];
-            }
-        }
-        */
-        if (isset($data['file'])) {
+        if (isset($data['file']) && !empty($data['file'])) {
             $comment_data['AttachmentPaths'] = $data['file'];
             $emailData['AttachmentPaths'] = json_decode($data['file'],true);
         }
-
+        $companyID = User::get_companyID();
         $comment_data["CommentText"] = $data["CommentText"];
         $comment_data["ParentID"] = $data["OpportunityID"];
         $comment_data["CommentType"] = CRMComments::opportunityComments;
         $comment_data["CreatedBy"] = User::get_user_full_name();
         $comment_data["UserID"] = User::get_userID();
-        $companyID = User::get_companyID();
+        $comment_data["CompanyID"] = $companyID;
         $data ["CompanyID"] = $companyID;
         $data = cleanarray($data);
         try{
@@ -144,7 +112,7 @@ class OpportunityCommentsController extends BaseController {
 
     public function getAttachment($commentdID,$attachmentID){
         if(intval($commentdID)>0) {
-            $comment = CRMComments::find($commentdID);
+            $comment = CRMComments::where($commentdID);
             $attachments = json_decode($comment->AttachmentPaths,true);
             $attachment = $attachments[$attachmentID];
             if(!empty($attachment)){

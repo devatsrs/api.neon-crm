@@ -97,6 +97,7 @@ $api->version('v1', function ($api) {
             //Task Comments
             $api->post('taskcomment/add_comment', 'TaskCommentsController@add_comment');
             $api->get('taskcomments/{id}/get_comments', 'TaskCommentsController@get_comments');
+            $api->post('taskcomment/{id}/getattachment/{attachmentid}', 'TaskCommentsController@getAttachment');
 
 
 		});
