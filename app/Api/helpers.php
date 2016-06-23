@@ -337,10 +337,11 @@ function get_image_src($path){
 function getFileData($path){
     try{
         $path = \App\AmazonS3::unSignedUrl($path);
+        $ext = pathinfo($path, PATHINFO_EXTENSION);
         // Read image path, convert to base64 encoding
         $imageData = base64_encode(file_get_contents($path));
         // Format the image SRC:  data:{mime};base64,{data};
-        $base64 = 'data: '.mime_content_type($path).';base64,'.$imageData;
+        $base64 = 'data: '.mime_content_type($path).$ext.';base64,'.$imageData;
         //$data = file_get_contents($path);
         //$base64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
     }catch (Exception $e){

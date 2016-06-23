@@ -75,6 +75,7 @@ $api->version('v1', function ($api) {
             //Opportunity Comments
             $api->post('opportunitycomment/add_comment', 'OpportunityCommentsController@add_comment');
             $api->get('opportunitycomments/{id}/get_comments', 'OpportunityCommentsController@get_comments');
+            $api->post('opportunitycomment/{id}/getattachment/{attachmentid}', 'OpportunityCommentsController@getAttachment');
 
 			 //Task
 			$api->post('task/{id}/get_tasks','TaskController@getTasks');

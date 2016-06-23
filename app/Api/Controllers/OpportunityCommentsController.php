@@ -150,7 +150,7 @@ class OpportunityCommentsController extends BaseController {
             if(!empty($attachment)){
                 return generateResponse('',false,false,$attachment);
             }else{
-
+                return generateResponse('Not found',true,true);
             }
         }else{
             return generateResponse('Not found',true,true);
