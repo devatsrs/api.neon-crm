@@ -15,8 +15,8 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 
 class User extends Model implements AuthenticatableContract,
                                     AuthorizableContract,
-                                    CanResetPasswordContract,
-                                    JWTSubject
+                                    CanResetPasswordContract
+
 {
     use Authenticatable, Authorizable, CanResetPassword;
 
@@ -60,16 +60,20 @@ class User extends Model implements AuthenticatableContract,
         return [];
     }
 
-    public function getFullName(){
-        $user = Auth::user();
-        return $user->FirstName.' '.$user->LastName;
-    }
     public static function get_companyID(){
-        return JWTAuth::User()->CompanyID;
+        return Auth::user()->CompanyID;
     }
 
     public static  function get_user_full_name(){
-        return JWTAuth::user()->FirstName.' '. JWTAuth::user()->LastName;
+        return Auth::user()->FirstName.' '. Auth::user()->LastName;
+    }
+	
+	   public static function get_user_email(){      
+        return Auth::user()->EmailAddress;
+    }
+	
+	   public static function get_userID(){       
+        return Auth::user()->UserID;
     }
 
 }
