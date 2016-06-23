@@ -332,7 +332,8 @@ class AccountController extends BaseController
                  return generateResponse("Account Name contains illegal character",true);
             }
 			
-			unset($data['token']);
+			 $data = cleanarray($data,['token']);
+
 			
 			try{
  	         	$account = Account::create($data);
@@ -373,9 +374,9 @@ class AccountController extends BaseController
             'zip'=>isset($data['PostCode'])?$data['PostCode']:"",
             'country'=>isset($data['Country'])?$data['Country']:"",
             'phoneNumber'=>$account['Mobile']);
-        unset($data['table-4_length']);
-        unset($data['cardID']);
-
+        
+		$data = cleanarray($data,['table-4_length','cardID']);
+	
         if(isset($data['TaxRateId'])) {
             $data['TaxRateId'] = implode(',', array_unique($data['TaxRateId']));
         }
@@ -389,6 +390,7 @@ class AccountController extends BaseController
 
         if(empty($data['password'])){ /* if empty, dont update password */
             unset($data['password']);
+			$data = cleanarray($data,['password']);
         }else{
             if($account->VerificationStatus == Account::VERIFIED && $account->Status == 1 ) {
                 /* Send mail to Customer */
@@ -418,7 +420,7 @@ class AccountController extends BaseController
         }
 		
         $data['CustomerCLI'] = implode(',',array_unique(explode(',',isset($data['CustomerCLI'])?$data['CustomerCLI']:"")));
-		unset($data['token']);
+		$data = cleanarray($data,['token']);
        try{ 
 	   		$account->update($data); 
             $data['NextInvoiceDate'] = Invoice::getNextInvoiceDate($id);

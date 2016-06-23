@@ -50,7 +50,8 @@ class OpportunityBoardColumnController extends BaseController
         $data ["CompanyID"] = $companyID;
         $data["CreatedBy"] = User::get_user_full_name();
         $data['Order'] = $count;
-        unset($data['BoardColumnID']);
+		$data = cleanarray($data,['BoardColumnID']);
+
 
         $rules = array(
             'CompanyID' => 'required',
