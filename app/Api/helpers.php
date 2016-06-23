@@ -458,7 +458,6 @@ function SendTaskMailUpdate($NewData,$OldData,$type='Task'){
 					}
 				}			 			
 				$NewData['EmailTo'] 	 	 = 		$TaggedUsersDiffEmail;
-				$NewData['cc'] 		 	 	 = 		"umer.ahmed@code-desk.com";	
 				if($type=='Opportunity'){	
 					$NewData['Subject_task'] 	 = 		$NewData['OpportunityName'];		
 					$NewData['Subject']  	 	 = 		"(Neon) ".$NewData['OpportunityName'];
@@ -484,7 +483,6 @@ function SendTaskMailUpdate($NewData,$OldData,$type='Task'){
 					
 					$AssignedUserData 	 	 	 =		\Api\Model\User::find($NewData['UsersIDs']); 			
 					$NewData['EmailTo'] 	 	 = 		$AssignedUserData->EmailAddress;
-					$NewData['cc'] 		 	 	 = 		"umer.ahmed@code-desk.com";		
 					$NewData['Subject_task'] 	 = 		$NewData['Subject'];		
 					$NewData['Subject']  	 	 = 		"(Neon) ".$NewData['Subject'];
 					$NewData['CreatedBy']  	 	 = 		$OldData['CreatedBy'];		
