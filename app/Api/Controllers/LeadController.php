@@ -61,7 +61,8 @@ class LeadController extends BaseController
             return generateResponse($validator->errors(),true);
         }
 		
-		unset($data['token']);
+		$data = cleanarray($data,['token']);
+
         try{
 			$lead 			= 	Lead::create($data);
             return generateResponse('',false,false,$lead);
@@ -100,7 +101,8 @@ class LeadController extends BaseController
         if ($validator->fails()) {
             return generateResponse($validator->errors(),true);
         }		
-		unset($data['token']);
+		$data = cleanarray($data,['token']);
+
 		try{
 	        $lead->update($data);
             return generateResponse("Lead Successfully Updated ");

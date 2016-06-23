@@ -130,7 +130,7 @@ class OpportunityController extends BaseController {
         $attachmentPaths = Opportunity::where(['OpportunityID'=>$opportunityID])->pluck('AttachmentPaths');
         if(!empty($attachmentPaths)){
             $attachmentPaths = json_decode($attachmentPaths,true);
-            unset($attachmentPaths[$attachmentID]);
+			unset($attachmentPaths[$attachmentID]);
             $data = ['AttachmentPaths'=>json_encode($attachmentPaths)];
 
             try{
@@ -213,9 +213,7 @@ class OpportunityController extends BaseController {
             $data["CreatedBy"] = User::get_user_full_name();
             $data['Status'] = isset($data['Status']) && !empty($data['Status'])?$data['Status']:Opportunity::Open;
 
-            unset($data['OppertunityID']);
-            unset($data['leadcheck']);
-            unset($data['leadOrAccount']);
+			$data = cleanarray($data,['OppertunityID','leadcheck','leadOrAccount']);
 
             Opportunity::create($data);
         }
@@ -286,8 +284,8 @@ class OpportunityController extends BaseController {
                         $data['Status'] = Opportunity::Open;
                     }
                 }
-                unset($data['opportunityClosed']);
-                unset($data['OpportunityID']);
+
+				$data = cleanarray($data,['OpportunityID','opportunityClosed']);
                 $Opportunity = Opportunity::find($id);
                 if($Opportunity->BoardID!=$data['BoardID']){
                     $data["BoardColumnID"] = CRMBoardColumn::where(['BoardID' => $data['BoardID'], 'Order' => 0])->pluck('BoardColumnID');

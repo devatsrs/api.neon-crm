@@ -160,7 +160,7 @@ class TaskController extends BaseController {
         $attachmentPaths = Task::where(['TaskID'=>$taskID])->pluck('AttachmentPaths');
         if(!empty($attachmentPaths)){
             $attachmentPaths = json_decode($attachmentPaths,true);
-            unset($attachmentPaths[$attachmentID]);
+			unset($attachmentPaths[$attachmentID]);
             $data = ['AttachmentPaths'=>json_encode($attachmentPaths)];
 
             try{
@@ -222,10 +222,7 @@ class TaskController extends BaseController {
         }
         $data['DueDate'] = isset($data['StartTime']) && !empty($data['StartTime'])?$data['DueDate'].' '.$data['StartTime']:$data['DueDate'];
         $Task_view = isset($data['Task_view'])?1:0;
-        unset($data['StartTime']);
-		unset($data['scrol']);
-        unset($data['Task_view']);
-		
+		$data = cleanarray($data,['StartTime','scrol','Task_view']);
 		try {
 
             $count = Task::where(['CompanyID' => $companyID, 'BoardID' => $data['BoardID'], 'BoardColumnID' => $data["TaskStatus"]])->count();
@@ -246,10 +243,7 @@ class TaskController extends BaseController {
 					$TaskBoardUrl	=	$data['TaskBoardUrl'];
 			}
 
-            unset($data["TaskStatus"]);
-            unset($data['TaskID']);
-			unset($data['StartTime']);			
-			unset($data['TaskBoardUrl']);
+			$data = cleanarray($data,['TaskStatus','TaskID','StartTime','TaskBoardUrl']);
 
             $result  				=   Task::create($data);
 			$data['TaskBoardUrl']	=	$TaskBoardUrl;
@@ -367,11 +361,7 @@ class TaskController extends BaseController {
 					$TaskBoardUrl	=	$data['TaskBoardUrl'];
 				}
 				
-                unset($data["TaskStatus"]);
-                unset($data['TaskID']);
-                unset($data['StartTime']);
-				unset($data['required_data']);
-				unset($data['TaskBoardUrl']);
+				$data = cleanarray($data,['TaskStatus','TaskID','StartTime','TaskBoardUrl','required_data']);
                 Task::where(['TaskID' => $id])->update($data);
 				$data['TaskBoardUrl']	=	$TaskBoardUrl;				
 				SendTaskMailUpdate($data,$old_task_data,'Task'); //send task email to assign user
