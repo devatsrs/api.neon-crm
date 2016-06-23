@@ -112,7 +112,7 @@ class OpportunityCommentsController extends BaseController {
 
     public function getAttachment($commentdID,$attachmentID){
         if(intval($commentdID)>0) {
-            $comment = CRMComments::where($commentdID);
+            $comment = CRMComments::find($commentdID);
             $attachments = json_decode($comment->AttachmentPaths,true);
             $attachment = $attachments[$attachmentID];
             if(!empty($attachment)){
