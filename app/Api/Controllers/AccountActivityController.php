@@ -108,6 +108,7 @@ class AccountActivityController extends BaseController {
 		// image upload end
 
         $data['mandrill'] = 0;
+		$data = cleanarray($data,[]);
         try{
             if(isset($data['email_send'])&& $data['email_send']==1) {
                 $status = sendMail('emails.account.AccountEmailSend', $data);
