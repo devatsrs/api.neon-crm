@@ -468,7 +468,11 @@ function SendTaskMailUpdate($NewData,$OldData,$type='Task'){
 					$NewData['Subject']  	 	 = 		"(Neon) ".$NewData['Subject'];
 				}
 				$NewData['CreatedBy']  	 	 = 		$OldData['CreatedBy'];		
-				$NewData['TitleHeading']	 = 		$LogginedUserName." <strong>Tagged</strong> you in a ".$type;
+				if($type=='Opportunity'){
+					$NewData['TitleHeading']	 = 		$LogginedUserName." <strong>Tagged</strong> you in an ".$type;
+				}else{
+					$NewData['TitleHeading']	 = 		$LogginedUserName." <strong>Tagged</strong> you in a ".$type;
+				}
 				$status 			 		 = 		sendMail('emails.task.TaskEmailSend', $NewData);								
 			}
 		}
