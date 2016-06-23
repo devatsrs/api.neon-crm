@@ -194,6 +194,7 @@ class AccountController extends BaseController
         }
 
 		try{
+			$data = cleanarray($data,[]);
             $result = Note::create($data);
             return generateResponse('',false,false,$result);
         }catch (\Exception $ex){
@@ -236,6 +237,7 @@ class AccountController extends BaseController
         }
 
 		try{
+			 $data = cleanarray($data,[]);
 			$result = Note::find($data['NoteID'])->update($data);
 			$result = Note::find($data['NoteID']);
 
