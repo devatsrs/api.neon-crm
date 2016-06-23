@@ -453,8 +453,10 @@ function SendTaskMailUpdate($NewData,$OldData,$type='Task'){
 			$TaggedUsersDiffEmail 	= 	array();
 			if(count($TaggedUsersDiff)>0){
 				foreach($TaggedUsersDiff as $TaggedUsersDiffData){
-					$TaggedUserData 	 	 	 =		\Api\Model\User::find($TaggedUsersDiffData);
-					$TaggedUsersDiffEmail[]		 =		$TaggedUserData->EmailAddress;
+					if($LogginedUser!=$TaggedUsersDiffData){
+						$TaggedUserData 	 	 	 =		\Api\Model\User::find($TaggedUsersDiffData);
+						$TaggedUsersDiffEmail[]		 =		$TaggedUserData->EmailAddress;
+					}
 				}			 			
 				$NewData['EmailTo'] 	 	 = 		$TaggedUsersDiffEmail;
 				$NewData['cc'] 		 	 	 = 		"umer.ahmed@code-desk.com";	
