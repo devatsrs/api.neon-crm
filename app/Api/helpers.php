@@ -414,7 +414,8 @@ function getRequestParam($key){
 }
 
 function cleanarray($data = [],$unset=[]){
-        $unset=['LicenceKey','CompanyName'];
+    $unset[]= 'LicenceKey';
+    $unset[]= 'CompanyName';
     foreach($unset as $item){
         unset($data[$item]);
     }
