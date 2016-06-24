@@ -87,9 +87,9 @@ class OpportunityController extends BaseController {
             $AttachmentPaths = json_decode($AttachmentPaths,true);
             $opportunityattachment = json_decode($opportunityattachment,true);
             if(count($AttachmentPaths)>0) {
-                $opportunityattachments = array_merge($AttachmentPaths , $opportunityattachment);
+                $opportunityattachment = array_merge($AttachmentPaths , $opportunityattachment);
             }
-            $opportunity_data['AttachmentPaths'] = json_encode($opportunityattachments);
+            $opportunity_data['AttachmentPaths'] = json_encode($opportunityattachment);
             $result = Opportunity::where(['OpportunityID'=>$id])->update($opportunity_data);
             if($result){
                 return generateResponse('Attachment saved successfully');
