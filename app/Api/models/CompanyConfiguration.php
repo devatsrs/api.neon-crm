@@ -17,6 +17,8 @@ class CompanyConfiguration extends \Eloquent {
     public static function getConfiguration(){
         $LicenceKey = getRequestParam('LicenceKey');
         $CompanyName = getRequestParam('CompanyName');
+        $time = empty(getenv('CACHE_EXPIRE'))?60:getenv('CACHE_EXPIRE');
+        $minutes = \Carbon\Carbon::now()->addMinutes($time);
         $CompanyConfiguration = 'CompanyConfiguration' . $LicenceKey.$CompanyName;
         if (self::$enable_cache && Cache::has($CompanyConfiguration)) {
             $cache = Cache::get($CompanyConfiguration);
@@ -25,6 +27,7 @@ class CompanyConfiguration extends \Eloquent {
             $CompanyID = User::get_companyID();
             self::$cache['CompanyConfiguration'] = CompanyConfiguration::where(['CompanyID'=>$CompanyID])->lists('Value','Key');
             Cache::forever($CompanyConfiguration, array('CompanyConfiguration' => self::$cache['CompanyConfiguration']));
+            \Illuminate\Support\Facades\Cache::add($CompanyConfiguration, array('CompanyConfiguration' => self::$cache['CompanyConfiguration']), $minutes);
         }
 
         return self::$cache['CompanyConfiguration'];
