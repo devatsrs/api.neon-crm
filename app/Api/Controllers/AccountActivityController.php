@@ -133,7 +133,7 @@ class AccountActivityController extends BaseController {
     public function getAttachment($emailID,$attachmentID){
         if(intval($emailID)>0) {
             $email = AccountEmailLog::find($emailID);
-            $attachments = json_decode($email->AttachmentPaths,true);
+            $attachments = unserialize($email->AttachmentPaths);
             $attachment = $attachments[$attachmentID];
             if(!empty($attachment)){
                 return generateResponse('',false,false,$attachment);
