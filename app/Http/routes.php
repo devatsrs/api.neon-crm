@@ -71,6 +71,7 @@ $api->version('v1', function ($api) {
             $api->post('opportunity/{id}/update_columnorder','OpportunityController@updateColumnOrder');
             $api->get('opportunity/{id}/get_lead','OpportunityController@getLead');
             $api->get('opportunity/{id}/get_dropdownleadaccount','OpportunityController@getDropdownLeadAccount');
+            $api->post('opportunity/{id}/getattachment/{attachmentid}', 'OpportunityController@getAttachment');
 
             //Opportunity Comments
             $api->post('opportunitycomment/add_comment', 'OpportunityCommentsController@add_comment');
@@ -88,6 +89,7 @@ $api->version('v1', function ($api) {
             $api->get('task/{id}/get_lead','TaskController@getLead');
             $api->get('task/{id}/get_dropdownleadaccount','TaskController@getDropdownLeadAccount');
             $api->get('task/get_priorities','TaskController@getPriority');
+            $api->post('task/{id}/getattachment/{attachmentid}', 'TaskController@getAttachment');
 
 
 

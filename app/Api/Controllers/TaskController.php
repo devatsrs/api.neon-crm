@@ -109,37 +109,12 @@ class TaskController extends BaseController {
 
     public function saveAttachment($id){
         $data = Input::all();
-        $taskattachment = $data['file'];
+        $taskattachments = $data['file'];
 
-        $allowed = getenv("CRM_ALLOWED_FILE_UPLOAD_EXTENSIONS");
-        $allowedextensions = explode(',',$allowed);
-        $allowedextensions = array_change_key_case($allowedextensions);
-        foreach ($taskattachment as $attachment) {
-            $ext = $attachment['fileExtension'];
-            if (!in_array(strtolower($ext), $allowedextensions)) {
-                return generateResponse($ext." file type is not allowed. Allowed file types are ".$allowed,true,true);
-            }
-        }
-        $taskattachment = uploaded_File_Handler($data['file']);
-        $AttachmentPaths = Task::where(['TaskID'=>$id])->pluck('AttachmentPaths');
-        $taskattachments = [];
-
-        foreach ($taskattachment as $attachment) {
-            $ext = $ext = $attachment['Extension'];
-            $originalfilename = $attachment['fileName'];
-            $file_name = "TaskAttachment_" . Uuid::uuid() . '.' . $ext;
-            $amazonPath = \App\AmazonS3::generate_upload_path(\App\AmazonS3::$dir['TASK_ATTACHMENT']);
-            $destinationPath = getenv("UPLOAD_PATH") . '/' . $amazonPath;
-            rename_win($attachment['file'],$destinationPath.$file_name);
-            if (!\App\AmazonS3::upload($destinationPath . $file_name, $amazonPath)) {
-                return generateResponse('Failed to upload',true,true);
-            }
-            $fullPath = $amazonPath . $file_name;
-            $taskattachments[] = ['filename' => $originalfilename, 'filepath' => $fullPath];
-        }
-
-        if(count($taskattachments)>0){
+        if($taskattachments){
+            $AttachmentPaths = Task::where(['TaskID'=>$id])->pluck('AttachmentPaths');
             $AttachmentPaths = json_decode($AttachmentPaths,true);
+            $taskattachments = json_decode($taskattachments,true);
             if(count($AttachmentPaths)>0) {
                 $taskattachments = array_merge($AttachmentPaths , $taskattachments);
             }
@@ -148,10 +123,10 @@ class TaskController extends BaseController {
             if($result){
                 return generateResponse('Attachment saved successfully');
             }else{
-                return generateResponse('Problem saving attachment.',true,true);
+                return generateResponse('Problem saving attachment',true,true);
             }
         } else{
-            return generateResponse('No attachment found.',true,true);
+            return generateResponse('No attachment found',true,true);
         }
     }
 
@@ -374,6 +349,21 @@ class TaskController extends BaseController {
         $allowedextensions   =  explode(',',$allowed);
         $allowedextensions   =  array_change_key_case($allowedextensions);
         return generateResponse('',false,false,$allowedextensions);
+    }
+
+    public function getAttachment($taskID,$attachmentID){
+        if(intval($taskID)>0) {
+            $task = Task::find($taskID);
+            $attachments = json_decode($task->AttachmentPaths,true);
+            $attachment = $attachments[$attachmentID];
+            if(!empty($attachment)){
+                return generateResponse('',false,false,$attachment);
+            }else{
+                return generateResponse('Not found',true,true);
+            }
+        }else{
+            return generateResponse('Not found',true,true);
+        }
     }
 
 }

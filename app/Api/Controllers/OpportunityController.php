@@ -82,37 +82,12 @@ class OpportunityController extends BaseController {
         $data = Input::all();
         $opportunityattachment = $data['file'];
 
-        $allowed = getenv("CRM_ALLOWED_FILE_UPLOAD_EXTENSIONS");
-        $allowedextensions = explode(',',$allowed);
-        $allowedextensions = array_change_key_case($allowedextensions);
-        foreach ($opportunityattachment as $attachment) {
-            $ext = $attachment['fileExtension'];
-            if (!in_array(strtolower($ext), $allowedextensions)) {
-                return generateResponse($ext." file type is not allowed. Allowed file types are ".$allowed,true,true);
-            }
-        }
-        $opportunityattachment = uploaded_File_Handler($data['file']);
-        $AttachmentPaths = Opportunity::where(['OpportunityID'=>$id])->pluck('AttachmentPaths');
-        $opportunityattachments = [];
-
-        foreach ($opportunityattachment as $attachment) {
-            $ext = $ext = $attachment['Extension'];
-            $originalfilename = $attachment['fileName'];
-            $file_name = "OpportunityAttachment_" . Uuid::uuid() . '.' . $ext;
-            $amazonPath = \App\AmazonS3::generate_upload_path(\App\AmazonS3::$dir['OPPORTUNITY_ATTACHMENT']);
-            $destinationPath = getenv("UPLOAD_PATH") . '/' . $amazonPath;
-            rename_win($attachment['file'],$destinationPath.$file_name);
-            if (!\App\AmazonS3::upload($destinationPath . $file_name, $amazonPath)) {
-                return generateResponse('Failed to upload',true,true);
-            }
-            $fullPath = $amazonPath . $file_name;
-            $opportunityattachments[] = ['filename' => $originalfilename, 'filepath' => $fullPath];
-        }
-
-        if(count($opportunityattachments)>0){
+        if($opportunityattachment){
+            $AttachmentPaths = Opportunity::where(['OpportunityID'=>$id])->pluck('AttachmentPaths');
             $AttachmentPaths = json_decode($AttachmentPaths,true);
+            $opportunityattachment = json_decode($opportunityattachment,true);
             if(count($AttachmentPaths)>0) {
-                $opportunityattachments = array_merge($AttachmentPaths , $opportunityattachments);
+                $opportunityattachments = array_merge($AttachmentPaths , $opportunityattachment);
             }
             $opportunity_data['AttachmentPaths'] = json_encode($opportunityattachments);
             $result = Opportunity::where(['OpportunityID'=>$id])->update($opportunity_data);
@@ -322,6 +297,21 @@ class OpportunityController extends BaseController {
             return generateResponse('',false,false,Lead::getLeadList($filter));
         }else {
             return generateResponse('',false,false,Account::getAccountList($filter));
+        }
+    }
+
+    public function getAttachment($opportunityID,$attachmentID){
+        if(intval($opportunityID)>0) {
+            $opportunity = Opportunity::find($opportunityID);
+            $attachments = json_decode($opportunity->AttachmentPaths,true);
+            $attachment = $attachments[$attachmentID];
+            if(!empty($attachment)){
+                return generateResponse('',false,false,$attachment);
+            }else{
+                return generateResponse('Not found',true,true);
+            }
+        }else{
+            return generateResponse('Not found',true,true);
         }
     }
 
