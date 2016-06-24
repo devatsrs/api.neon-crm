@@ -56,7 +56,7 @@ class AccountActivityController extends BaseController {
         }
 
         if (isset($data['file']) && !empty($data['file'])) {
-            $data['AttachmentPaths'] = json_decode($data['file']);
+            $data['AttachmentPaths'] = json_decode($data['file'],true);
         }
 
         $JobLoggedUser = User::find(User::get_userID());
