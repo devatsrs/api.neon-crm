@@ -46,7 +46,7 @@ class AccountController extends BaseController
         $rules['account_id'] = 'required';
         $validator = Validator::make($post_data, $rules);
         if ($validator->fails()) {
-            return $this->response->errorBadRequest($validator->errors());
+            return generateResponse($validator->errors(),true);
         }
         $AccountBalance = AccountBalance::where('AccountID', $post_data['account_id'])->first();
         $reponse_data = ['status' => 'success', 'data' => ['CurrentCredit' => $AccountBalance->CurrentCredit], 'status_code' => 200];
@@ -63,7 +63,7 @@ class AccountController extends BaseController
         $rules['action'] = 'required';
         $validator = Validator::make($post_data, $rules);
         if ($validator->fails()) {
-            return $this->response->errorBadRequest($validator->errors());
+            return generateResponse($validator->errors(),true);
         }
         if (!in_array($post_data['action'], array('add', 'sub'))) {
             return $this->response->errorBadRequest('action is not valid');
@@ -104,7 +104,7 @@ class AccountController extends BaseController
 
         $validator = Validator::make($post_data, $rules);
         if ($validator->fails()) {
-            return $this->response->errorBadRequest($validator->errors());
+            return generateResponse($validator->errors(),true);
         }
         if (!in_array($post_data['action'], array('add', 'sub'))) {
             return $this->response->errorBadRequest('provide valid action');
@@ -134,7 +134,7 @@ class AccountController extends BaseController
         $rules['account_id'] = 'required';
         $validator = Validator::make($post_data, $rules);
         if ($validator->fails()) {
-            return $this->response->errorBadRequest($validator->errors());
+            return generateResponse($validator->errors(),true);
         }
         $BalanceThreshold = 0;
         try {
@@ -155,7 +155,7 @@ class AccountController extends BaseController
         $rules['balance_threshold'] = 'required';
         $validator = Validator::make($post_data, $rules);
         if ($validator->fails()) {
-            return $this->response->errorBadRequest($validator->errors());
+            return generateResponse($validator->errors(),true);
         }
         try {
             AccountBalance::setThreshold($post_data['account_id'], $post_data['balance_threshold']);
@@ -497,7 +497,7 @@ class AccountController extends BaseController
         $rules['AccountID'] = 'required';
         $validator = Validator::make($post_data, $rules);
         if ($validator->fails()) {
-            return $this->response->errorBadRequest($validator->errors());
+            return generateResponse($validator->errors(),true);
         }
         $AccountBalance = AccountBalance::where('AccountID', $post_data['AccountID'])->first(['AccountID', 'PermanentCredit', 'CurrentCredit', 'TemporaryCredit', 'TemporaryCreditDateTime', 'BalanceThreshold']);
         $reponse_data = ['status' => 'success', 'data' => $AccountBalance, 'status_code' => 200];
@@ -511,7 +511,7 @@ class AccountController extends BaseController
         $rules['AccountID'] = 'required';
         $validator = Validator::make($post_data, $rules);
         if ($validator->fails()) {
-            return $this->response->errorBadRequest($validator->errors());
+            return generateResponse($validator->errors(),true);
         }
         $AccountBalancedata = $AccountBalance = array();
         if (!empty($post_data['PermanentCredit'])) {
@@ -548,11 +548,10 @@ class AccountController extends BaseController
             $rules['sSortDir_0'] = 'required';
             $validator = Validator::make($post_data, $rules);
             if ($validator->fails()) {
-                return $this->response->errorBadRequest($validator->errors());
+                return generateResponse($validator->errors(),true);
             }
             $post_data['iDisplayStart'] += 1;
             $columns = ['PermanentCredit', 'TemporaryCredit', 'Threshold', 'CreatedBy','created_at'];
-
             $sort_column = $columns[$post_data['iSortCol_0']];
             $query = "call prc_GetAccountBalanceHistory (" . $companyID . "," . $post_data['AccountID'] . "," . (ceil($post_data['iDisplayStart'] / $post_data['iDisplayLength'])) . " ," . $post_data['iDisplayLength'] . ",'" . $sort_column . "','" . $post_data['sSortDir_0'] . "'";
             if (isset($post_data['Export']) && $post_data['Export'] == 1) {
@@ -562,8 +561,7 @@ class AccountController extends BaseController
                 $result = DataTableSql::of($query)->make();
             }
             Log::info($query);
-            $reponse_data = ['status' => 'success', 'data' => ['result' => $result], 'status_code' => 200];
-            return API::response()->array($reponse_data)->statusCode(200);
+            return generateResponse('',false,false,$result);
         } catch (\Exception $e) {
             Log::info($e);
             return $this->response->errorInternal($e->getMessage());

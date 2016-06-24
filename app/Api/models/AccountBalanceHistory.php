@@ -18,7 +18,7 @@ class AccountBalanceHistory extends Model
 
     public static function addHistory($historydata){
         $historydata['created_at'] = date('Y-m-d H:i:s');
-        $historydata['CreatedBy'] = app('Api\Model\User')->getFullName();
+        $historydata['CreatedBy'] = User::get_user_full_name();
         AccountBalanceHistory::create($historydata);
     }
 }
