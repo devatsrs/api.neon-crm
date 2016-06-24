@@ -25,7 +25,7 @@ $api->version('v1', function ($api) {
             $api->get('lead/get_leads', 'LeadController@GetLeads');
             //accounts
             $api->get('account/{id}/get_account', 'AccountController@GetAccount');
-            $api->get('emailattachment/{id}/getattachment/{attachmentID}', 'AccountActivityController@getAttachment');
+            $api->post('emailattachment/{id}/getattachment/{attachmentID}', 'AccountActivityController@getAttachment');
 
 			// account credit
             $api->get('account/get_credit', 'AccountController@GetCredit');
