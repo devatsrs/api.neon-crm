@@ -3,6 +3,7 @@
 namespace Api\Controllers;
 
 
+use Api\Model\CompanyConfiguration;
 use Api\Model\User;
 use Api\Model\Company;
 use Dingo\Api\Facade\API;
@@ -43,6 +44,7 @@ class AuthController extends BaseController
             return response()->json(['error' => 'could_not_create_token'], 500);
         }
         site_configration_cache($request);
+        CompanyConfiguration::getConfiguration($user->CompanyID);
 
         // all good so return the token
         return response()->json(compact('token'));
