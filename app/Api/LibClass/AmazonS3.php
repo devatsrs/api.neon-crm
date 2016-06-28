@@ -93,6 +93,7 @@ class AmazonS3 {
         return $path;
     }
 
+    // @TODO: need to update when needed.
     static function upload($file,$dir){
 
         // Instantiate an S3 client
@@ -162,6 +163,7 @@ class AmazonS3 {
 
     }
 
+    //@TODO: need to update when needed
     static function unSignedImageUrl($key=''){
 
         $s3 = self::getS3Client();
@@ -178,6 +180,10 @@ class AmazonS3 {
         return self::unSignedUrl($key);
     }
 
+    /** Delete file from amazon or ssh.
+     * @param $file
+     * @return bool
+     */
     static function delete($file){
 
         if(strlen($file)>0) {
@@ -186,13 +192,11 @@ class AmazonS3 {
 
             //When no amazon ;
             if($s3 == 'NoAmazon'){
-                $Uploadpath = getenv('UPLOAD_PATH') . "/"."".$file;
-                if ( file_exists($Uploadpath) ) {
-                    @unlink($Uploadpath);
-                    return true;
-                } else {
-                    return false;
-                }
+
+                $upload_path = CompanyConfiguration::get("UPLOADPATH");
+                $file_path = rtrim($upload_path,'/').'/'. $file;
+                return RemoteSSH::deleteFile($file_path);
+
             }
 
             $bucket = getenv('AWS_BUCKET');

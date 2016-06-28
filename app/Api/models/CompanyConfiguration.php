@@ -36,4 +36,18 @@ class CompanyConfiguration extends \Eloquent {
 
         return self::$cache['CompanyConfiguration'];
     }
+
+    public static function get($key = ""){
+
+        $cache = CompanyConfiguration::getConfiguration();
+
+        if(!empty($key) ){
+
+            if(isset($cache[$key])){
+                return $cache[$key];
+            }
+        }
+        return "";
+
+    }
 }

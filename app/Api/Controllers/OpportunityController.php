@@ -1,6 +1,9 @@
 <?php
 namespace Api\Controllers;
 
+use Api\Model\CompanyConfiguration;
+use App\AmazonS3;
+use App\RemoteSSH;
 use Dingo\Api\Http\Request;
 use Api\Model\Account;
 use Api\Model\Opportunity;
@@ -105,10 +108,17 @@ class OpportunityController extends BaseController {
         $attachmentPaths = Opportunity::where(['OpportunityID'=>$opportunityID])->pluck('AttachmentPaths');
         if(!empty($attachmentPaths)){
             $attachmentPaths = json_decode($attachmentPaths,true);
+
+            $status = AmazonS3::delete($attachmentPaths);
+
 			unset($attachmentPaths[$attachmentID]);
             $data = ['AttachmentPaths'=>json_encode($attachmentPaths)];
 
             try{
+                if(!$status){
+                    return generateResponse('Failed to delete file',true,true);
+                }
+
                 Opportunity::where(['opportunityID'=>$opportunityID])->update($data);
             }catch (\Exception $ex){
                 Log::info($ex);
