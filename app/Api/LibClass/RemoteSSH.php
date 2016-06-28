@@ -59,9 +59,9 @@ class RemoteSSH{
                 $status =  RemoteFacade::delete($file_path);
             }
             if($status == true){
-                Log::info('File deleted on server ' . rtrim(self::$config['path'],'/').'/'.$file_path);
+                Log::info('File deleted on server ' . $file_path);
             }else{
-                Log::info('Failed to delete on server ' . rtrim(self::$config['cdr_folder'],'/').'/'.$file_path);
+                Log::info('Failed to delete on server ' . $file_path);
             }
         }
         return $status;
