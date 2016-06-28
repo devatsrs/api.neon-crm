@@ -112,7 +112,7 @@ class OpportunityController extends BaseController {
             $delete_status = false;
             if(isset($attachmentPaths[$attachmentID]["filepath"])){
 
-                $delete_status = AmazonS3::delete($attachmentPaths[$attachmentID]);
+                $delete_status = AmazonS3::delete($attachmentPaths[$attachmentID]["filepath"]);
             }
 			unset($attachmentPaths[$attachmentID]);
             $data = ['AttachmentPaths'=>json_encode($attachmentPaths)];
