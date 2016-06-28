@@ -39,12 +39,16 @@ class AmazonS3 {
         $AMAZONS3_SECRET = '';
         $AWS_REGION = '';
         $cache = CompanyConfiguration::getConfiguration();
-        $amazoneJson = $cache['AMAZONE'];
-        if(!empty($amazoneJson)){
-            $amazone = json_decode($amazoneJson,true);
-            $AMAZONS3_KEY  = $amazone['AMAZONS3_KEY'];
-            $AMAZONS3_SECRET = $amazone['AMAZONS3_SECRET'];
-            $AWS_REGION = $amazone['AWS_REGION'];
+        if(isset($cache['Amazon'])) {
+
+            $amazoneJson = $cache['Amazon'];
+
+            if (!empty($amazoneJson)) {
+                $amazone = json_decode($amazoneJson, true);
+                $AMAZONS3_KEY = $amazone['AMAZONS3_KEY'];
+                $AMAZONS3_SECRET = $amazone['AMAZONS3_SECRET'];
+                $AWS_REGION = $amazone['AWS_REGION'];
+            }
         }
 
         if(empty($AMAZONS3_KEY) || empty($AMAZONS3_SECRET) || empty($AWS_REGION) ){

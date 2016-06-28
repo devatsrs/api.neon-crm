@@ -109,13 +109,16 @@ class OpportunityController extends BaseController {
         if(!empty($attachmentPaths)){
             $attachmentPaths = json_decode($attachmentPaths,true);
 
-            $status = AmazonS3::delete($attachmentPaths);
+            $delete_status = false;
+            if(isset($attachmentPaths[$attachmentID]["filepath"])){
 
+                $delete_status = AmazonS3::delete($attachmentPaths[$attachmentID]);
+            }
 			unset($attachmentPaths[$attachmentID]);
             $data = ['AttachmentPaths'=>json_encode($attachmentPaths)];
 
             try{
-                if(!$status){
+                if(!$delete_status){
                     return generateResponse('Failed to delete file',true,true);
                 }
 
