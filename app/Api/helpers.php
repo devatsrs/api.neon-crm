@@ -421,3 +421,70 @@ function cleanarray($data = [],$unset=[]){
     }
     return $data;
 }
+
+function SendTaskMail($data){
+    $LogginedUser   = \Api\Model\User::get_userID();
+    $LogginedUserName   =  \Api\Model\User::get_user_full_name();
+    $AssignedUser    = $data['UsersIDs'];
+    if($LogginedUser != $AssignedUser){ //if assigned user and logined user are not same then send email
+
+        $AssignedUserData     =  \Api\Model\User::find($AssignedUser);
+        $data['EmailTo']     =   $AssignedUserData->EmailAddress;
+        $data['cc']      =   "umer.ahmed@code-desk.com";
+        $data['Subject_task']   =   $data['Subject'];
+        $data['Subject']      =   "(Neon) ".$data['Subject'];
+        $data['TitleHeading']   =   $LogginedUserName." <strong>Assigned</strong> you a Task";
+        $status       =   sendMail('emails.task.TaskEmailSend', $data);
+    }
+}
+
+function SendTaskMailUpdate($NewData,$OldData,$type='Task'){
+    $LogginedUser   =  \Api\Model\User::get_userID();
+    $LogginedUserName  =  \Api\Model\User::get_user_full_name();
+
+    //Tagged Users Email
+    if($NewData['TaggedUsers']!=''){
+        $TaggedUsersNew   =  explode(",",$NewData['TaggedUsers']);
+        $TaggedUsersOld   =  explode(",",$OldData['TaggedUsers']);
+        $TaggedUsersDiff  =  array_diff($TaggedUsersNew, $TaggedUsersOld);
+        $TaggedUsersDiffEmail  =  array();
+        if(count($TaggedUsersDiff)>0){
+            foreach($TaggedUsersDiff as $TaggedUsersDiffData){
+                if($LogginedUser!=$TaggedUsersDiffData){
+                    $TaggedUserData       =  \Api\Model\User::find($TaggedUsersDiffData);
+                    $TaggedUsersDiffEmail[]   =  $TaggedUserData->EmailAddress;
+                }
+            }
+            $NewData['EmailTo']     =   $TaggedUsersDiffEmail;
+            $NewData['cc']        =   "umer.ahmed@code-desk.com";
+            if($type=='Opportunity'){
+                $NewData['Subject_task']   =   $NewData['OpportunityName'];
+                $NewData['Subject']      =   "(Neon) ".$NewData['OpportunityName'];
+                $NewData['Description']    =   "";
+            }else if($type=='Task'){
+                $NewData['Subject_task']   =   $NewData['Subject'];
+                $NewData['Subject']      =   "(Neon) ".$NewData['Subject'];
+            }
+            $NewData['CreatedBy']      =   $OldData['CreatedBy'];
+            $NewData['TitleHeading']  =   $LogginedUserName." <strong>Tagged</strong> you in a ".$type;
+            $status        =   sendMail('emails.task.TaskEmailSend', $NewData);
+        }
+    }
+
+    if($type=='Task'){
+        //Assign Users Email
+        if($OldData['UsersIDs']!=$NewData['UsersIDs']){ // new and old assigned user are not same
+            if($LogginedUser!=$NewData['UsersIDs']){ //new user and logined user are not same
+
+                $AssignedUserData       =  \Api\Model\User::find($NewData['UsersIDs']);
+                $NewData['EmailTo']     =   $AssignedUserData->EmailAddress;
+                $NewData['cc']        =   "umer.ahmed@code-desk.com";
+                $NewData['Subject_task']   =   $NewData['Subject'];
+                $NewData['Subject']      =   "(Neon) ".$NewData['Subject'];
+                $NewData['CreatedBy']      =   $OldData['CreatedBy'];
+                $NewData['TitleHeading']  =   $LogginedUserName." <strong>Assigned</strong> you a ".$type;
+                $status        =   sendMail('emails.task.TaskEmailSend', $NewData);
+            }
+        }
+    }
+}
