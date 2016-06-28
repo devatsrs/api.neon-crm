@@ -5,12 +5,10 @@ namespace Api\Controllers;
 
 use Api\Model\CompanyConfiguration;
 use Api\Model\User;
-use Api\Model\Company;
 use Dingo\Api\Facade\API;
 use Illuminate\Http\Request;
 use Api\Requests\UserRequest;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
@@ -43,8 +41,8 @@ class AuthController extends BaseController
             // something went wrong whilst attempting to encode the token
             return response()->json(['error' => 'could_not_create_token'], 500);
         }
-        site_configration_cache($request);
         CompanyConfiguration::getConfiguration($user->CompanyID);
+        site_configration_cache($request);
 
         // all good so return the token
         return response()->json(compact('token'));
