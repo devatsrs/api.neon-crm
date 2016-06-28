@@ -49,9 +49,7 @@ class AccountController extends BaseController
             return generateResponse($validator->errors(),true);
         }
         $AccountBalance = AccountBalance::where('AccountID', $post_data['account_id'])->first();
-        $reponse_data = ['status' => 'success', 'data' => ['CurrentCredit' => $AccountBalance->CurrentCredit], 'status_code' => 200];
-
-        return API::response()->array($reponse_data)->statusCode(200);
+        return generateResponse('',false,false,array('CreditUsed' =>$AccountBalance->CreditUsed));
     }
 
     public function UpdateCredit()
@@ -79,18 +77,18 @@ class AccountController extends BaseController
             Log::info($e);
             return $this->response->errorInternal($e->getMessage());
         }
-        return API::response()->array(['status' => 'success', 'message' => 'credit added successfully', 'status_code' => 200])->statusCode(200);
+        return generateResponse('credit added successfully');
     }
 
     public function DeleteCredit()
     {
 
-        return API::response()->array(['status' => 'success', 'message' => 'success', 'status_code' => 200])->statusCode(200);
+        return generateResponse('success');
     }
 
     public function GetTempCredit()
     {
-        return API::response()->array(['status' => 'success', 'message' => 'success', 'status_code' => 200])->statusCode(200);
+        return generateResponse('success');
     }
 
     public function UpdateTempCredit()
@@ -119,12 +117,12 @@ class AccountController extends BaseController
             Log::info($e);
             return $this->response->errorInternal($e->getMessage());
         }
-        return API::response()->array(['status' => 'success', 'message' => 'Temporary credit added successfully', 'status_code' => 200])->statusCode(200);
+        return generateResponse('Temporary credit added successfully');
 
     }
     public function DeleteTempCredit()
     {
-        return API::response()->array(['status' => 'success', 'message' => 'success', 'status_code' => 200])->statusCode(200);
+        return generateResponse('success');
     }
 
     public function GetAccountThreshold()
@@ -143,7 +141,7 @@ class AccountController extends BaseController
             Log::info($e);
             return $this->response->errorInternal($e->getMessage());
         }
-        return API::response()->array(['status' => 'success', 'data' => ['BalanceThreshold' => $BalanceThreshold], 'status_code' => 200])->statusCode(200);
+        return generateResponse('success',false,false,array('BalanceThreshold' =>$BalanceThreshold));
 
     }
 
@@ -163,12 +161,12 @@ class AccountController extends BaseController
             Log::info($e);
             return $this->response->errorInternal($e->getMessage());
         }
-        return API::response()->array(['status' => 'success', 'message' => 'Balance Warning Threshold updated successfully', 'status_code' => 200])->statusCode(200);
+        return generateResponse('Balance Warning Threshold updated successfully');
 
     }
     public function DeleteAccountThreshold()
     {
-        return API::response()->array(['status' => 'success', 'message' => 'success', 'status_code' => 200])->statusCode(200);
+        return generateResponse('success');
     }
     public function GetAccount($id){
         try{
@@ -499,10 +497,13 @@ class AccountController extends BaseController
         if ($validator->fails()) {
             return generateResponse($validator->errors(),true);
         }
-        $AccountBalance = AccountBalance::where('AccountID', $post_data['AccountID'])->first(['AccountID', 'PermanentCredit', 'CurrentCredit', 'TemporaryCredit', 'TemporaryCreditDateTime', 'BalanceThreshold']);
-        $reponse_data = ['status' => 'success', 'data' => $AccountBalance, 'status_code' => 200];
-
-        return API::response()->array($reponse_data)->statusCode(200);
+        try {
+            $AccountBalance = AccountBalance::where('AccountID', $post_data['AccountID'])->first(['AccountID', 'PermanentCredit', 'CreditUsed', 'TemporaryCredit', 'TemporaryCreditDateTime', 'BalanceThreshold']);
+        }catch (\Exception $ex){
+            Log::info($ex);
+            return $this->response->errorInternal($ex->getMessage());
+        }
+        return generateResponse('success',false,false,$AccountBalance);
     }
 
     public function UpdateCreditInfo()
@@ -535,8 +536,7 @@ class AccountController extends BaseController
         }
         AccountBalanceHistory::addHistory($AccountBalancedata);
 
-        $reponse_data = ['status' => 'success', 'message' => 'Account Successfully Updated', 'data' => $AccountBalance, 'status_code' => 200];
-        return API::response()->array($reponse_data)->statusCode(200);
+        return generateResponse('Account Successfully Updated');
     }
     public function GetCreditHistoryGrid(){
         $post_data = Input::all();
@@ -546,6 +546,7 @@ class AccountController extends BaseController
             $rules['iDisplayLength'] = 'required';
             $rules['iDisplayLength'] = 'required';
             $rules['sSortDir_0'] = 'required';
+            $rules['AccountID'] = 'required';
             $validator = Validator::make($post_data, $rules);
             if ($validator->fails()) {
                 return generateResponse($validator->errors(),true);
