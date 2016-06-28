@@ -3,6 +3,7 @@ namespace Api\Model;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Input;
 
 class CompanyConfiguration extends \Eloquent {
 
@@ -15,8 +16,9 @@ class CompanyConfiguration extends \Eloquent {
     public static $cache = ["CompanyConfiguration"];
 
     public static function getConfiguration($CompanyID=0){
-        $LicenceKey = getRequestParam('LicenceKey');
-        $CompanyName = getRequestParam('CompanyName');
+        $data = Input::all();
+        $LicenceKey = $data['LicenceKey'];
+        $CompanyName = $data['CompanyName'];
         $time = empty(getenv('CACHE_EXPIRE'))?60:getenv('CACHE_EXPIRE');
         $minutes = \Carbon\Carbon::now()->addMinutes($time);
         $CompanyConfiguration = 'CompanyConfiguration' . $LicenceKey.$CompanyName;
