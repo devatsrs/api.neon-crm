@@ -118,11 +118,11 @@ class OpportunityController extends BaseController {
             $data = ['AttachmentPaths'=>json_encode($attachmentPaths)];
 
             try{
+
+                Opportunity::where(['opportunityID'=>$opportunityID])->update($data);
                 if(!$delete_status){
                     return generateResponse('Failed to delete file',true,true);
                 }
-
-                Opportunity::where(['opportunityID'=>$opportunityID])->update($data);
             }catch (\Exception $ex){
                 Log::info($ex);
                 return $this->response->errorInternal($ex->getMessage());
