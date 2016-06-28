@@ -424,7 +424,6 @@ function cleanarray($data = [],$unset=array()){
     return $data;
 }
 
-
 function SendTaskMail($data){
 		$LogginedUser		 = \Api\Model\User::get_userID();
 		$LogginedUserName 	 = 	\Api\Model\User::get_user_full_name();
@@ -453,11 +452,12 @@ function SendTaskMailUpdate($NewData,$OldData,$type='Task'){
 			$TaggedUsersDiffEmail 	= 	array();
 			if(count($TaggedUsersDiff)>0){
 				foreach($TaggedUsersDiff as $TaggedUsersDiffData){
-					$TaggedUserData 	 	 	 =		\Api\Model\User::find($TaggedUsersDiffData);
-					$TaggedUsersDiffEmail[]		 =		$TaggedUserData->EmailAddress;
+					if($LogginedUser!=$TaggedUsersDiffData){
+						$TaggedUserData 	 	 	 =		\Api\Model\User::find($TaggedUsersDiffData);
+						$TaggedUsersDiffEmail[]		 =		$TaggedUserData->EmailAddress;
+					}
 				}			 			
 				$NewData['EmailTo'] 	 	 = 		$TaggedUsersDiffEmail;
-				$NewData['cc'] 		 	 	 = 		"umer.ahmed@code-desk.com";	
 				if($type=='Opportunity'){	
 					$NewData['Subject_task'] 	 = 		$NewData['OpportunityName'];		
 					$NewData['Subject']  	 	 = 		"(Neon) ".$NewData['OpportunityName'];
@@ -467,7 +467,11 @@ function SendTaskMailUpdate($NewData,$OldData,$type='Task'){
 					$NewData['Subject']  	 	 = 		"(Neon) ".$NewData['Subject'];
 				}
 				$NewData['CreatedBy']  	 	 = 		$OldData['CreatedBy'];		
-				$NewData['TitleHeading']	 = 		$LogginedUserName." <strong>Tagged</strong> you in a ".$type;
+				if($type=='Opportunity'){
+					$NewData['TitleHeading']	 = 		$LogginedUserName." <strong>Tagged</strong> you in an ".$type;
+				}else{
+					$NewData['TitleHeading']	 = 		$LogginedUserName." <strong>Tagged</strong> you in a ".$type;
+				}
 				$status 			 		 = 		sendMail('emails.task.TaskEmailSend', $NewData);								
 			}
 		}
@@ -479,7 +483,6 @@ function SendTaskMailUpdate($NewData,$OldData,$type='Task'){
 					
 					$AssignedUserData 	 	 	 =		\Api\Model\User::find($NewData['UsersIDs']); 			
 					$NewData['EmailTo'] 	 	 = 		$AssignedUserData->EmailAddress;
-					$NewData['cc'] 		 	 	 = 		"umer.ahmed@code-desk.com";		
 					$NewData['Subject_task'] 	 = 		$NewData['Subject'];		
 					$NewData['Subject']  	 	 = 		"(Neon) ".$NewData['Subject'];
 					$NewData['CreatedBy']  	 	 = 		$OldData['CreatedBy'];		
