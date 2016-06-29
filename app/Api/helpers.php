@@ -406,7 +406,7 @@ function SendTaskMail($data){
 
         $AssignedUserData     =  \Api\Model\User::find($AssignedUser);
         $data['EmailTo']     =   $AssignedUserData->EmailAddress;
-        $data['cc']      =   "umer.ahmed@code-desk.com";
+        //$data['cc']      =   "umer.ahmed@code-desk.com";
         $data['Subject_task']   =   $data['Subject'];
         $data['Subject']      =   "(Neon) ".$data['Subject'];
         $data['TitleHeading']   =   $LogginedUserName." <strong>Assigned</strong> you a Task";
@@ -432,7 +432,7 @@ function SendTaskMailUpdate($NewData,$OldData,$type='Task'){
                 }
             }
             $NewData['EmailTo']     =   $TaggedUsersDiffEmail;
-            $NewData['cc']        =   "umer.ahmed@code-desk.com";
+            //$NewData['cc']        =   "umer.ahmed@code-desk.com";
             if($type=='Opportunity'){
                 $NewData['Subject_task']   =   $NewData['OpportunityName'];
                 $NewData['Subject']      =   "(Neon) ".$NewData['OpportunityName'];
@@ -443,6 +443,8 @@ function SendTaskMailUpdate($NewData,$OldData,$type='Task'){
             }
             $NewData['CreatedBy']      =   $OldData['CreatedBy'];
             $NewData['TitleHeading']  =   $LogginedUserName." <strong>Tagged</strong> you in a ".$type;
+            $NewData['UserProfileImage']  =  UserProfile::get_user_picture_url($LogginedUser);
+
             $status        =   sendMail('emails.task.TaskEmailSend', $NewData);
         }
     }
@@ -454,7 +456,7 @@ function SendTaskMailUpdate($NewData,$OldData,$type='Task'){
 
                 $AssignedUserData       =  \Api\Model\User::find($NewData['UsersIDs']);
                 $NewData['EmailTo']     =   $AssignedUserData->EmailAddress;
-                $NewData['cc']        =   "umer.ahmed@code-desk.com";
+                //$NewData['cc']        =   "umer.ahmed@code-desk.com";
                 $NewData['Subject_task']   =   $NewData['Subject'];
                 $NewData['Subject']      =   "(Neon) ".$NewData['Subject'];
                 $NewData['CreatedBy']      =   $OldData['CreatedBy'];
