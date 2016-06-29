@@ -14,7 +14,7 @@ class UserProfile extends \Eloquent {
         if(empty($user_profile_img)){
             $user_profile_img =  combile_url_path($site_url,'assets/images/placeholder-male.gif');
         }else{
-            \App\AmazonS3::unSignedImageUrl($user_profile_img);
+            $user_profile_img =  \App\AmazonS3::unSignedImageUrl($user_profile_img);
         }
         return $user_profile_img;
     }
