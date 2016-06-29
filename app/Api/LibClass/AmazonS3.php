@@ -174,12 +174,11 @@ class AmazonS3 {
 
         //When no amazon ;
         if($s3 == 'NoAmazon'){
-            $file = getenv("UPLOAD_PATH") . '/' . $key;
-            if ( file_exists($file) ) {
-                return  get_image_data($file);
-            } else {
-                return get_image_data("http://placehold.it/250x100");
-            }
+
+            $site_url = \Api\Model\CompanyConfiguration::get("SITE_URL");
+
+            return combile_url_path($site_url,$key);
+
         }
         return self::unSignedUrl($key);
     }

@@ -271,7 +271,12 @@ function email_log_data($data,$view = ''){
     return $data;
 }
 
+/** Store logo in cache
+ * @param $request
+ * @return mixed
+ */
 function site_configration_cache($request){
+
     $time = empty(getenv('CACHE_EXPIRE'))?60:getenv('CACHE_EXPIRE');
     $minutes = \Carbon\Carbon::now()->addMinutes($time);
     $LicenceKey = $request->only('LicenceKey')['LicenceKey'];
@@ -279,26 +284,16 @@ function site_configration_cache($request){
     $siteConfigretion = 'siteConfiguration' . $LicenceKey.$CompanyName;
 
     if (!Cache::has($siteConfigretion)) {
+
         $domain_url      =   $request->getHttpHost();
         $result       =  \Illuminate\Support\Facades\DB::table('tblCompanyThemes')->where(["DomainUrl" => $domain_url,'ThemeStatus'=>\Api\Model\Themes::ACTIVE])->first();
 
-        if(!empty($result)){  //url found
-            $cache['FavIcon']    = empty($result->Favicon)?\Illuminate\Support\Facades\URL::to('/').'/assets/images/favicon.ico':get_image_src($result->Favicon);
-            $cache['Logo']       = empty($result->Logo)?\Illuminate\Support\Facades\URL::to('/').'/assets/images/logo@2x.png':get_image_src($result->Logo);
-            $cache['Title']    = empty($result->Title)?'Neon':$result->Title;
-            $cache['FooterText']  = empty($result->FooterText)?'&copy; '.date('Y').' Code Desk':$result->FooterText;
-            $cache['FooterUrl']   = empty($result->FooterUrl)?'http://www.code-desk.com':$result->FooterUrl;
-            $cache['LoginMessage']  = empty($result->LoginMessage)?'Dear user, log in to access RM!':$result->LoginMessage;
-            $cache['CustomCss']   = $result->CustomCss;empty($result->CustomCss)?'':$result->CustomCss;
+        if(!empty($result)){
+            $cache['Logo']       = empty($result->Logo)?'/assets/images/logo@2x.png':$result->Logo;
+
         }else{
-            //@TODO: move constant to env file
-            $cache['FavIcon']    = \Illuminate\Support\Facades\URL::to('/').'/assets/images/favicon.ico';
-            $cache['Logo']       = \Illuminate\Support\Facades\URL::to('/').'/assets/images/logo@2x.png';
-            $cache['Title']    = 'Neon';
-            $cache['FooterText']  = '&copy; '.date('Y').' Code Desk';
-            $cache['FooterUrl']   = 'http://www.code-desk.com';
-            $cache['LoginMessage']  = 'Dear user, log in to access RM!';
-            $cache['CustomCss']   = '';
+            $cache['Logo']       = '/assets/images/logo@2x.png';
+
         }
         \Illuminate\Support\Facades\Cache::add($siteConfigretion, $cache, $minutes);
     }
@@ -324,10 +319,19 @@ function get_image_src($path){
 }
 
 
+/** Send logo url
+ * @param $request
+ * @return string
+ */
 function getCompanyLogo($request){
+
     $cache = site_configration_cache($request);
-    return $cache['Logo'];
+    $logo_url = \App\AmazonS3::unSignedImageUrl($cache["Logo"]);
+
+    return $logo_url;
 }
+
+
 
 function call_api($post = array()){
 
@@ -458,5 +462,37 @@ function SendTaskMailUpdate($NewData,$OldData,$type='Task'){
                 $status        =   sendMail('emails.task.TaskEmailSend', $NewData);
             }
         }
+    }
+}
+
+
+function combile_url_path($url, $path){
+
+    return add_trailing_slash($url). $path;
+}
+
+/** Add slash at the end
+ * @param string $str
+ * @return string
+ */
+function add_trailing_slash($str = ""){
+
+    if(!empty($str)){
+
+        return rtrim($str, '/') . '/';
+
+    }
+}
+
+/** Remove slash at the start
+ * @param string $str
+ * @return string
+ */
+function remove_front_slash($str = ""){
+
+    if(!empty($str)){
+
+        return ltrim($str, '/')  ;
+
     }
 }
