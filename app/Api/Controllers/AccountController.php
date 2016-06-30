@@ -498,7 +498,7 @@ class AccountController extends BaseController
             return generateResponse($validator->errors(),true);
         }
         try {
-            $AccountBalance = AccountBalance::where('AccountID', $post_data['AccountID'])->first(['AccountID', 'PermanentCredit', 'CreditUsed', 'TemporaryCredit', 'TemporaryCreditDateTime', 'BalanceThreshold']);
+            $AccountBalance = AccountBalance::where('AccountID', $post_data['AccountID'])->first(['AccountID', 'PermanentCredit', 'CreditUsed', 'TemporaryCredit', 'TemporaryCreditDateTime', 'BalanceThreshold','BalanceAmount']);
         }catch (\Exception $ex){
             Log::info($ex);
             return $this->response->errorInternal($ex->getMessage());
