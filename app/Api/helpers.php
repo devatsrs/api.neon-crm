@@ -68,29 +68,11 @@ function sendMail($view,$data){
     add_email_address($mail,$data,'cc');
     add_email_address($mail,$data,'bcc');
 
-    if(isset($data['AttachmentPaths']) && count($data['AttachmentPaths'])>0)
-    {
-        foreach($data['AttachmentPaths'] as $attachment_data)
-        {
-            if(is_amazon() == true)
-            {
-                $Attachmenturl  =  \App\AmazonS3::preSignedUrl($attachment_data['filepath']);
-                $path 			=   getenv('AWS_URL').'/'.$attachment_data['filepath'];
-            }
-            else
-            {
-                $Attachmenturl = Config::get('app.upload_path')."/".$attachment_data['filepath'];
-                $path 			=   getenv('TEMP_PATH').'/'.$attachment_data['filepath'];
-            }
-
-
-            $file = getenv('TEMP_PATH').'/email_attachment/'.basename($path);
-            if(!file_exists(getenv('TEMP_PATH').'/email_attachment')) {
-                mkdir(getenv('TEMP_PATH').'/email_attachment',0777);
-            }
-            file_put_contents($file,file_get_contents($path));
-            //\Illuminate\Support\Facades\Log::info($file);
-            //\Illuminate\Support\Facades\Log::info($Attachmenturl);
+    if(isset($data['AttachmentPaths']) && count($data['AttachmentPaths'])>0) {
+        foreach($data['AttachmentPaths'] as $attachment_data) {
+            $file = \Webpatser\Uuid\Uuid::generate()."_". basename($attachment_data['filepath']);
+            $Attachmenturl = \App\AmazonS3::unSignedUrl($attachment_data['filepath']);
+            file_put_contents($file,file_get_contents($Attachmenturl));
             $mail->AddAttachment($file,$attachment_data['filename']);
         }
     }
@@ -107,27 +89,33 @@ function sendMail($view,$data){
         $status['message'] = 'Email has been sent';
         $status['body'] = $body;
     }
-
-    //	\Illuminate\Support\Facades\Log::info($data);
-    // \Illuminate\Support\Facades\Log::info($status);
-    //  \Illuminate\Support\Facades\Log::info("error start");
-    //	\Illuminate\Support\Facades\Log::info($mail->ErrorInfo);
-    //	\Illuminate\Support\Facades\Log::info("error end");
     return $status;
 }
 function setMailConfig($CompanyID,$mandrill,$data=array()){
 
 
     $result = \Api\Model\Company::select('SMTPServer','SMTPUsername','CompanyName','SMTPPassword','Port','IsSSL','EmailFrom')->where("CompanyID", '=', $CompanyID)->first();
-    if($mandrill == 1) {
-        Config::set('mail.host', getenv("MANDRILL_SMTP_SERVER"));
-        Config::set('mail.port', getenv("MANDRILL_PORT"));
+
+    $smtp = \Api\Model\CompanyConfiguration::get("EXTRA_SMTP");
+
+    if($mandrill == 1 && !empty($smtp)) {
+
+        $host = \Api\Model\CompanyConfiguration::getJsonKey("EXTRA_SMTP","HOST");
+        $port = \Api\Model\CompanyConfiguration::getJsonKey("EXTRA_SMTP","PORT");
+        $ssl = \Api\Model\CompanyConfiguration::getJsonKey("EXTRA_SMTP","SSL");
+        $username = \Api\Model\CompanyConfiguration::getJsonKey("EXTRA_SMTP","USERNAME");
+        $password = \Api\Model\CompanyConfiguration::getJsonKey("EXTRA_SMTP","PASSWORD");
+
+        Config::set('mail.host', $host);
+        Config::set('mail.port', $port );
         Config::set('mail.from.address', $result->EmailFrom);
         Config::set('mail.from.name', $result->CompanyName);
-        Config::set('mail.encryption', (getenv("MADRILL_SSL") == 1 ? 'SSL' : 'TLS'));
-        Config::set('mail.username', getenv("MANDRILL_SMTP_USERNAME"));
-        Config::set('mail.password', getenv("MANDRILL_SMTP_PASSWORD"));
+        Config::set('mail.encryption', ($ssl == 1 ? 'SSL' : 'TLS'));
+        Config::set('mail.username', $username);
+        Config::set('mail.password', $password);
+
     }else{
+
         Config::set('mail.host', $result->SMTPServer);
         Config::set('mail.port', $result->Port);
         Config::set('mail.from.address', $result->EmailFrom);
@@ -295,69 +283,67 @@ function email_log_data($data,$view = ''){
     return $data;
 }
 
-function is_amazon(){
-    $AMAZONS3_KEY  = getenv("AMAZONS3_KEY");
-    $AMAZONS3_SECRET = getenv("AMAZONS3_SECRET");
-    $AWS_REGION = getenv("AWS_REGION");
+/** Store logo in cache
+ * @param $request
+ * @return mixed
+ */
+function site_configration_cache($request){
 
-    if(empty($AMAZONS3_KEY) || empty($AMAZONS3_SECRET) || empty($AWS_REGION) ){
-        return false;
-    }
-    return true;
-}
-
-function create_site_configration_cache($request){
+    $time = empty(getenv('CACHE_EXPIRE'))?60:getenv('CACHE_EXPIRE');
+    $minutes = \Carbon\Carbon::now()->addMinutes($time);
     $LicenceKey = $request->only('LicenceKey')['LicenceKey'];
-    $domain_url      =   $request->getHttpHost();
-    $result       =  \Illuminate\Support\Facades\DB::table('tblCompanyThemes')->where(["DomainUrl" => $domain_url,'ThemeStatus'=>\Api\Model\Themes::ACTIVE])->get();
+    $CompanyName = $request->only('CompanyName')['CompanyName'];
+    $siteConfigretion = 'siteConfiguration' . $LicenceKey.$CompanyName;
 
-    if($result){  //url found
-        $cache['FavIcon']    = empty($result[0]->Favicon)?\Illuminate\Support\Facades\URL::to('/').'/assets/images/favicon.ico':validfilepath($result[0]->Favicon);
-        $cache['Logo']       = empty($result[0]->Logo)?\Illuminate\Support\Facades\URL::to('/').'/assets/images/logo@2x.png':validfilepath($result[0]->Logo);
-        $cache['Title']    = $result[0]->Title;
-        $cache['FooterText']  = $result[0]->FooterText;
-        $cache['FooterUrl']   = $result[0]->FooterUrl;
-        $cache['LoginMessage']  = $result[0]->LoginMessage;
-        $cache['CustomCss']   = $result[0]->CustomCss;
-    }else{
-        $cache['FavIcon']    = \Illuminate\Support\Facades\URL::to('/').'/assets/images/favicon.ico';
-        $cache['Logo']       = \Illuminate\Support\Facades\URL::to('/').'/assets/images/logo@2x.png';
-        $cache['Title']    = 'Neon';
-        $cache['FooterText']  = '&copy; '.date('Y').' Code Desk';
-        $cache['FooterUrl']   = 'http://www.code-desk.com';
-        $cache['LoginMessage']  = 'Dear user, log in to access RM!';
-        $cache['CustomCss']   = '';
-    }
+    if (!Cache::has($siteConfigretion)) {
 
-    $siteConfigretion = 'siteConfiguration' . $LicenceKey;
-        if (\Illuminate\Support\Facades\Cache::has($siteConfigretion)) {
-            \Illuminate\Support\Facades\Cache::forget($siteConfigretion);
+        $domain_url      =   $request->getHttpHost();
+        $result       =  \Illuminate\Support\Facades\DB::table('tblCompanyThemes')->where(["DomainUrl" => $domain_url,'ThemeStatus'=>\Api\Model\Themes::ACTIVE])->first();
+
+        if(!empty($result)){
+            $cache['Logo']       = empty($result->Logo)?'/assets/images/logo@2x.png':$result->Logo;
+
+        }else{
+            $cache['Logo']       = '/assets/images/logo@2x.png';
+
         }
-    \Illuminate\Support\Facades\Cache::forever($siteConfigretion, $cache);
+        \Illuminate\Support\Facades\Cache::add($siteConfigretion, $cache, $minutes);
+    }
+    $cache = Cache::get($siteConfigretion);
+    return $cache;
+
 }
 
 
-
-
-function validfilepath($path){
+/** Send Amazone url or image data for <img src=
+ * @param $path
+ * @return string
+ */
+function get_image_src($path){
     $path = \App\AmazonS3::unSignedUrl($path);
-    if (!is_numeric(strpos($path, "https://"))) {
-        //$path = str_replace('/', '\\', $path);
+    if(file_exists($path)){
         if (copy($path, './uploads/' . basename($path))) {
-
-            $path = \Illuminate\Support\Facades\URL::to('/') . '/uploads/' . basename($path);
+            $path = URL::to('/') . '/uploads/' . basename($path);
         }
+        //$path = get_image_data($path);
     }
     return $path;
 }
 
 
+/** Send logo url
+ * @param $request
+ * @return string
+ */
 function getCompanyLogo($request){
-    $LicenceKey = $request->only('LicenceKey')['LicenceKey'];
-    $siteConfigretion = 'siteConfiguration' . $LicenceKey;
-    $cache = Cache::get($siteConfigretion);
-    return $cache['Logo'];
+
+    $cache = site_configration_cache($request);
+    $logo_url = \App\AmazonS3::unSignedImageUrl($cache["Logo"]);
+
+    return $logo_url;
 }
+
+
 
 function call_api($post = array()){
 
@@ -415,9 +401,9 @@ function getRequestParam($key){
     return $param;
 }
 
-function cleanarray($data = [],$unset=array()){
-        $unset = array_merge($unset,['LicenceKey','CompanyName']);
-		\Illuminate\Support\Facades\Log::info($unset);
+function cleanarray($data = [],$unset=[]){
+    $unset[]= 'LicenceKey';
+    $unset[]= 'CompanyName';
     foreach($unset as $item){
         unset($data[$item]);
     }
@@ -425,70 +411,102 @@ function cleanarray($data = [],$unset=array()){
 }
 
 function SendTaskMail($data){
-		$LogginedUser		 = \Api\Model\User::get_userID();
-		$LogginedUserName 	 = 	\Api\Model\User::get_user_full_name();
-		$AssignedUser 		 = $data['UsersIDs'];
-		if($LogginedUser != $AssignedUser){ //if assigned user and logined user are not same then send email		
-		
-			$AssignedUserData 	 	 =		\Api\Model\User::find($AssignedUser); 			
-			$data['EmailTo'] 	 	 = 		$AssignedUserData->EmailAddress;
-			$data['cc'] 		 	 = 		"umer.ahmed@code-desk.com";		
-			$data['Subject_task'] 	 = 		$data['Subject'];					
-			$data['Subject']  	 	 = 		"(Neon) ".$data['Subject'];			
-			$data['TitleHeading'] 	 = 		$LogginedUserName." <strong>Assigned</strong> you a Task";
-			$status 			 	 = 		sendMail('emails.task.TaskEmailSend', $data);								
-		}
-	}
-	
+    $LogginedUser   = \Api\Model\User::get_userID();
+    $LogginedUserName   =  \Api\Model\User::get_user_full_name();
+    $AssignedUser    = $data['UsersIDs'];
+    if($LogginedUser != $AssignedUser){ //if assigned user and logined user are not same then send email
+
+        $AssignedUserData     =  \Api\Model\User::find($AssignedUser);
+        $data['EmailTo']     =   $AssignedUserData->EmailAddress;
+        //$data['cc']      =   "umer.ahmed@code-desk.com";
+        $data['Subject_task']   =   $data['Subject'];
+        $data['Subject']      =   "(Neon) ".$data['Subject'];
+        $data['TitleHeading']   =   $LogginedUserName." <strong>Assigned</strong> you a Task";
+        $status       =   sendMail('emails.task.TaskEmailSend', $data);
+    }
+}
+
 function SendTaskMailUpdate($NewData,$OldData,$type='Task'){
-		$LogginedUser 		= 	\Api\Model\User::get_userID();		
-		$LogginedUserName 	= 	\Api\Model\User::get_user_full_name();
-		
-		//Tagged Users Email
-		if($NewData['TaggedUsers']!=''){
-			$TaggedUsersNew 		= 	explode(",",$NewData['TaggedUsers']);
-			$TaggedUsersOld 		= 	explode(",",$OldData['TaggedUsers']);
-			$TaggedUsersDiff		= 	array_diff($TaggedUsersNew, $TaggedUsersOld);		
-			$TaggedUsersDiffEmail 	= 	array();
-			if(count($TaggedUsersDiff)>0){
-				foreach($TaggedUsersDiff as $TaggedUsersDiffData){
-					if($LogginedUser!=$TaggedUsersDiffData){
-						$TaggedUserData 	 	 	 =		\Api\Model\User::find($TaggedUsersDiffData);
-						$TaggedUsersDiffEmail[]		 =		$TaggedUserData->EmailAddress;
-					}
-				}			 			
-				$NewData['EmailTo'] 	 	 = 		$TaggedUsersDiffEmail;
-				if($type=='Opportunity'){	
-					$NewData['Subject_task'] 	 = 		$NewData['OpportunityName'];		
-					$NewData['Subject']  	 	 = 		"(Neon) ".$NewData['OpportunityName'];
-					$NewData['Description']  	 = 		"";				
-				}else if($type=='Task'){
-					$NewData['Subject_task'] 	 = 		$NewData['Subject'];		
-					$NewData['Subject']  	 	 = 		"(Neon) ".$NewData['Subject'];
-				}
-				$NewData['CreatedBy']  	 	 = 		$OldData['CreatedBy'];		
-				if($type=='Opportunity'){
-					$NewData['TitleHeading']	 = 		$LogginedUserName." <strong>Tagged</strong> you in an ".$type;
-				}else{
-					$NewData['TitleHeading']	 = 		$LogginedUserName." <strong>Tagged</strong> you in a ".$type;
-				}
-				$status 			 		 = 		sendMail('emails.task.TaskEmailSend', $NewData);								
-			}
-		}
-		
-		if($type=='Task'){
-			//Assign Users Email
-			if($OldData['UsersIDs']!=$NewData['UsersIDs']){ // new and old assigned user are not same				
-				if($LogginedUser!=$NewData['UsersIDs']){ //new user and logined user are not same			
-					
-					$AssignedUserData 	 	 	 =		\Api\Model\User::find($NewData['UsersIDs']); 			
-					$NewData['EmailTo'] 	 	 = 		$AssignedUserData->EmailAddress;
-					$NewData['Subject_task'] 	 = 		$NewData['Subject'];		
-					$NewData['Subject']  	 	 = 		"(Neon) ".$NewData['Subject'];
-					$NewData['CreatedBy']  	 	 = 		$OldData['CreatedBy'];		
-					$NewData['TitleHeading']	 = 		$LogginedUserName." <strong>Assigned</strong> you a ".$type;
-					$status 			 		 = 		sendMail('emails.task.TaskEmailSend', $NewData);							
-				}
-			}
-		}
-	}
+    $LogginedUser   =  \Api\Model\User::get_userID();
+    $LogginedUserName  =  \Api\Model\User::get_user_full_name();
+
+    //Tagged Users Email
+    if($NewData['TaggedUsers']!=''){
+        $TaggedUsersNew   =  explode(",",$NewData['TaggedUsers']);
+        $TaggedUsersOld   =  explode(",",$OldData['TaggedUsers']);
+        $TaggedUsersDiff  =  array_diff($TaggedUsersNew, $TaggedUsersOld);
+        $TaggedUsersDiffEmail  =  array();
+        if(count($TaggedUsersDiff)>0){
+            foreach($TaggedUsersDiff as $TaggedUsersDiffData){
+                if($LogginedUser!=$TaggedUsersDiffData){
+                    $TaggedUserData       =  \Api\Model\User::find($TaggedUsersDiffData);
+                    $TaggedUsersDiffEmail[]   =  $TaggedUserData->EmailAddress;
+                }
+            }
+            $NewData['EmailTo']     =   $TaggedUsersDiffEmail;
+            //$NewData['cc']        =   "umer.ahmed@code-desk.com";
+            if($type=='Opportunity'){
+                $NewData['Subject_task']   =   $NewData['OpportunityName'];
+                $NewData['Subject']      =   "(Neon) ".$NewData['OpportunityName'];
+                $NewData['Description']    =   "";
+            }else if($type=='Task'){
+                $NewData['Subject_task']   =   $NewData['Subject'];
+                $NewData['Subject']      =   "(Neon) ".$NewData['Subject'];
+            }
+            $NewData['CreatedBy']      =   $OldData['CreatedBy'];
+            $NewData['TitleHeading']  =   $LogginedUserName." <strong>Tagged</strong> you in a ".$type;
+            $NewData['UserProfileImage']  =  UserProfile::get_user_picture_url($LogginedUser);
+
+            $status        =   sendMail('emails.task.TaskEmailSend', $NewData);
+        }
+    }
+
+    if($type=='Task'){
+        //Assign Users Email
+        if($OldData['UsersIDs']!=$NewData['UsersIDs']){ // new and old assigned user are not same
+            if($LogginedUser!=$NewData['UsersIDs']){ //new user and logined user are not same
+
+                $AssignedUserData       =  \Api\Model\User::find($NewData['UsersIDs']);
+                $NewData['EmailTo']     =   $AssignedUserData->EmailAddress;
+                //$NewData['cc']        =   "umer.ahmed@code-desk.com";
+                $NewData['Subject_task']   =   $NewData['Subject'];
+                $NewData['Subject']      =   "(Neon) ".$NewData['Subject'];
+                $NewData['CreatedBy']      =   $OldData['CreatedBy'];
+                $NewData['TitleHeading']  =   $LogginedUserName." <strong>Assigned</strong> you a ".$type;
+                $status        =   sendMail('emails.task.TaskEmailSend', $NewData);
+            }
+        }
+    }
+}
+
+
+function combile_url_path($url, $path){
+
+    return add_trailing_slash($url). $path;
+}
+
+/** Add slash at the end
+ * @param string $str
+ * @return string
+ */
+function add_trailing_slash($str = ""){
+
+    if(!empty($str)){
+
+        return rtrim($str, '/') . '/';
+
+    }
+}
+
+/** Remove slash at the start
+ * @param string $str
+ * @return string
+ */
+function remove_front_slash($str = ""){
+
+    if(!empty($str)){
+
+        return ltrim($str, '/')  ;
+
+    }
+}

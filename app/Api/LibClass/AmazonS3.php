@@ -1,7 +1,9 @@
 <?php
 namespace App;
+use Api\Model\CompanyConfiguration;
 use Api\Model\User;
 use Aws\S3\S3Client;
+use Illuminate\Support\Facades\Log;
 
 class AmazonS3 {
 
@@ -28,17 +30,56 @@ class AmazonS3 {
         'PAYMENT_UPLOAD'=>'PaymentUpload',
         'OPPORTUNITY_ATTACHMENT'=>'OpportunityAttachment',
         'TASK_ATTACHMENT'=>'TaskAttachment',
-		'EMAIL_ATTACHMENT'=>'EmailAttachment',
+        'EMAIL_ATTACHMENT'=>'EmailAttachment',
     );
+
+    /** Get Amazon Settings from Company Config table
+     * @return array|mixed
+     */
+    private static function getAmazonSettings(){
+
+        $cache = CompanyConfiguration::getConfiguration();
+        $amazon = array();
+        if(isset($cache['Amazon'])) {
+
+            $amazoneJson = $cache['Amazon'];
+
+            if (!empty($amazoneJson)) {
+                $amazon = json_decode($amazoneJson, true);
+             }
+        }
+
+        return $amazon;
+    }
+
+    private static function getBucket(){
+
+        $amazon = self::getAmazonSettings();
+        if(isset($amazon['AWS_BUCKET'])){
+
+            return $amazon['AWS_BUCKET'];
+        }else {
+            return "";
+        }
+
+    }
 
     // Instantiate an S3 client
     private static function getS3Client(){
 
-        $AMAZONS3_KEY  = getenv("AMAZONS3_KEY");
-        $AMAZONS3_SECRET = getenv("AMAZONS3_SECRET");
-        $AWS_REGION = getenv("AWS_REGION");
+        $AMAZONS3_KEY  = '';
+        $AMAZONS3_SECRET = '';
+        $AWS_REGION = '';
 
-        if(empty($AMAZONS3_KEY) || empty($AMAZONS3_SECRET) || empty($AWS_REGION) ){			
+        $amazon = self::getAmazonSettings();
+        if(isset($amazon['AMAZONS3_KEY']) && isset($amazon['AMAZONS3_SECRET']) && $amazon['AWS_REGION'] && $amazon['AWS_REGION']){
+
+            $AMAZONS3_KEY = $amazon['AMAZONS3_KEY'];
+            $AMAZONS3_SECRET = $amazon['AMAZONS3_SECRET'];
+            $AWS_REGION = $amazon['AWS_REGION'];
+        }
+
+        if(empty($AMAZONS3_KEY) || empty($AMAZONS3_SECRET) || empty($AWS_REGION) ){
             return 'NoAmazon';
         }else {
 
@@ -67,63 +108,16 @@ class AmazonS3 {
         return $path;
     }
 
-    static function generate_path($dir ='',$companyId , $accountId = '' ) {
-
-        $path = $companyId  ."/";
-
-        if($accountId > 0){
-            $path .= $accountId ."/";
-        }
-
-        $path .=  $dir . "/". date("Y")."/".date("m") ."/" .date("d") ."/";
-        $dir = getenv('UPLOAD_PATH') . '/'. $path;
-        if (!file_exists($dir)) {
-            mkdir($dir, 0777, TRUE);
-        }
-
-        return $path;
-    }
-
-    static function upload($file,$dir){
-
-        // Instantiate an S3 client
-        $s3 = self::getS3Client();
-
-        //When no amazon return true;
-        if($s3 == 'NoAmazon'){
-            return true;
-        }
-
-        $bucket = getenv('AWS_BUCKET');
-        // Upload a publicly accessible file. The file size, file type, and MD5 hash
-        // are automatically calculated by the SDK.
-        try {
-            $resource = fopen($file, 'r');
-            $s3->upload($bucket, $dir.basename($file), $resource, 'public-read');
-            @unlink($file);
-            return true;
-        } catch (S3Exception $e) {
-            return false ; //"There was an error uploading the file.\n";
-        }
-    }
-
     static function preSignedUrl($key=''){
 
         $s3 = self::getS3Client();
-		
+
         //When no amazon ;
         if($s3 == 'NoAmazon'){
-            $Uploadpath = getenv('upload_path')."/".$key;			
-            if ( file_exists($Uploadpath) ) {
-                return $Uploadpath;
-            } else {
-                return "";
-            }
+            $status = RemoteSSH::downloadFile($key);
+            return $status['filePath'];
         }
-
-
-        $bucket = getenv('AWS_BUCKET');
-
+        $bucket = self::getBucket();
         // Get a command object from the client and pass in any options
         // available in the GetObject command (e.g. ResponseContentDisposition)
         $command = $s3->getCommand('GetObject', array(
@@ -142,36 +136,42 @@ class AmazonS3 {
     static function unSignedUrl($key=''){
 
         $s3 = self::getS3Client();
+
         //When no amazon ;
         if($s3 == 'NoAmazon'){
             return  self::preSignedUrl($key);
         }
 
-        $bucket = getenv('AWS_BUCKET');
+        $bucket = self::getBucket();
         $unsignedUrl = '';
         if(!empty($key)){
-           $unsignedUrl = $s3->getObjectUrl($bucket, $key);
+
+            $unsignedUrl = $s3->getObjectUrl($bucket, $key);
         }
         return $unsignedUrl;
 
     }
 
+    //@TODO: need to update when needed
     static function unSignedImageUrl($key=''){
 
         $s3 = self::getS3Client();
 
         //When no amazon ;
         if($s3 == 'NoAmazon'){
-            $file = getenv("UPLOAD_PATH") . '/' . $key;
-            if ( file_exists($file) ) {
-                return  get_image_data($file);
-            } else {
-                return get_image_data("http://placehold.it/250x100");
-            }
+
+            $site_url = \Api\Model\CompanyConfiguration::get("SITE_URL");
+
+            return combile_url_path($site_url,$key);
+
         }
         return self::unSignedUrl($key);
     }
 
+    /** Delete file from amazon or ssh.
+     * @param $file
+     * @return bool
+     */
     static function delete($file){
 
         if(strlen($file)>0) {
@@ -180,16 +180,14 @@ class AmazonS3 {
 
             //When no amazon ;
             if($s3 == 'NoAmazon'){
-				$Uploadpath = getenv('UPLOAD_PATH') . "/"."".$file;
-                if ( file_exists($Uploadpath) ) {
-                    @unlink($Uploadpath);
-                    return true;
-                } else {
-                    return false;
-                }
+
+                $upload_path = CompanyConfiguration::get("UPLOADPATH");
+                $file_path = rtrim($upload_path,'/').'/'. $file;
+                return RemoteSSH::deleteFile($file_path);
+
             }
 
-            $bucket = getenv('AWS_BUCKET');
+            $bucket = self::getBucket();
             // Upload a publicly accessible file. The file size, file type, and MD5 hash
             // are automatically calculated by the SDK.
             try {

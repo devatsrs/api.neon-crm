@@ -2,6 +2,7 @@
 
 namespace Api\Controllers;
 
+use Api\Model\CompanyConfiguration;
 use Api\Model\User;
 use Dingo\Api\Facade\API;
 use Illuminate\Http\Request;
@@ -26,6 +27,12 @@ class AuthController extends BaseController
         $license['LicenceHost'] = $request->getHttpHost();
         $license['LicenceIP'] = $request->getClientIp();
         $UserID = $request->only('LoggedUserID');
+
+        /*Log::info("Authenticate");
+        Log::info(print_r($license,true));
+        Log::info("UserID ". print_r($UserID,true));
+        Log::info("credentials ". print_r($credentials,true));
+        Log::info("license ". print_r($license,true));*/
         try {
             if(!empty($UserID['LoggedUserID'])){
                 $user = User::find($UserID['LoggedUserID']);
@@ -40,7 +47,8 @@ class AuthController extends BaseController
             // something went wrong whilst attempting to encode the token
             return response()->json(['error' => 'could_not_create_token'], 500);
         }
-        create_site_configration_cache($this->request);
+        CompanyConfiguration::getConfiguration($user->CompanyID);
+        site_configration_cache($request);
 
         // all good so return the token
         return response()->json(compact('token'));

@@ -24,9 +24,12 @@ class DBSelector
      *
      */
     public function handle($request, Closure $next){
+
+
         $credentials = $request->only('LoggedEmailAddress', 'password');
         $UserID = $request->only('LoggedUserID');
         $LicenceKey  = $request->only('LicenceKey','CompanyName');
+
         if (!empty($LicenceKey['LicenceKey']) && !empty($LicenceKey['CompanyName'])) {
             if(!empty($credentials['LoggedEmailAddress']) || !empty($UserID['LoggedUserID'])){
                 $license = 	Company::getLicenceResponse($request);
@@ -38,18 +41,36 @@ class DBSelector
             if(!empty($LICENSE_JSON)) {
                 $LICENSE_ARRAY = json_decode($LICENSE_JSON, true);
                 $DBSetting = $LICENSE_ARRAY[$LicenceKey['CompanyName']];
+
+                //Log::info(print_r($DBSetting,true));
+
                 if(!empty($DBSetting)) {
-                    Config::set('database.connections.mysql.username', $DBSetting['RMDB']['DB_USERNAME']);
-                    Config::set('database.connections.mysql.password', $DBSetting['RMDB']['DB_PASSWORD']);
-                    Config::set('database.connections.mysql.database', $DBSetting['RMDB']['DB_DATABASE']);
+
+
+                    Config::set('database.connections.rm_db.host',     $DBSetting['RMDB']['DB_HOST']);
+                    Config::set('database.connections.rm_db.username', $DBSetting['RMDB']['DB_USERNAME']);
+                    Config::set('database.connections.rm_db.password', $DBSetting['RMDB']['DB_PASSWORD']);
+                    Config::set('database.connections.rm_db.database', $DBSetting['RMDB']['DB_DATABASE']);
+
+                    Config::set('database.connections.billing_db.host',     $DBSetting['BILLINGDB']['DB_HOST']);
+                    Config::set('database.connections.billing_db.username', $DBSetting['BILLINGDB']['DB_USERNAME']);
+                    Config::set('database.connections.billing_db.password', $DBSetting['BILLINGDB']['DB_PASSWORD']);
+                    Config::set('database.connections.billing_db.database', $DBSetting['BILLINGDB']['DB_DATABASE']);
+
+                    Config::set('database.connections.cdr_db.host',     $DBSetting['CDRDB']['DB_HOST']);
+                    Config::set('database.connections.cdr_db.username', $DBSetting['CDRDB']['DB_USERNAME']);
+                    Config::set('database.connections.cdr_db.password', $DBSetting['CDRDB']['DB_PASSWORD']);
+                    Config::set('database.connections.cdr_db.database', $DBSetting['CDRDB']['DB_DATABASE']);
+
+
                 }else{
                     return response()->json(['Company not found'], 404);
                 }
             }else{
-                return response()->json(['Not Configured'], 404);
+                return response()->json(['API DB Selection not configured'], 404);
             }
         }else{
-            return response()->json(['Provide License Key and CompanyName'], 404);
+            return response()->json(['Provide License Key and CompanyName for DB Selection'], 404);
         }
 
         $response = $next($request);

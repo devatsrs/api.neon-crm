@@ -14,7 +14,9 @@
       <td id="header-pattern-container" style="padding: 0px; border-collapse: collapse; padding: 10px 20px"><table id="header-pattern" cellspacing="0" cellpadding="0" border="0" style="border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt">
           <tbody>
             <tr>
-              <td id="header-avatar-image-container" valign="top" style="padding: 0px; border-collapse: collapse; vertical-align: top; width: 32px; padding-right: 8px" width="32"><!-- <img id="header-avatar-image" class="image_fix" src="cid:jira-generated-image-avatar-38afc849-f5e0-4d4c-b964-47f8e72189ea" height="32" width="32" border="0" style="border-radius: 3px; vertical-align: top"> --></td>
+              <td id="header-avatar-image-container" valign="top" style="padding: 0px; border-collapse: collapse; vertical-align: top; width: 32px; padding-right: 8px" width="32">
+                <img id="header-avatar-image" class="image_fix" src="{{$data['UserProfileImage']}}" height="32" width="32" border="0" style="border-radius: 3px; vertical-align: top">
+              </td>
               <td id="header-text-container" valign="middle" style="padding: 0px; border-collapse: collapse; vertical-align: middle; font-family: Arial, sans-serif; font-size: 14px; line-height: 20px; mso-line-height-rule: exactly; mso-text-raise: 1px"><a class="user-hover"   href="#" style="color:#8cc8c6;; color: #3b73af; text-decoration: none">{{$data['TitleHeading']}}</a></td>
             </tr>
           </tbody>
@@ -37,7 +39,7 @@
                 </table></td>
             </tr>
             <tr>
-              <td class="email-content-main mobile-expand  issue-description-container" style="padding: 0px; border-collapse: collapse; border-left: 1px solid #cccccc; border-right: 1px solid #cccccc; border-top: 0; border-bottom: 0; padding: 0 15px 0 16px; background-color: #ffffff; padding-top: 5px; padding-bottom: 10px" bgcolor="#ffffff"><table class="text-paragraph-pattern" cellspacing="0" cellpadding="0" border="0" width="100%" style="border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; font-family: Arial, sans-serif; font-size: 14px; line-height: 20px; mso-line-height-rule: exactly; mso-text-raise: 2px">
+              <td class="email-content-main mobile-expand  issue-description-container" style="padding: 0px; border-collapse: collapse; border-left: 1px solid #cccccc; border-right: 1px solid #cccccc; border-top: 0; border-bottom: 0; padding: 0 15px 0 16px; background-color: #ffffff; padding-top: 5px; padding-bottom: 10px" bgcolor="#ffffff"><table class="text-paragra-pattern" cellspacing="0" cellpadding="0" border="0" width="100%" style="border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; font-family: Arial, sans-serif; font-size: 14px; line-height: 20px; mso-line-height-rule: exactly; mso-text-raise: 2px">
                   <tbody>
                     <tr>
                       <td class="text-paragraph-pattern-container mobile-resize-text " style="padding: 0px; border-collapse: collapse; padding: 0 0 10px 0"><span class="diffcontext">{{$data['Description']}}</span> <span class="diffremovedchars" style="background-color: #ffe7e7; text-decoration:line-through;"> </span> <span class="diffaddedchars" style="background-color:#ddfade;"> <br>

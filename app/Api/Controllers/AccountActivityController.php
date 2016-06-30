@@ -1,6 +1,7 @@
 <?php
 namespace Api\Controllers;
 
+use Api\Model\Company;
 use Dingo\Api\Http\Request;
 use Api\Model\AccountBalance;
 use Api\Model\Account;
@@ -41,54 +42,16 @@ class AccountActivityController extends BaseController {
             'Message'=>'required'			
         );
 
-	    $CompanyID  = User::get_companyID();
         $account    = Account::find($data['AccountID']);
+ 	    $data['EmailTo']	= 	$data['email-to'];
 
-	   
-	    if(getenv('EmailToCustomer') == 1){
-			$data['EmailTo']	= 	$data['email-to'];
-        }else{
-            $data['EmailTo'] = User::getEmail($CompanyID);		
-        }
         $validator = Validator::make($data,$rules);
         if ($validator->fails()) {
             return generateResponse($validator->errors(),true);
         }
-		
-		
-		// image upload start
-        $emailattachments 		= 		[];
-        if (isset($data['file'])) {
-            $emailattachment = $data['file'];
-            $allowed = getenv("CRM_ALLOWED_FILE_UPLOAD_EXTENSIONS");
-            $allowedextensions = explode(',',$allowed);
-            $allowedextensions = array_change_key_case($allowedextensions);
-            foreach ($emailattachment as $attachment) {				
-                $ext = $attachment['fileExtension'];
-                if (!in_array(strtolower($ext), $allowedextensions)) {
-                    return generateResponse($message,true);
-                }
-            }
 
-            $emailattachment = uploaded_File_Handler($data['file']);
-            $emailattachments  = [];
-            foreach ($emailattachment as $attachment) {
-                $ext = $ext = $attachment['Extension'];
-                $originalfilename = $attachment['fileName'];
-                $file_name = "EmailAttachment_" . Uuid::uuid() . '.' . $ext;
-                $amazonPath = AmazonS3::generate_upload_path(AmazonS3::$dir['EMAIL_ATTACHMENT']);
-                $destinationPath = getenv("UPLOAD_PATH") . '/' . $amazonPath;
-                rename_win($attachment['file'],$destinationPath.$file_name);
-                if (!AmazonS3::upload($destinationPath . $file_name, $amazonPath)) {
-                    return generateResponse('Failed to upload',true);
-                }
-                $fullPath = $amazonPath . $file_name;
-                $emailattachments[] = ['filename' => $originalfilename, 'filepath' => $fullPath];
-            }
-        }
-		
-		   if(!empty($emailattachments)){
-            $data['AttachmentPaths'] = $emailattachments;
+        if (isset($data['file']) && !empty($data['file'])) {
+            $data['AttachmentPaths'] = json_decode($data['file'],true);
         }
 
         $JobLoggedUser = User::find(User::get_userID());
@@ -164,6 +127,21 @@ class AccountActivityController extends BaseController {
             return $this->response->errorInternal($ex->getMessage());
         }
         return generateResponse('successfull');
+    }
+
+    public function getAttachment($emailID,$attachmentID){
+        if(intval($emailID)>0) {
+            $email = AccountEmailLog::find($emailID);
+            $attachments = unserialize($email->AttachmentPaths);
+            $attachment = $attachments[$attachmentID];
+            if(!empty($attachment)){
+                return generateResponse('',false,false,$attachment);
+            }else{
+                return generateResponse('Not found',true,true);
+            }
+        }else{
+            return generateResponse('Not found',true,true);
+        }
     }
 
 }
