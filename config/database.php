@@ -26,7 +26,7 @@ return [
     |
     */
 
-    'default' => env('DB_CONNECTION', 'mysql'),
+    'default' => 'rm_db',
 
     /*
     |--------------------------------------------------------------------------
@@ -52,16 +52,35 @@ return [
             'prefix'   => '',
         ],
 
-        'mysql' => [
-            'driver'    => 'mysql',
-            'host'      => env('DB_HOST', 'localhost'),
-            'database'  => '',
-            'username'  => '',
-            'password'  => '',
+        'rm_db' => [
+            'driver'   => 'mysql',
+            'host'     => "",
+            'database' => "",
+            'username' => "",
+            'password' => "",
             'charset'   => 'utf8',
             'collation' => 'utf8_unicode_ci',
-            'prefix'    => '',
-            'strict'    => false,
+            'prefix'   => '',
+        ],
+        'billing_db' => [
+            'driver'   => 'mysql',
+            'host'     => "",
+            'database' => "",
+            'username' => "",
+            'password' => "",
+            'charset'   => 'utf8',
+            'collation' => 'utf8_unicode_ci',
+            'prefix'   => '',
+        ],
+        'cdr_db' => [
+            'driver'   => 'mysql',
+            'host'     => "",
+            'database' => "",
+            'username' => "",
+            'password' => "",
+            'charset'   => 'utf8',
+            'collation' => 'utf8_unicode_ci',
+            'prefix'   => '',
         ],
 
         'pgsql' => [

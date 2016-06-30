@@ -3,6 +3,7 @@ namespace App;
 use Api\Model\CompanyConfiguration;
 use Api\Model\User;
 use Aws\S3\S3Client;
+use Illuminate\Support\Facades\Log;
 
 class AmazonS3 {
 
@@ -32,23 +33,50 @@ class AmazonS3 {
         'EMAIL_ATTACHMENT'=>'EmailAttachment',
     );
 
+    /** Get Amazon Settings from Company Config table
+     * @return array|mixed
+     */
+    private static function getAmazonSettings(){
+
+        $cache = CompanyConfiguration::getConfiguration();
+        $amazon = array();
+        if(isset($cache['Amazon'])) {
+
+            $amazoneJson = $cache['Amazon'];
+
+            if (!empty($amazoneJson)) {
+                $amazon = json_decode($amazoneJson, true);
+             }
+        }
+
+        return $amazon;
+    }
+
+    private static function getBucket(){
+
+        $amazon = self::getAmazonSettings();
+        if(isset($amazon['AWS_BUCKET'])){
+
+            return $amazon['AWS_BUCKET'];
+        }else {
+            return "";
+        }
+
+    }
+
     // Instantiate an S3 client
     private static function getS3Client(){
 
         $AMAZONS3_KEY  = '';
         $AMAZONS3_SECRET = '';
         $AWS_REGION = '';
-        $cache = CompanyConfiguration::getConfiguration();
-        if(isset($cache['Amazon'])) {
 
-            $amazoneJson = $cache['Amazon'];
+        $amazon = self::getAmazonSettings();
+        if(isset($amazon['AMAZONS3_KEY']) && isset($amazon['AMAZONS3_SECRET']) && $amazon['AWS_REGION'] && $amazon['AWS_REGION']){
 
-            if (!empty($amazoneJson)) {
-                $amazone = json_decode($amazoneJson, true);
-                $AMAZONS3_KEY = $amazone['AMAZONS3_KEY'];
-                $AMAZONS3_SECRET = $amazone['AMAZONS3_SECRET'];
-                $AWS_REGION = $amazone['AWS_REGION'];
-            }
+            $AMAZONS3_KEY = $amazon['AMAZONS3_KEY'];
+            $AMAZONS3_SECRET = $amazon['AMAZONS3_SECRET'];
+            $AWS_REGION = $amazon['AWS_REGION'];
         }
 
         if(empty($AMAZONS3_KEY) || empty($AMAZONS3_SECRET) || empty($AWS_REGION) ){
@@ -80,47 +108,6 @@ class AmazonS3 {
         return $path;
     }
 
-    static function generate_path($dir ='',$companyId , $accountId = '' ) {
-
-        $path = $companyId  ."/";
-
-        if($accountId > 0){
-            $path .= $accountId ."/";
-        }
-
-        $path .=  $dir . "/". date("Y")."/".date("m") ."/" .date("d") ."/";
-        $dir = getenv('UPLOAD_PATH') . '/'. $path;
-        if (!file_exists($dir)) {
-            mkdir($dir, 0777, TRUE);
-        }
-
-        return $path;
-    }
-
-    // @TODO: need to update when needed.
-    static function upload($file,$dir){
-
-        // Instantiate an S3 client
-        $s3 = self::getS3Client();
-
-        //When no amazon return true;
-        if($s3 == 'NoAmazon'){
-            return true;
-        }
-
-        $bucket = getenv('AWS_BUCKET');
-        // Upload a publicly accessible file. The file size, file type, and MD5 hash
-        // are automatically calculated by the SDK.
-        try {
-            $resource = fopen($file, 'r');
-            $s3->upload($bucket, $dir.basename($file), $resource, 'public-read');
-            @unlink($file);
-            return true;
-        } catch (S3Exception $e) {
-            return false ; //"There was an error uploading the file.\n";
-        }
-    }
-
     static function preSignedUrl($key=''){
 
         $s3 = self::getS3Client();
@@ -130,10 +117,7 @@ class AmazonS3 {
             $status = RemoteSSH::downloadFile($key);
             return $status['filePath'];
         }
-
-
-        $bucket = getenv('AWS_BUCKET');
-
+        $bucket = self::getBucket();
         // Get a command object from the client and pass in any options
         // available in the GetObject command (e.g. ResponseContentDisposition)
         $command = $s3->getCommand('GetObject', array(
@@ -158,9 +142,10 @@ class AmazonS3 {
             return  self::preSignedUrl($key);
         }
 
-        $bucket = getenv('AWS_BUCKET');
+        $bucket = self::getBucket();
         $unsignedUrl = '';
         if(!empty($key)){
+
             $unsignedUrl = $s3->getObjectUrl($bucket, $key);
         }
         return $unsignedUrl;
@@ -202,7 +187,7 @@ class AmazonS3 {
 
             }
 
-            $bucket = getenv('AWS_BUCKET');
+            $bucket = self::getBucket();
             // Upload a publicly accessible file. The file size, file type, and MD5 hash
             // are automatically calculated by the SDK.
             try {

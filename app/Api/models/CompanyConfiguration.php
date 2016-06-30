@@ -4,6 +4,7 @@ namespace Api\Model;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Input;
+use Illuminate\Support\Facades\Log;
 
 class CompanyConfiguration extends \Eloquent {
 
@@ -22,6 +23,7 @@ class CompanyConfiguration extends \Eloquent {
         $time = empty(getenv('CACHE_EXPIRE'))?60:getenv('CACHE_EXPIRE');
         $minutes = \Carbon\Carbon::now()->addMinutes($time);
         $CompanyConfiguration = 'CompanyConfiguration' . $LicenceKey.$CompanyName;
+
         if (self::$enable_cache && Cache::has($CompanyConfiguration)) {
             $cache = Cache::get($CompanyConfiguration);
             self::$cache['CompanyConfiguration'] = $cache['CompanyConfiguration'];
@@ -45,6 +47,24 @@ class CompanyConfiguration extends \Eloquent {
 
             if(isset($cache[$key])){
                 return $cache[$key];
+            }
+        }
+        return "";
+
+    }
+
+    public static function getJsonKey($key = "",$index = ""){
+
+        $cache = CompanyConfiguration::getConfiguration();
+
+        if(!empty($key) ){
+
+            if(isset($cache[$key])){
+
+                $json = json_decode($cache[$key],true);
+                if(isset($json[$index])){
+                    return $json[$index];
+                }
             }
         }
         return "";

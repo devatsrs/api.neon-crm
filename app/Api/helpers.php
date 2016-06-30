@@ -95,15 +95,27 @@ function setMailConfig($CompanyID,$mandrill,$data=array()){
 
 
     $result = \Api\Model\Company::select('SMTPServer','SMTPUsername','CompanyName','SMTPPassword','Port','IsSSL','EmailFrom')->where("CompanyID", '=', $CompanyID)->first();
-    if($mandrill == 1) {
-        Config::set('mail.host', getenv("MANDRILL_SMTP_SERVER"));
-        Config::set('mail.port', getenv("MANDRILL_PORT"));
+
+    $smtp = \Api\Model\CompanyConfiguration::get("EXTRA_SMTP");
+
+    if($mandrill == 1 && !empty($smtp)) {
+
+        $host = \Api\Model\CompanyConfiguration::getJsonKey("EXTRA_SMTP","HOST");
+        $port = \Api\Model\CompanyConfiguration::getJsonKey("EXTRA_SMTP","PORT");
+        $ssl = \Api\Model\CompanyConfiguration::getJsonKey("EXTRA_SMTP","SSL");
+        $username = \Api\Model\CompanyConfiguration::getJsonKey("EXTRA_SMTP","USERNAME");
+        $password = \Api\Model\CompanyConfiguration::getJsonKey("EXTRA_SMTP","PASSWORD");
+
+        Config::set('mail.host', $host);
+        Config::set('mail.port', $port );
         Config::set('mail.from.address', $result->EmailFrom);
         Config::set('mail.from.name', $result->CompanyName);
-        Config::set('mail.encryption', (getenv("MADRILL_SSL") == 1 ? 'SSL' : 'TLS'));
-        Config::set('mail.username', getenv("MANDRILL_SMTP_USERNAME"));
-        Config::set('mail.password', getenv("MANDRILL_SMTP_PASSWORD"));
+        Config::set('mail.encryption', ($ssl == 1 ? 'SSL' : 'TLS'));
+        Config::set('mail.username', $username);
+        Config::set('mail.password', $password);
+
     }else{
+
         Config::set('mail.host', $result->SMTPServer);
         Config::set('mail.port', $result->Port);
         Config::set('mail.from.address', $result->EmailFrom);
