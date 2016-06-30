@@ -48,7 +48,7 @@ class AccountActivityController extends BaseController {
 	    if(getenv('EmailToCustomer') == 1){
 			$data['EmailTo']	= 	$data['email-to'];
         }else{
-            $data['EmailTo'] = User::getEmail($CompanyID);		
+            $data['EmailTo'] = Company::getEmail($CompanyID);		
         }
         $validator = Validator::make($data,$rules);
         if ($validator->fails()) {

@@ -45,24 +45,26 @@ class OpportunityController extends BaseController {
             $data['Status'] = Opportunity::Close;
         }
         $query = "call prc_GetOpportunities (".$companyID.", ".$id.",'".$data['opportunityName']."',"."'".$data['Tags']."',".$data['account_owners'].", ".$data['AccountID'].",'".$data['Status']."')";
-        try{
+        try{  
             $result = DB::select($query);
             $columnsWithOpportunities = [];
             $columns = [];
-            foreach($result as $row){
+            foreach($result as $row){ 
                 $columns[$row->BoardColumnID] = ['Name'=>$row->BoardColumnName,'Height'=>$row->Height,'Width'=>$row->Width];
                 if(!empty($row->OpportunityName)) {
                     $users = [];
                     if(!empty($row->TaggedUsers)){
                         $users = User::whereIn('UserID',explode(',',$row->TaggedUsers))->select(['FirstName','LastName','UserID','Color'])->get();
-                    }
+                    }					
                     $columnsWithOpportunities[$row->BoardColumnID][] = ['TaggedUsers'=>$users,'opportunity'=>$row];
                 }else{
                     $columnsWithOpportunities[$row->BoardColumnID][] = '';
-                }
+                }				
             }
+			
             $return['columns'] = $columns;
             $return['columnsWithOpportunities'] = $columnsWithOpportunities;
+			$return['WorthTotal'] = $row->WorthTotal;
             return generateResponse('',false,false,$return);
         }catch (\Exception $ex){
             Log::info($ex);
