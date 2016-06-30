@@ -194,6 +194,7 @@ class AccountController extends BaseController
         }
 
 		try{
+			$data = cleanarray($data,[]);
             $result = Note::create($data);
             return generateResponse('',false,false,$result);
         }catch (\Exception $ex){
@@ -218,6 +219,33 @@ class AccountController extends BaseController
             return $this->response->errorInternal($e->getMessage());
         }
         return generateResponse('',false,false,$Note);
+    }
+
+	 public function UpdateNote(){
+
+       $data 	= 	Input::all();
+
+	   $rules = array(
+            'NoteID' => 'required',
+            'Note' => 'required',
+        );
+
+        $validator = Validator::make($data, $rules);
+
+        if ($validator->fails()) {
+            return generateResponse($validator->errors(),true);
+        }
+
+		try{
+			 $data = cleanarray($data,[]);
+			$result = Note::find($data['NoteID'])->update($data);
+			$result = Note::find($data['NoteID']);
+
+            return generateResponse('',false,false,$result);
+        }catch (\Exception $ex){
+            Log::info($ex);
+            return $this->response->errorInternal($ex->getMessage());
+        }
     }
 
     public function GetTimeLine()
@@ -306,7 +334,8 @@ class AccountController extends BaseController
                  return generateResponse("Account Name contains illegal character",true);
             }
 			
-			unset($data['token']);
+			 $data = cleanarray($data,['token']);
+
 			
 			try{
  	         	$account = Account::create($data);
@@ -347,9 +376,9 @@ class AccountController extends BaseController
             'zip'=>isset($data['PostCode'])?$data['PostCode']:"",
             'country'=>isset($data['Country'])?$data['Country']:"",
             'phoneNumber'=>$account['Mobile']);
-        unset($data['table-4_length']);
-        unset($data['cardID']);
-
+        
+		$data = cleanarray($data,['table-4_length','cardID']);
+	
         if(isset($data['TaxRateId'])) {
             $data['TaxRateId'] = implode(',', array_unique($data['TaxRateId']));
         }
@@ -363,6 +392,7 @@ class AccountController extends BaseController
 
         if(empty($data['password'])){ /* if empty, dont update password */
             unset($data['password']);
+			$data = cleanarray($data,['password']);
         }else{
             if($account->VerificationStatus == Account::VERIFIED && $account->Status == 1 ) {
                 /* Send mail to Customer */
@@ -392,7 +422,7 @@ class AccountController extends BaseController
         }
 		
         $data['CustomerCLI'] = implode(',',array_unique(explode(',',isset($data['CustomerCLI'])?$data['CustomerCLI']:"")));
-		unset($data['token']);
+		$data = cleanarray($data,['token']);
        try{ 
 	   		$account->update($data); 
             $data['NextInvoiceDate'] = Invoice::getNextInvoiceDate($id);
@@ -427,8 +457,7 @@ class AccountController extends BaseController
                     $result = $AuthorizeNet->UpdateShippingAddress($ProfileID, $ShippingProfileID, $shipping);
                 }
             }
-           return generateResponse('Account Successfully Updated ',true);
-			
+           return generateResponse('Account Successfully Updated ');
         }catch (\Exception $ex){
                  Log::info($ex);
            		 return $this->response->errorInternal($ex->getMessage());

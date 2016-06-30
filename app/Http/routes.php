@@ -9,6 +9,7 @@ $api->version('v1', function ($api) {
 
 		// Login route
 		$api->post('login', 'AuthController@authenticate');
+        $api->post('logout', 'AuthController@logout');
 		$api->post('register', 'AuthController@register');
         $api->post('l/{id}', 'AuthController@authenticate');
 
@@ -23,9 +24,17 @@ $api->version('v1', function ($api) {
             //leads
             $api->get('lead/{id}/get_account', 'LeadController@GetLead');
             $api->get('lead/get_leads', 'LeadController@GetLeads');
+            $api->post('lead/add_lead', 'LeadController@add_lead');
+            $api->post('lead/{id}/update_lead', 'LeadController@update_lead');
             //accounts
             $api->get('account/{id}/get_account', 'AccountController@GetAccount');
+
+            $api->post('account/add_account', 'AccountController@add_account');
+            $api->post('account/{id}/update_account', 'AccountController@update_account');
+            $api->get('account/GetAccountLeadByContactNumber', 'AccountController@GetAccountLeadByContactNumber');
+
             $api->post('emailattachment/{id}/getattachment/{attachmentID}', 'AccountActivityController@getAttachment');
+
 
 			// account credit
             $api->get('account/get_credit', 'AccountController@GetCredit');
@@ -39,7 +48,8 @@ $api->version('v1', function ($api) {
 			$api->post('account/add_note', 'AccountController@add_note');
             $api->get('account/get_note','AccountController@GetNote');
             $api->post('account/delete_note','AccountController@DeleteNote');
-
+			$api->post('account/update_note','AccountController@UpdateNote');
+			
 
             $api->get('account/GetTimeLine', 'AccountController@GetTimeLine');
             $api->post('accounts/sendemail', 'AccountActivityController@sendMail');
@@ -90,6 +100,9 @@ $api->version('v1', function ($api) {
             $api->get('task/{id}/get_lead','TaskController@getLead');
             $api->get('task/{id}/get_dropdownleadaccount','TaskController@getDropdownLeadAccount');
             $api->get('task/get_priorities','TaskController@getPriority');
+            $api->get('task/GetTask','TaskController@GetTask');
+			$api->post('task/deletetask','TaskController@DeleteTask');		
+
             $api->post('task/{id}/getattachment/{attachmentid}', 'TaskController@getAttachment');
 
 

@@ -271,18 +271,12 @@ function email_log_data($data,$view = ''){
     return $data;
 }
 
-function is_amazon(){
-    $AMAZONS3_KEY  = getenv("AMAZONS3_KEY");
-    $AMAZONS3_SECRET = getenv("AMAZONS3_SECRET");
-    $AWS_REGION = getenv("AWS_REGION");
-
-    if(empty($AMAZONS3_KEY) || empty($AMAZONS3_SECRET) || empty($AWS_REGION) ){
-        return false;
-    }
-    return true;
-}
-
+/** Store logo in cache
+ * @param $request
+ * @return mixed
+ */
 function site_configration_cache($request){
+
     $time = empty(getenv('CACHE_EXPIRE'))?60:getenv('CACHE_EXPIRE');
     $minutes = \Carbon\Carbon::now()->addMinutes($time);
     $LicenceKey = $request->only('LicenceKey')['LicenceKey'];
@@ -290,26 +284,16 @@ function site_configration_cache($request){
     $siteConfigretion = 'siteConfiguration' . $LicenceKey.$CompanyName;
 
     if (!Cache::has($siteConfigretion)) {
+
         $domain_url      =   $request->getHttpHost();
         $result       =  \Illuminate\Support\Facades\DB::table('tblCompanyThemes')->where(["DomainUrl" => $domain_url,'ThemeStatus'=>\Api\Model\Themes::ACTIVE])->first();
 
-        if(!empty($result)){  //url found
-            $cache['FavIcon']    = empty($result->Favicon)?\Illuminate\Support\Facades\URL::to('/').'/assets/images/favicon.ico':get_image_src($result->Favicon);
-            $cache['Logo']       = empty($result->Logo)?\Illuminate\Support\Facades\URL::to('/').'/assets/images/logo@2x.png':get_image_src($result->Logo);
-            $cache['Title']    = empty($result->Title)?'Neon':$result->Title;
-            $cache['FooterText']  = empty($result->FooterText)?'&copy; '.date('Y').' Code Desk':$result->FooterText;
-            $cache['FooterUrl']   = empty($result->FooterUrl)?'http://www.code-desk.com':$result->FooterUrl;
-            $cache['LoginMessage']  = empty($result->LoginMessage)?'Dear user, log in to access RM!':$result->LoginMessage;
-            $cache['CustomCss']   = $result->CustomCss;empty($result->CustomCss)?'':$result->CustomCss;
+        if(!empty($result)){
+            $cache['Logo']       = empty($result->Logo)?'/assets/images/logo@2x.png':$result->Logo;
+
         }else{
-            //@TODO: move constant to env file
-            $cache['FavIcon']    = \Illuminate\Support\Facades\URL::to('/').'/assets/images/favicon.ico';
-            $cache['Logo']       = \Illuminate\Support\Facades\URL::to('/').'/assets/images/logo@2x.png';
-            $cache['Title']    = 'Neon';
-            $cache['FooterText']  = '&copy; '.date('Y').' Code Desk';
-            $cache['FooterUrl']   = 'http://www.code-desk.com';
-            $cache['LoginMessage']  = 'Dear user, log in to access RM!';
-            $cache['CustomCss']   = '';
+            $cache['Logo']       = '/assets/images/logo@2x.png';
+
         }
         \Illuminate\Support\Facades\Cache::add($siteConfigretion, $cache, $minutes);
     }
@@ -334,28 +318,20 @@ function get_image_src($path){
     return $path;
 }
 
-function getFileData($path){
-    try{
-        $path = \App\AmazonS3::unSignedUrl($path);
-        $ext = pathinfo($path, PATHINFO_EXTENSION);
-        // Read image path, convert to base64 encoding
-        $imageData = base64_encode(file_get_contents($path));
-        // Format the image SRC:  data:{mime};base64,{data};
-        $base64 = 'data: '.mime_content_type($path).$ext.';base64,'.$imageData;
-        //$data = file_get_contents($path);
-        //$base64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
-    }catch (Exception $e){
-        return "";
-    }
 
-    return $base64;
-}
-
-
+/** Send logo url
+ * @param $request
+ * @return string
+ */
 function getCompanyLogo($request){
+
     $cache = site_configration_cache($request);
-    return $cache['Logo'];
+    $logo_url = \App\AmazonS3::unSignedImageUrl($cache["Logo"]);
+
+    return $logo_url;
 }
+
+
 
 function call_api($post = array()){
 
@@ -430,7 +406,7 @@ function SendTaskMail($data){
 
         $AssignedUserData     =  \Api\Model\User::find($AssignedUser);
         $data['EmailTo']     =   $AssignedUserData->EmailAddress;
-        $data['cc']      =   "umer.ahmed@code-desk.com";
+        //$data['cc']      =   "umer.ahmed@code-desk.com";
         $data['Subject_task']   =   $data['Subject'];
         $data['Subject']      =   "(Neon) ".$data['Subject'];
         $data['TitleHeading']   =   $LogginedUserName." <strong>Assigned</strong> you a Task";
@@ -456,7 +432,7 @@ function SendTaskMailUpdate($NewData,$OldData,$type='Task'){
                 }
             }
             $NewData['EmailTo']     =   $TaggedUsersDiffEmail;
-            $NewData['cc']        =   "umer.ahmed@code-desk.com";
+            //$NewData['cc']        =   "umer.ahmed@code-desk.com";
             if($type=='Opportunity'){
                 $NewData['Subject_task']   =   $NewData['OpportunityName'];
                 $NewData['Subject']      =   "(Neon) ".$NewData['OpportunityName'];
@@ -467,6 +443,8 @@ function SendTaskMailUpdate($NewData,$OldData,$type='Task'){
             }
             $NewData['CreatedBy']      =   $OldData['CreatedBy'];
             $NewData['TitleHeading']  =   $LogginedUserName." <strong>Tagged</strong> you in a ".$type;
+            $NewData['UserProfileImage']  =  UserProfile::get_user_picture_url($LogginedUser);
+
             $status        =   sendMail('emails.task.TaskEmailSend', $NewData);
         }
     }
@@ -478,7 +456,7 @@ function SendTaskMailUpdate($NewData,$OldData,$type='Task'){
 
                 $AssignedUserData       =  \Api\Model\User::find($NewData['UsersIDs']);
                 $NewData['EmailTo']     =   $AssignedUserData->EmailAddress;
-                $NewData['cc']        =   "umer.ahmed@code-desk.com";
+                //$NewData['cc']        =   "umer.ahmed@code-desk.com";
                 $NewData['Subject_task']   =   $NewData['Subject'];
                 $NewData['Subject']      =   "(Neon) ".$NewData['Subject'];
                 $NewData['CreatedBy']      =   $OldData['CreatedBy'];
@@ -486,5 +464,37 @@ function SendTaskMailUpdate($NewData,$OldData,$type='Task'){
                 $status        =   sendMail('emails.task.TaskEmailSend', $NewData);
             }
         }
+    }
+}
+
+
+function combile_url_path($url, $path){
+
+    return add_trailing_slash($url). $path;
+}
+
+/** Add slash at the end
+ * @param string $str
+ * @return string
+ */
+function add_trailing_slash($str = ""){
+
+    if(!empty($str)){
+
+        return rtrim($str, '/') . '/';
+
+    }
+}
+
+/** Remove slash at the start
+ * @param string $str
+ * @return string
+ */
+function remove_front_slash($str = ""){
+
+    if(!empty($str)){
+
+        return ltrim($str, '/')  ;
+
     }
 }

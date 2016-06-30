@@ -49,4 +49,21 @@ class RemoteSSH{
         }
         return $status;
     }
+
+    public static function deleteFile($file_path){
+        $status = false;
+        self::setConfig();
+        if(count(self::$config) && isset(self::$config['host']) && isset(self::$config['username']) && isset(self::$config['password'])){
+            if(!empty($file_path)){
+
+                $status =  RemoteFacade::delete($file_path);
+            }
+            if($status == true){
+                Log::info('File deleted on server ' . $file_path);
+            }else{
+                Log::info('Failed to delete on server ' . $file_path);
+            }
+        }
+        return $status;
+    }
 }

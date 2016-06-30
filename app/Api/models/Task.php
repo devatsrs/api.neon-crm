@@ -14,6 +14,10 @@ class Task extends \Eloquent {
     const Overdue = 1;
     const DueSoon = 2;
     const CustomDate = 3;
+	
+	const Note  = 3;
+	const Mail  = 2;
+	const Tasks = 1;
 
     const Open =0;
     const Close = 1;

@@ -38,7 +38,6 @@ class DataTableSql extends \Eloquent {
             do{
                 //echo $this->query;
                 $result_new = $this->result->fetchAll(\PDO::FETCH_ASSOC);
-//print_r($result_new);
                 if(count($result_new)){
                     foreach($result_new as $row){
                         if(isset($row['totalcount'])){

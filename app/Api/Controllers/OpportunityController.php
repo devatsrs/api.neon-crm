@@ -1,6 +1,9 @@
 <?php
 namespace Api\Controllers;
 
+use Api\Model\CompanyConfiguration;
+use App\AmazonS3;
+use App\RemoteSSH;
 use Dingo\Api\Http\Request;
 use Api\Model\Account;
 use Api\Model\Opportunity;
@@ -105,11 +108,21 @@ class OpportunityController extends BaseController {
         $attachmentPaths = Opportunity::where(['OpportunityID'=>$opportunityID])->pluck('AttachmentPaths');
         if(!empty($attachmentPaths)){
             $attachmentPaths = json_decode($attachmentPaths,true);
-            unset($attachmentPaths[$attachmentID]);
+
+            $delete_status = false;
+            if(isset($attachmentPaths[$attachmentID]["filepath"])){
+
+                $delete_status = AmazonS3::delete($attachmentPaths[$attachmentID]["filepath"]);
+            }
+			unset($attachmentPaths[$attachmentID]);
             $data = ['AttachmentPaths'=>json_encode($attachmentPaths)];
 
             try{
+
                 Opportunity::where(['opportunityID'=>$opportunityID])->update($data);
+                if(!$delete_status){
+                    return generateResponse('Failed to delete file',true,true);
+                }
             }catch (\Exception $ex){
                 Log::info($ex);
                 return $this->response->errorInternal($ex->getMessage());
@@ -137,7 +150,7 @@ class OpportunityController extends BaseController {
             'FirstName'=>'required',
             'LastName'=>'required',
             'Email'=>'required',
-            'Phone'=>'required',
+            //'Phone'=>'required',
             'BoardID'=>'required',
         );
         $messages = array(
@@ -188,7 +201,7 @@ class OpportunityController extends BaseController {
             $data["CreatedBy"] = User::get_user_full_name();
             $data['Status'] = isset($data['Status']) && !empty($data['Status'])?$data['Status']:Opportunity::Open;
 
-            $data = cleanarray($data,['OppertunityID','leadcheck','leadOrAccount']);
+			$data = cleanarray($data,['OppertunityID','leadcheck','leadOrAccount']);
 
             Opportunity::create($data);
         }
@@ -212,9 +225,11 @@ class OpportunityController extends BaseController {
     {
         if( $id > 0 ) {
             $data = Input::all();
-
+			Log::info($data);
+			$old_Opportunity_data = Opportunity::find($id);
             $companyID = User::get_companyID();
             $data["CompanyID"] = $companyID;
+			$TaskBoardUrl=	'';
             $rules = array(
                 'CompanyID' => 'required',
                 'OpportunityName' => 'required',
@@ -222,7 +237,7 @@ class OpportunityController extends BaseController {
                 'FirstName'=>'required',
                 'LastName'=>'required',
                 'Email'=>'required',
-                'Phone'=>'required',
+                //'Phone'=>'required',
                 'BoardID'=>'required'
             );
 
@@ -235,7 +250,12 @@ class OpportunityController extends BaseController {
             if ($validator->fails()) {
                 generateResponse($validator->errors(),true);
             }
+			if(isset($data['TaskBoardUrl']) && $data['TaskBoardUrl']!=''){
+					$TaskBoardUrl	=	$data['TaskBoardUrl'];
+				}
+			unset($data['TaskBoardUrl']);
             try {
+				
                 $data['ClosingDate'] = '';
                 if(isset($data['TaggedUsers']) && !empty($data['TaggedUsers'])) {
                     Tags::insertNewTags(['tags' => $data['Tags'], 'TagType' => Tags::Opportunity_tag]);
@@ -252,12 +272,15 @@ class OpportunityController extends BaseController {
                         $data['Status'] = Opportunity::Open;
                     }
                 }
-                $data = cleanarray($data,['opportunityClosed','OpportunityID']);
+
+				$data = cleanarray($data,['OpportunityID','opportunityClosed']);
                 $Opportunity = Opportunity::find($id);
                 if($Opportunity->BoardID!=$data['BoardID']){
                     $data["BoardColumnID"] = CRMBoardColumn::where(['BoardID' => $data['BoardID'], 'Order' => 0])->pluck('BoardColumnID');
                 }
                 $Opportunity->update($data);
+				$data['TaskBoardUrl']	=	$TaskBoardUrl;				
+				SendTaskMailUpdate($data,$old_Opportunity_data,'Opportunity'); //send task email to assign user
             } catch (\Exception $ex){
                 Log::info($ex);
                 return $this->response->errorInternal($ex->getMessage());
