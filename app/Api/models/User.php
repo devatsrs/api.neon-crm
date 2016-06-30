@@ -4,7 +4,7 @@ namespace Api\Model;
 
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
-use Tymon\JWTAuth\Contracts\JWTSubject;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Foundation\Auth\Access\Authorizable;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
@@ -13,8 +13,8 @@ use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 
 class User extends Model implements AuthenticatableContract,
                                     AuthorizableContract,
-                                    CanResetPasswordContract,
-                                    JWTSubject
+                                    CanResetPasswordContract
+
 {
     use Authenticatable, Authorizable, CanResetPassword;
 
@@ -56,5 +56,21 @@ class User extends Model implements AuthenticatableContract,
      */
     public function getJWTCustomClaims() {
         return [];
+    }
+
+    public static function get_companyID(){
+        return Auth::user()->CompanyID;
+    }
+
+    public static  function get_user_full_name(){
+        return Auth::user()->FirstName.' '. Auth::user()->LastName;
+    }
+	
+	   public static function get_user_email(){      
+        return Auth::user()->EmailAddress;
+    }
+	
+	   public static function get_userID(){       
+        return Auth::user()->UserID;
     }
 }

@@ -2,47 +2,58 @@
 
 namespace Api\Controllers;
 
-use App\User;
+
+use Api\Model\CompanyConfiguration;
+use Api\Model\User;
 use Dingo\Api\Facade\API;
 use Illuminate\Http\Request;
 use Api\Requests\UserRequest;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Session;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
+use Illuminate\Support\Facades\Auth;
 
 class AuthController extends BaseController
 {
-    public function me(Request $request)
-    {
+    public function me(Request $request){
         return JWTAuth::parseToken()->authenticate();
     }
 
-    public function authenticate(Request $request)
-    {
+    public function authenticate(Request $request){
         // grab credentials from the request
-        $credentials = $request->only('EmailAddress', 'password');
-
+        $credentials = $request->only('LoggedEmailAddress', 'password');
+        $license  = $request->only('LicenceKey','CompanyName');
+        $license['LicenceHost'] = $request->getHttpHost();
+        $license['LicenceIP'] = $request->getClientIp();
+        $UserID = $request->only('LoggedUserID');
         try {
-            // attempt to verify the credentials and create a token for the user
-            if (! $token = JWTAuth::attempt($credentials)) {
-                return response()->json(['error' => 'invalid_credentials'], 401);
+            if(!empty($UserID['LoggedUserID'])){
+                $user = User::find($UserID['LoggedUserID']);
+            }else {
+                $user = User::where(['EmailAddress'=>$credentials['LoggedEmailAddress']])->first();
+                if(!Hash::check($credentials['password'], $user->password)){
+                    return response()->json(['error' => 'invalid_credentials'], 401);
+                }
             }
+            $token = JWTAuth::fromUser($user);
         } catch (JWTException $e) {
             // something went wrong whilst attempting to encode the token
             return response()->json(['error' => 'could_not_create_token'], 500);
         }
+        CompanyConfiguration::getConfiguration($user->CompanyID);
+        site_configration_cache($request);
 
         // all good so return the token
         return response()->json(compact('token'));
     }
 
-    public function validateToken() 
-    {
+    public function validateToken(){
         // Our routes file should have already authenticated this token, so we just return success here
         return API::response()->array(['status' => 'success'])->statusCode(200);
     }
 
-    public function register(UserRequest $request)
-    {
+    public function register(UserRequest $request){
         $newUser = [
             'name' => $request->get('name'),
             'email' => $request->get('email'),
@@ -52,5 +63,12 @@ class AuthController extends BaseController
         $token = JWTAuth::fromUser($user);
 
         return response()->json(compact('token'));
+    }
+
+    public function logout() {
+        Session::flush();
+        Auth::logout();
+        //JWTAuth::invalidate(JWTAuth::getToken());
+        return $this->response()->accepted()->header('Authorization', '');
     }
 }
