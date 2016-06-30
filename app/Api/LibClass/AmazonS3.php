@@ -1,5 +1,6 @@
 <?php
 namespace App;
+use Api\Model\CompanyConfiguration;
 use Api\Model\User;
 use Aws\S3\S3Client;
 
@@ -28,17 +29,29 @@ class AmazonS3 {
         'PAYMENT_UPLOAD'=>'PaymentUpload',
         'OPPORTUNITY_ATTACHMENT'=>'OpportunityAttachment',
         'TASK_ATTACHMENT'=>'TaskAttachment',
-		'EMAIL_ATTACHMENT'=>'EmailAttachment',
+        'EMAIL_ATTACHMENT'=>'EmailAttachment',
     );
 
     // Instantiate an S3 client
     private static function getS3Client(){
 
-        $AMAZONS3_KEY  = getenv("AMAZONS3_KEY");
-        $AMAZONS3_SECRET = getenv("AMAZONS3_SECRET");
-        $AWS_REGION = getenv("AWS_REGION");
+        $AMAZONS3_KEY  = '';
+        $AMAZONS3_SECRET = '';
+        $AWS_REGION = '';
+        $cache = CompanyConfiguration::getConfiguration();
+        if(isset($cache['Amazon'])) {
 
-        if(empty($AMAZONS3_KEY) || empty($AMAZONS3_SECRET) || empty($AWS_REGION) ){			
+            $amazoneJson = $cache['Amazon'];
+
+            if (!empty($amazoneJson)) {
+                $amazone = json_decode($amazoneJson, true);
+                $AMAZONS3_KEY = $amazone['AMAZONS3_KEY'];
+                $AMAZONS3_SECRET = $amazone['AMAZONS3_SECRET'];
+                $AWS_REGION = $amazone['AWS_REGION'];
+            }
+        }
+
+        if(empty($AMAZONS3_KEY) || empty($AMAZONS3_SECRET) || empty($AWS_REGION) ){
             return 'NoAmazon';
         }else {
 
@@ -84,6 +97,7 @@ class AmazonS3 {
         return $path;
     }
 
+    // @TODO: need to update when needed.
     static function upload($file,$dir){
 
         // Instantiate an S3 client
@@ -110,15 +124,11 @@ class AmazonS3 {
     static function preSignedUrl($key=''){
 
         $s3 = self::getS3Client();
-		
+
         //When no amazon ;
         if($s3 == 'NoAmazon'){
-            $Uploadpath = getenv('upload_path')."/".$key;			
-            if ( file_exists($Uploadpath) ) {
-                return $Uploadpath;
-            } else {
-                return "";
-            }
+            $status = RemoteSSH::downloadFile($key);
+            return $status['filePath'];
         }
 
 
@@ -142,6 +152,7 @@ class AmazonS3 {
     static function unSignedUrl($key=''){
 
         $s3 = self::getS3Client();
+
         //When no amazon ;
         if($s3 == 'NoAmazon'){
             return  self::preSignedUrl($key);
@@ -150,28 +161,32 @@ class AmazonS3 {
         $bucket = getenv('AWS_BUCKET');
         $unsignedUrl = '';
         if(!empty($key)){
-           $unsignedUrl = $s3->getObjectUrl($bucket, $key);
+            $unsignedUrl = $s3->getObjectUrl($bucket, $key);
         }
         return $unsignedUrl;
 
     }
 
+    //@TODO: need to update when needed
     static function unSignedImageUrl($key=''){
 
         $s3 = self::getS3Client();
 
         //When no amazon ;
         if($s3 == 'NoAmazon'){
-            $file = getenv("UPLOAD_PATH") . '/' . $key;
-            if ( file_exists($file) ) {
-                return  get_image_data($file);
-            } else {
-                return get_image_data("http://placehold.it/250x100");
-            }
+
+            $site_url = \Api\Model\CompanyConfiguration::get("SITE_URL");
+
+            return combile_url_path($site_url,$key);
+
         }
         return self::unSignedUrl($key);
     }
 
+    /** Delete file from amazon or ssh.
+     * @param $file
+     * @return bool
+     */
     static function delete($file){
 
         if(strlen($file)>0) {
@@ -180,13 +195,11 @@ class AmazonS3 {
 
             //When no amazon ;
             if($s3 == 'NoAmazon'){
-				$Uploadpath = getenv('UPLOAD_PATH') . "/"."".$file;
-                if ( file_exists($Uploadpath) ) {
-                    @unlink($Uploadpath);
-                    return true;
-                } else {
-                    return false;
-                }
+
+                $upload_path = CompanyConfiguration::get("UPLOADPATH");
+                $file_path = rtrim($upload_path,'/').'/'. $file;
+                return RemoteSSH::deleteFile($file_path);
+
             }
 
             $bucket = getenv('AWS_BUCKET');

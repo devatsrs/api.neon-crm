@@ -79,6 +79,7 @@ class OpportunityBoardController extends BaseController
 
         $data['Status'] = isset($data['Status']) ? 1 : 0;
         $data["CreatedBy"] = User::get_user_full_name();
+        $data = cleanarray($data,['BoardColumnID']);
         try{
             $boardID = CRMBoard::insertGetId($data);
             if($data['BoardType']==CRMBoard::OpportunityBoard){
@@ -113,6 +114,7 @@ class OpportunityBoardController extends BaseController
             if ($validator->fails()) {
                 return generateResponse($validator->errors(),true);
             }
+            $data = cleanarray($data);
             try{
                 $Board->update($data);
             }catch (\Exception $ex){

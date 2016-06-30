@@ -28,9 +28,13 @@ $api->version('v1', function ($api) {
             $api->post('lead/{id}/update_lead', 'LeadController@update_lead');
             //accounts
             $api->get('account/{id}/get_account', 'AccountController@GetAccount');
+
             $api->post('account/add_account', 'AccountController@add_account');
             $api->post('account/{id}/update_account', 'AccountController@update_account');
             $api->get('account/GetAccountLeadByContactNumber', 'AccountController@GetAccountLeadByContactNumber');
+
+            $api->post('emailattachment/{id}/getattachment/{attachmentID}', 'AccountActivityController@getAttachment');
+
 
 			// account credit
             $api->get('account/get_credit', 'AccountController@GetCredit');
@@ -78,10 +82,12 @@ $api->version('v1', function ($api) {
             $api->post('opportunity/{id}/update_columnorder','OpportunityController@updateColumnOrder');
             $api->get('opportunity/{id}/get_lead','OpportunityController@getLead');
             $api->get('opportunity/{id}/get_dropdownleadaccount','OpportunityController@getDropdownLeadAccount');
+            $api->post('opportunity/{id}/getattachment/{attachmentid}', 'OpportunityController@getAttachment');
 
             //Opportunity Comments
             $api->post('opportunitycomment/add_comment', 'OpportunityCommentsController@add_comment');
             $api->get('opportunitycomments/{id}/get_comments', 'OpportunityCommentsController@get_comments');
+            $api->post('opportunitycomment/{id}/getattachment/{attachmentid}', 'OpportunityCommentsController@getAttachment');
 
 			 //Task
 			$api->post('task/{id}/get_tasks','TaskController@getTasks');
@@ -96,7 +102,9 @@ $api->version('v1', function ($api) {
             $api->get('task/get_priorities','TaskController@getPriority');
             $api->get('task/GetTask','TaskController@GetTask');
 			$api->post('task/deletetask','TaskController@DeleteTask');		
-			
+
+            $api->post('task/{id}/getattachment/{attachmentid}', 'TaskController@getAttachment');
+
 
 
             //Allowed extensions
@@ -105,6 +113,7 @@ $api->version('v1', function ($api) {
             //Task Comments
             $api->post('taskcomment/add_comment', 'TaskCommentsController@add_comment');
             $api->get('taskcomments/{id}/get_comments', 'TaskCommentsController@get_comments');
+            $api->post('taskcomment/{id}/getattachment/{attachmentid}', 'TaskCommentsController@getAttachment');
 
 
 		});
