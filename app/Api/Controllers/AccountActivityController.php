@@ -42,15 +42,9 @@ class AccountActivityController extends BaseController {
             'Message'=>'required'			
         );
 
-	    $CompanyID  = User::get_companyID();
         $account    = Account::find($data['AccountID']);
+ 	    $data['EmailTo']	= 	$data['email-to'];
 
-	   
-	    if(getenv('EmailToCustomer') == 1){
-			$data['EmailTo']	= 	$data['email-to'];
-        }else{
-            $data['EmailTo'] = Company::getEmail($CompanyID);
-        }
         $validator = Validator::make($data,$rules);
         if ($validator->fails()) {
             return generateResponse($validator->errors(),true);

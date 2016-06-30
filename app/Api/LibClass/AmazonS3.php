@@ -108,48 +108,6 @@ class AmazonS3 {
         return $path;
     }
 
-    // @TODO: need to update when needed.
-    static function generate_path($dir ='',$companyId , $accountId = '' ) {
-
-        $path = $companyId  ."/";
-
-        if($accountId > 0){
-            $path .= $accountId ."/";
-        }
-
-        $path .=  $dir . "/". date("Y")."/".date("m") ."/" .date("d") ."/";
-        $dir = getenv('UPLOAD_PATH') . '/'. $path;
-        if (!file_exists($dir)) {
-            mkdir($dir, 0777, TRUE);
-        }
-
-        return $path;
-    }
-
-    // @TODO: need to update when needed.
-    static function upload($file,$dir){
-
-        // Instantiate an S3 client
-        $s3 = self::getS3Client();
-
-        //When no amazon return true;
-        if($s3 == 'NoAmazon'){
-            return true;
-        }
-
-        $bucket = getenv('AWS_BUCKET');
-        // Upload a publicly accessible file. The file size, file type, and MD5 hash
-        // are automatically calculated by the SDK.
-        try {
-            $resource = fopen($file, 'r');
-            $s3->upload($bucket, $dir.basename($file), $resource, 'public-read');
-            @unlink($file);
-            return true;
-        } catch (S3Exception $e) {
-            return false ; //"There was an error uploading the file.\n";
-        }
-    }
-
     static function preSignedUrl($key=''){
 
         $s3 = self::getS3Client();
