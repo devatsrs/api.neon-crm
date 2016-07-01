@@ -9,6 +9,7 @@ use Dingo\Api\Facade\API;
 use Illuminate\Http\Request;
 use Api\Requests\UserRequest;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
@@ -27,6 +28,12 @@ class AuthController extends BaseController
         $license['LicenceHost'] = $request->getHttpHost();
         $license['LicenceIP'] = $request->getClientIp();
         $UserID = $request->only('LoggedUserID');
+
+        /*Log::info("Authenticate");
+        Log::info(print_r($license,true));
+        Log::info("UserID ". print_r($UserID,true));
+        Log::info("credentials ". print_r($credentials,true));
+        Log::info("license ". print_r($license,true));*/
         try {
             if(!empty($UserID['LoggedUserID'])){
                 $user = User::find($UserID['LoggedUserID']);

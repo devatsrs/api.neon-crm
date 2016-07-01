@@ -4,6 +4,7 @@ namespace Api\Model;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class Company extends \Eloquent {
     protected $guarded = array();
@@ -125,7 +126,7 @@ class Company extends \Eloquent {
             $Email = Company::where("CompanyID",$CompanyID)->pluck("Email");
             return explode(',',$Email);
         }else{
-            return  getenv("TEST_EMAIL");
+            return  "";
         }
     }
 
