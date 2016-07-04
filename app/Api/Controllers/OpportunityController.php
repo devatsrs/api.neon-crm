@@ -53,7 +53,7 @@ class OpportunityController extends BaseController {
             $columnsWithOpportunities = [];
             $columns = [];
             foreach($result as $row){
-                $columns[$row->BoardColumnID] = ['Name'=>$row->BoardColumnName];
+                $columns[$row->BoardColumnID] = ['Name'=>$row->BoardColumnName,'Height'=>$row->Height,'Width'=>$row->Width];
                 if(!empty($row->OpportunityName)) {
                     $users = [];
                     if(!empty($row->TaggedUsers)){
@@ -255,8 +255,8 @@ class OpportunityController extends BaseController {
 				}
 			unset($data['TaskBoardUrl']);
             try {
-				
-                $data['ClosingDate'] = '';
+
+                //$data['ClosingDate'] = '';
                 if(isset($data['TaggedUsers']) && !empty($data['TaggedUsers'])) {
                     Tags::insertNewTags(['tags' => $data['Tags'], 'TagType' => Tags::Opportunity_tag]);
                     $taggedUsers = implode(',', $data['TaggedUsers']);
