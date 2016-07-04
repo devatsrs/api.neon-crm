@@ -53,7 +53,7 @@ class OpportunityController extends BaseController {
             $columnsWithOpportunities = [];
             $columns = [];
             foreach($result as $row){
-                $columns[$row->BoardColumnID] = ['Name'=>$row->BoardColumnName];
+                $columns[$row->BoardColumnID] = ['Name'=>$row->BoardColumnName,'Height'=>$row->Height,'Width'=>$row->Width];
                 if(!empty($row->OpportunityName)) {
                     $users = [];
                     if(!empty($row->TaggedUsers)){
