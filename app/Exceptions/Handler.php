@@ -2,8 +2,10 @@
 
 namespace App\Exceptions;
 
+use Dingo\Api\Exception\StoreResourceFailedException;
 use Exception;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
@@ -44,6 +46,8 @@ class Handler extends ExceptionHandler
     {
         if ($e instanceof ModelNotFoundException) {
             $e = new NotFoundHttpException($e->getMessage(), $e);
+        } else if ($e instanceof StoreResourceFailedException) {
+            Log::error('StoreResourceFailedException error');
         }
 
         return parent::render($request, $e);
