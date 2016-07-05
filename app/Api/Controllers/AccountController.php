@@ -510,6 +510,8 @@ class AccountController extends BaseController
     {
         $post_data = Input::all();
         $rules['AccountID'] = 'required';
+        $rules['BalanceThreshold'] = 'required';
+        $rules['PermanentCredit'] = 'required';
         $validator = Validator::make($post_data, $rules);
         if ($validator->fails()) {
             return generateResponse($validator->errors(),true);
