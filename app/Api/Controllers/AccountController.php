@@ -529,16 +529,25 @@ class AccountController extends BaseController
         if (!empty($post_data['BalanceThreshold'])) {
             $AccountBalancedata['BalanceThreshold'] = $post_data['BalanceThreshold'];
         }
-        if (!empty($AccountBalancedata) && AccountBalance::where('AccountID', $post_data['AccountID'])->count()) {
-            $AccountBalance = AccountBalance::where('AccountID', $post_data['AccountID'])->update($AccountBalancedata);
-            $AccountBalancedata['AccountID'] = $post_data['AccountID'];
-        } elseif (AccountBalance::where('AccountID', $post_data['AccountID'])->count() == 0) {
-            $AccountBalancedata['AccountID'] = $post_data['AccountID'];
-            AccountBalance::create($AccountBalancedata);
+        if(!empty($post_data['EmailToCustomer'])){
+            $AccountBalancedata['EmailToCustomer'] = $post_data['EmailToCustomer'];
         }
-        AccountBalanceHistory::addHistory($AccountBalancedata);
 
-        return generateResponse('Account Successfully Updated');
+        try {
+            if (!empty($AccountBalancedata) && AccountBalance::where('AccountID', $post_data['AccountID'])->count()) {
+                $AccountBalance = AccountBalance::where('AccountID', $post_data['AccountID'])->update($AccountBalancedata);
+                $AccountBalancedata['AccountID'] = $post_data['AccountID'];
+            } elseif (AccountBalance::where('AccountID', $post_data['AccountID'])->count() == 0) {
+                $AccountBalancedata['AccountID'] = $post_data['AccountID'];
+                AccountBalance::create($AccountBalancedata);
+            }
+            unset($AccountBalancedata['EmailToCustomer']);
+            AccountBalanceHistory::addHistory($AccountBalancedata);
+            return generateResponse('Account Successfully Updated');
+        } catch (\Exception $e) {
+            Log::info($e);
+            return $this->response->errorInternal();
+        }
     }
     public function GetCreditHistoryGrid(){
         $post_data = Input::all();
