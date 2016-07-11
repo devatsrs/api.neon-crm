@@ -257,8 +257,8 @@ class OpportunityController extends BaseController {
 				}
 			unset($data['TaskBoardUrl']);
             try {
-				
-                $data['ClosingDate'] = '';
+
+                //$data['ClosingDate'] = '';
                 if(isset($data['TaggedUsers']) && !empty($data['TaggedUsers'])) {
                     Tags::insertNewTags(['tags' => $data['Tags'], 'TagType' => Tags::Opportunity_tag]);
                     $taggedUsers = implode(',', $data['TaggedUsers']);
