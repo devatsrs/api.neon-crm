@@ -2,6 +2,7 @@
 namespace Api\Controllers;
 
 use Api\Model\CompanyConfiguration;
+use Api\Model\DataTableSql;
 use App\AmazonS3;
 use App\RemoteSSH;
 use Dingo\Api\Http\Request;
@@ -39,37 +40,65 @@ class OpportunityController extends BaseController {
         }
         $companyID = User::get_companyID();
         $data = Input::all();
+
+        if(!isset($data['fetchType'])){
+            $data['fetchType'] = 'Grid';
+        }
+
         $data['account_owners'] = isset($data['account_owners'])?empty($data['account_owners'])?0:$data['account_owners']:0;
         $data['AccountID'] = isset($data['AccountID'])?empty($data['AccountID'])?0:$data['AccountID']:0;
         $data['opportunityName'] = isset($data['opportunityName'])?empty($data['opportunityName'])?'':$data['opportunityName']:'';
         $data['Tags'] = isset($data['Tags'])?empty($data['Tags'])?'':$data['Tags']:'';
-        $data['Status'] = isset($data['Status'])?empty($data['Status'])?'':implode(',',$data['Status']):'';
+        $data['Status'] = isset($data['Status'])?empty($data['Status'])?'':(is_array($data['Status'])?implode(',',$data['Status']):$data['Status']):'';
         if(isset($data['opportunityClosed']) && $data['opportunityClosed']==Opportunity::Close){
             $data['Status'] = Opportunity::Close;
         }
-        $query = "call prc_GetOpportunities (".$companyID.", ".$id.",'".$data['opportunityName']."',"."'".$data['Tags']."',".$data['account_owners'].", ".$data['AccountID'].",'".$data['Status']."')";
-        try{
-            $result = DB::select($query);
-            $columnsWithOpportunities = [];
-            $columns = [];
-            foreach($result as $row){
-                $columns[$row->BoardColumnID] = ['Name'=>$row->BoardColumnName,'Height'=>$row->Height,'Width'=>$row->Width];
-                if(!empty($row->OpportunityName)) {
-                    $users = [];
-                    if(!empty($row->TaggedUsers)){
-                        $users = User::whereIn('UserID',explode(',',$row->TaggedUsers))->select(['FirstName','LastName','UserID','Color'])->get();
-                    }
-                    $columnsWithOpportunities[$row->BoardColumnID][] = ['TaggedUsers'=>$users,'opportunity'=>$row];
-                }else{
-                    $columnsWithOpportunities[$row->BoardColumnID][] = '';
-                }
+        if($data['fetchType']=='Grid') {
+            $rules['iDisplayStart'] = 'required|Min:1';
+            $rules['iDisplayLength'] = 'required';
+            $rules['sSortDir_0'] = 'required';
+            $validator = Validator::make($data, $rules);
+            if ($validator->fails()) {
+                return generateResponse($validator->errors(),true);
             }
-            $return['columns'] = $columns;
-            $return['columnsWithOpportunities'] = $columnsWithOpportunities;
-            return generateResponse('',false,false,$return);
-        }catch (\Exception $ex){
-            Log::info($ex);
-            return $this->response->errorInternal($ex->getMessage());
+
+            $columns = ['OpportunityName', 'Status','UserID','RelatedTo','Rating'];
+            $sort_column = $columns[$data['iSortCol_0']];
+
+            $query = "call prc_GetOpportunityGrid (" . $companyID . ", " . $id . ",'" . $data['opportunityName'] . "','" . $data['Tags'] . "', " . $data['account_owners'] . ", " . $data['AccountID'] .",'".$data['Status']."',".(ceil($data['iDisplayStart'] / $data['iDisplayLength'])) . " ," . $data['iDisplayLength'] . ",'" . $sort_column . "','" . $data['sSortDir_0'] . "')";
+            Log::info($query);
+            try {
+                $result = DataTableSql::of($query)->make();
+                return generateResponse('',false,false,$result);
+            }catch (\Exception $ex){
+                Log::info($ex);
+                return $this->response->errorInternal($ex->getMessage());
+            }
+        }elseif($data['fetchType']=='Board') {
+            $query = "call prc_GetOpportunities (" . $companyID . ", " . $id . ",'" . $data['opportunityName'] . "'," . "'" . $data['Tags'] . "'," . $data['account_owners'] . ", " . $data['AccountID'] . ",'" . $data['Status'] . "')";
+            try {
+                $result = DB::select($query);
+                $columnsWithOpportunities = [];
+                $columns = [];
+                foreach ($result as $row) {
+                    $columns[$row->BoardColumnID] = ['Name' => $row->BoardColumnName, 'Height' => $row->Height, 'Width' => $row->Width];
+                    if (!empty($row->OpportunityName)) {
+                        $users = [];
+                        if (!empty($row->TaggedUsers)) {
+                            $users = User::whereIn('UserID', explode(',', $row->TaggedUsers))->select(['FirstName', 'LastName', 'UserID', 'Color'])->get();
+                        }
+                        $columnsWithOpportunities[$row->BoardColumnID][] = ['TaggedUsers' => $users, 'opportunity' => $row];
+                    } else {
+                        $columnsWithOpportunities[$row->BoardColumnID][] = '';
+                    }
+                }
+                $return['columns'] = $columns;
+                $return['columnsWithOpportunities'] = $columnsWithOpportunities;
+                return generateResponse('', false, false, $return);
+            } catch (\Exception $ex) {
+                Log::info($ex);
+                return $this->response->errorInternal($ex->getMessage());
+            }
         }
     }
 
