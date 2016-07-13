@@ -529,9 +529,8 @@ class AccountController extends BaseController
         if (isset($post_data['BalanceThreshold'])) {
             $AccountBalancedata['BalanceThreshold'] = $post_data['BalanceThreshold'];
         }
-        if(isset($post_data['EmailToCustomer'])){
-            $AccountBalancedata['EmailToCustomer'] = $post_data['EmailToCustomer'];
-        }
+        
+        $AccountBalancedata['EmailToCustomer'] = isset($post_data['EmailToCustomer'])?1:0;
 
         try {
             if (!empty($AccountBalancedata) && AccountBalance::where('AccountID', $post_data['AccountID'])->count()) {
