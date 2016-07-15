@@ -50,6 +50,7 @@ class OpportunityController extends BaseController {
         $data['opportunityName'] = isset($data['opportunityName'])?empty($data['opportunityName'])?'':$data['opportunityName']:'';
         $data['Tags'] = isset($data['Tags'])?empty($data['Tags'])?'':$data['Tags']:'';
         $data['Status'] = isset($data['Status'])?empty($data['Status'])?'':(is_array($data['Status'])?implode(',',$data['Status']):$data['Status']):'';
+        $data['CurrencyID'] = isset($data['CurrencyID'])?empty($data['CurrencyID'])?0:$data['CurrencyID']:0;
         if(isset($data['opportunityClosed']) && !empty($data['opportunityClosed']) && $data['opportunityClosed']!='false'){
             $data['Status'] = Opportunity::Close;
         }
@@ -65,7 +66,7 @@ class OpportunityController extends BaseController {
             $columns = ['OpportunityName', 'Status','UserID','RelatedTo','Rating'];
             $sort_column = $columns[$data['iSortCol_0']];
 
-            $query = "call prc_GetOpportunityGrid (" . $companyID . ", " . $id . ",'" . $data['opportunityName'] . "','" . $data['Tags'] . "', " . $data['AccountOwner'] . ", " . $data['AccountID'] .",'".$data['Status']."',".(ceil($data['iDisplayStart'] / $data['iDisplayLength'])) . " ," . $data['iDisplayLength'] . ",'" . $sort_column . "','" . $data['sSortDir_0'] . "')";
+            $query = "call prc_GetOpportunityGrid (" . $companyID . ", " . $id . ",'" . $data['opportunityName'] . "','" . $data['Tags'] . "', " . $data['AccountOwner'] . ", " . $data['AccountID'] .",'".$data['Status']."',".$data['CurrencyID'].",".(ceil($data['iDisplayStart'] / $data['iDisplayLength'])) . " ," . $data['iDisplayLength'] . ",'" . $sort_column . "','" . $data['sSortDir_0'] . "')";
             Log::info($query);
             try {
                 $result = DataTableSql::of($query)->make();
@@ -75,7 +76,8 @@ class OpportunityController extends BaseController {
                 return $this->response->errorInternal($ex->getMessage());
             }
         }elseif($data['fetchType']=='Board') {
-            $query = "call prc_GetOpportunities (" . $companyID . ", " . $id . ",'" . $data['opportunityName'] . "'," . "'" . $data['Tags'] . "'," . $data['AccountOwner'] . ", " . $data['AccountID'] . ",'" . $data['Status'] . "')";
+            $query = "call prc_GetOpportunities (" . $companyID . ", " . $id . ",'" . $data['opportunityName'] . "'," . "'" . $data['Tags'] . "'," . $data['AccountOwner'] . ", " . $data['AccountID'] . ",'" . $data['Status'] . "',".$data['CurrencyID']. ")";
+            Log::info($query);
             try {
                 $result = DB::select($query);
                 $columnsWithOpportunities = [];
@@ -94,6 +96,7 @@ class OpportunityController extends BaseController {
                 }
                 $return['columns'] = $columns;
                 $return['columnsWithOpportunities'] = $columnsWithOpportunities;
+                $return['WorthTotal'] = $row->WorthTotal;
                 return generateResponse('', false, false, $return);
             } catch (\Exception $ex) {
                 Log::info($ex);
@@ -171,6 +174,7 @@ class OpportunityController extends BaseController {
         $data = Input::all();
         $companyID = User::get_companyID();
         $message = '';
+        $data['Worth']    = !empty($data['Worth'])?$data['Worth']:0;
         $data ["CompanyID"] = $companyID;
         $rules = array(
             'CompanyID' => 'required',
@@ -254,10 +258,10 @@ class OpportunityController extends BaseController {
     {
         if( $id > 0 ) {
             $data = Input::all();
-			Log::info($data);
 			$old_Opportunity_data = Opportunity::find($id);
             $companyID = User::get_companyID();
             $data["CompanyID"] = $companyID;
+            $data['Worth']    = !empty($data['Worth'])?$data['Worth']:0;
 			$TaskBoardUrl=	'';
             $rules = array(
                 'CompanyID' => 'required',
