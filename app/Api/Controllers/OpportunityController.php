@@ -45,7 +45,7 @@ class OpportunityController extends BaseController {
             $data['fetchType'] = 'Grid';
         }
 
-        $data['account_owners'] = isset($data['account_owners'])?empty($data['account_owners'])?0:$data['account_owners']:0;
+        $data['AccountOwner'] = isset($data['AccountOwner'])?empty($data['AccountOwner'])?0:$data['AccountOwner']:0;
         $data['AccountID'] = isset($data['AccountID'])?empty($data['AccountID'])?0:$data['AccountID']:0;
         $data['opportunityName'] = isset($data['opportunityName'])?empty($data['opportunityName'])?'':$data['opportunityName']:'';
         $data['Tags'] = isset($data['Tags'])?empty($data['Tags'])?'':$data['Tags']:'';
@@ -65,7 +65,7 @@ class OpportunityController extends BaseController {
             $columns = ['OpportunityName', 'Status','UserID','RelatedTo','Rating'];
             $sort_column = $columns[$data['iSortCol_0']];
 
-            $query = "call prc_GetOpportunityGrid (" . $companyID . ", " . $id . ",'" . $data['opportunityName'] . "','" . $data['Tags'] . "', " . $data['account_owners'] . ", " . $data['AccountID'] .",'".$data['Status']."',".(ceil($data['iDisplayStart'] / $data['iDisplayLength'])) . " ," . $data['iDisplayLength'] . ",'" . $sort_column . "','" . $data['sSortDir_0'] . "')";
+            $query = "call prc_GetOpportunityGrid (" . $companyID . ", " . $id . ",'" . $data['opportunityName'] . "','" . $data['Tags'] . "', " . $data['AccountOwner'] . ", " . $data['AccountID'] .",'".$data['Status']."',".(ceil($data['iDisplayStart'] / $data['iDisplayLength'])) . " ," . $data['iDisplayLength'] . ",'" . $sort_column . "','" . $data['sSortDir_0'] . "')";
             Log::info($query);
             try {
                 $result = DataTableSql::of($query)->make();
@@ -75,7 +75,7 @@ class OpportunityController extends BaseController {
                 return $this->response->errorInternal($ex->getMessage());
             }
         }elseif($data['fetchType']=='Board') {
-            $query = "call prc_GetOpportunities (" . $companyID . ", " . $id . ",'" . $data['opportunityName'] . "'," . "'" . $data['Tags'] . "'," . $data['account_owners'] . ", " . $data['AccountID'] . ",'" . $data['Status'] . "')";
+            $query = "call prc_GetOpportunities (" . $companyID . ", " . $id . ",'" . $data['opportunityName'] . "'," . "'" . $data['Tags'] . "'," . $data['AccountOwner'] . ", " . $data['AccountID'] . ",'" . $data['Status'] . "')";
             try {
                 $result = DB::select($query);
                 $columnsWithOpportunities = [];
