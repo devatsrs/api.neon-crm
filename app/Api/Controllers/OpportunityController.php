@@ -142,7 +142,6 @@ class OpportunityController extends BaseController {
         $data = Input::all();
         $companyID = User::get_companyID();
         $message = '';
-		$data['Worth']	   =	!empty($data['Worth'])?$data['Worth']:0;
         $data ["CompanyID"] = $companyID;
         $rules = array(
             'CompanyID' => 'required',
@@ -230,7 +229,6 @@ class OpportunityController extends BaseController {
 			$old_Opportunity_data = Opportunity::find($id);
             $companyID = User::get_companyID();
             $data["CompanyID"] = $companyID;
-			$data['Worth']	   =	!empty($data['Worth'])?$data['Worth']:0;
 			
 			$TaskBoardUrl=	'';
             $rules = array(
