@@ -498,7 +498,7 @@ class AccountController extends BaseController
             return generateResponse($validator->errors(),true);
         }
         try {
-            $AccountBalance = AccountBalance::where('AccountID', $post_data['AccountID'])->first(['AccountID', 'PermanentCredit', 'UnbilledAmount', 'TemporaryCredit', 'TemporaryCreditDateTime', 'BalanceThreshold','BalanceAmount']);
+            $AccountBalance = AccountBalance::where('AccountID', $post_data['AccountID'])->first(['AccountID', 'PermanentCredit', 'UnbilledAmount','EmailToCustomer', 'TemporaryCredit', 'TemporaryCreditDateTime', 'BalanceThreshold','BalanceAmount']);
         }catch (\Exception $ex){
             Log::info($ex);
             return $this->response->errorInternal($ex->getMessage());
@@ -529,9 +529,8 @@ class AccountController extends BaseController
         if (isset($post_data['BalanceThreshold'])) {
             $AccountBalancedata['BalanceThreshold'] = $post_data['BalanceThreshold'];
         }
-        if(isset($post_data['EmailToCustomer'])){
-            $AccountBalancedata['EmailToCustomer'] = $post_data['EmailToCustomer'];
-        }
+        
+        $AccountBalancedata['EmailToCustomer'] = isset($post_data['EmailToCustomer'])?1:0;
 
         try {
             if (!empty($AccountBalancedata) && AccountBalance::where('AccountID', $post_data['AccountID'])->count()) {
