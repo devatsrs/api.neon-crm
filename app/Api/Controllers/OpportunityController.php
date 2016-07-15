@@ -50,7 +50,7 @@ class OpportunityController extends BaseController {
         $data['opportunityName'] = isset($data['opportunityName'])?empty($data['opportunityName'])?'':$data['opportunityName']:'';
         $data['Tags'] = isset($data['Tags'])?empty($data['Tags'])?'':$data['Tags']:'';
         $data['Status'] = isset($data['Status'])?empty($data['Status'])?'':(is_array($data['Status'])?implode(',',$data['Status']):$data['Status']):'';
-        if(isset($data['opportunityClosed']) && $data['opportunityClosed']==Opportunity::Close){
+        if(isset($data['opportunityClosed']) && !empty($data['opportunityClosed']) && $data['opportunityClosed']!='false'){
             $data['Status'] = Opportunity::Close;
         }
         if($data['fetchType']=='Grid') {
