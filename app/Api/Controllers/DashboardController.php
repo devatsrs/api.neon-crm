@@ -24,7 +24,6 @@ class DashboardController extends BaseController {
     
 
 	public function GetUsersTasks(){
-		
 	    $data 					= 	Input::all();		
 		$companyID			 	= 	User::get_companyID();
 		$SearchDate				=	'';		
@@ -32,7 +31,7 @@ class DashboardController extends BaseController {
 		$task 					= 	Task::where($where)->select(['tblTask.Subject','tblTask.DueDate','tblCRMBoardColumn.BoardColumnName as Status','tblAccount.AccountName as Company','tblTask.Priority']);
 		
 		
-		$UserID			=	(isset($data['UsersID']) && is_array($data['UsersID']))?implode(",",array_filter($data['UsersID'])):'';
+		$UserID			=	(isset($data['UsersID']) && is_array($data['UsersID']))?implode(",",array_filter($data['UsersID'])):$data['UsersID'];
 		if(!empty($UserID)){
 			$task->whereRaw('find_in_set(tblTask.UsersIDs,"'.$UserID.'")');
 		}		
@@ -57,8 +56,7 @@ class DashboardController extends BaseController {
 		$task->join('tblAccount', 'tblTask.AccountIDs', '=', 'tblAccount.AccountID');
 		
         $UserTasks 		 	 	= 	$task->orderBy('tblTask.DueDate', 'desc')->get();
-		
-        $jsondata['UserTasks']	=	$UserTasks;
+	    $jsondata['UserTasks']	=	$UserTasks;
 		return generateResponse('',false,false,json_encode($jsondata));
 	}
 	
