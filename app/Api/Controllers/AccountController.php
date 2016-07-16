@@ -49,7 +49,7 @@ class AccountController extends BaseController
             return generateResponse($validator->errors(),true);
         }
         $AccountBalance = AccountBalance::where('AccountID', $post_data['account_id'])->first();
-        return generateResponse('',false,false,array('CreditUsed' =>$AccountBalance->CreditUsed));
+        return generateResponse('',false,false,array('UnbilledAmount' =>$AccountBalance->UnbilledAmount));
     }
 
     public function UpdateCredit()
@@ -498,7 +498,7 @@ class AccountController extends BaseController
             return generateResponse($validator->errors(),true);
         }
         try {
-            $AccountBalance = AccountBalance::where('AccountID', $post_data['AccountID'])->first(['AccountID', 'PermanentCredit', 'CreditUsed', 'TemporaryCredit', 'TemporaryCreditDateTime', 'BalanceThreshold','BalanceAmount']);
+            $AccountBalance = AccountBalance::where('AccountID', $post_data['AccountID'])->first(['AccountID', 'PermanentCredit', 'UnbilledAmount','EmailToCustomer', 'TemporaryCredit', 'TemporaryCreditDateTime', 'BalanceThreshold','BalanceAmount']);
         }catch (\Exception $ex){
             Log::info($ex);
             return $this->response->errorInternal($ex->getMessage());
@@ -517,21 +517,20 @@ class AccountController extends BaseController
             return generateResponse($validator->errors(),true);
         }
         $AccountBalancedata = $AccountBalance = array();
-        if (!empty($post_data['PermanentCredit'])) {
+        if (isset($post_data['PermanentCredit'])) {
             $AccountBalancedata['PermanentCredit'] = $post_data['PermanentCredit'];
         }
-        if (!empty($post_data['TemporaryCredit'])) {
+        if (isset($post_data['TemporaryCredit'])) {
             $AccountBalancedata['TemporaryCredit'] = $post_data['TemporaryCredit'];
         }
-        if (!empty($post_data['TemporaryCreditDateTime'])) {
+        if (isset($post_data['TemporaryCreditDateTime'])) {
             $AccountBalancedata['TemporaryCreditDateTime'] = $post_data['TemporaryCreditDateTime'];
         }
-        if (!empty($post_data['BalanceThreshold'])) {
+        if (isset($post_data['BalanceThreshold'])) {
             $AccountBalancedata['BalanceThreshold'] = $post_data['BalanceThreshold'];
         }
-        if(!empty($post_data['EmailToCustomer'])){
-            $AccountBalancedata['EmailToCustomer'] = $post_data['EmailToCustomer'];
-        }
+        
+        $AccountBalancedata['EmailToCustomer'] = isset($post_data['EmailToCustomer'])?1:0;
 
         try {
             if (!empty($AccountBalancedata) && AccountBalance::where('AccountID', $post_data['AccountID'])->count()) {
