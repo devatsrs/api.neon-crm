@@ -38,7 +38,7 @@ class DashboardController extends BaseController {
 
 		if(isset($data['TaskTypeData']) && $data['TaskTypeData']!=''){
 		 if($data['TaskTypeData'] == 'duetoday'){
-			 $task->where("tblTask.DueDate","=",DB::raw(''.date('Y-m-d')).'');
+             $task->whereRaw("DATE(tblTask.DueDate) =".date('Y-m-d'));
 		 }
 		 else if($data['TaskTypeData'] == 'duesoon'){
 			 $task->whereBetween('tblTask.DueDate',array(date("Y-m-d"),date("Y-m-d",strtotime(''.date('Y-m-d').' +1 months'))));						
