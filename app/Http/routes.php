@@ -34,11 +34,6 @@ $api->version('v1', function ($api) {
             $api->get('account/GetAccountLeadByContactNumber', 'AccountController@GetAccountLeadByContactNumber');
 
             $api->post('emailattachment/{id}/getattachment/{attachmentID}', 'AccountActivityController@getAttachment');
-			
-			//dashboard			
-			$api->post('dashboard/GetUsersTasks', 'DashboardController@GetUsersTasks');
-			$api->post('dashboard/GetPipleLineData', 'DashboardController@GetPipleLineData');
-			$api->post('dashboard/GetForecastData', 'DashboardController@GetForecastData');
 
 
 			// account credit
