@@ -301,12 +301,15 @@ function site_configration_cache($request){
         $result       =  \Illuminate\Support\Facades\DB::table('tblCompanyThemes')->where(["DomainUrl" => $domain_url,'ThemeStatus'=>\Api\Model\Themes::ACTIVE])->first();
 
         if(!empty($result)){
-            $cache['Logo']       = empty($result->Logo)?'/assets/images/logo@2x.png':$result->Logo;
+            if(!empty($result->Logo)){
 
-        }else{
-            $cache['Logo']       = '/assets/images/logo@2x.png';
-
+                $cache['Logo']       = (!empty($result->Logo))?$result->Logo:"";
+            }
         }
+
+        $cache['DefaultLogo']       = '/assets/images/logo@2x.png';
+
+
         \Illuminate\Support\Facades\Cache::add($siteConfigretion, $cache, $minutes);
     }
     $cache = Cache::get($siteConfigretion);
@@ -338,7 +341,20 @@ function get_image_src($path){
 function getCompanyLogo($request){
 
     $cache = site_configration_cache($request);
-    $logo_url = \App\AmazonS3::unSignedImageUrl($cache["Logo"]);
+
+    if(isset($cache['Logo']) && !empty($cache['Logo'])){
+
+        $logo_url = \App\AmazonS3::unSignedImageUrl($cache["Logo"]);
+
+    }else {
+
+        // if no logo and amazon then use from site url even if amazon is set or not.
+        $DefaultLogo = $cache['DefaultLogo'];
+        $site_url = \Api\Model\CompanyConfiguration::get("SITE_URL");
+
+        $logo_url = combile_url_path($site_url,$DefaultLogo);
+
+    }
 
     return $logo_url;
 }
