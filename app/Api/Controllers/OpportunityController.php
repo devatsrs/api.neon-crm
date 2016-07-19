@@ -52,7 +52,9 @@ class OpportunityController extends BaseController {
         $data['Status'] = isset($data['Status'])?empty($data['Status'])?'':(is_array($data['Status'])?implode(',',$data['Status']):$data['Status']):'';
         $data['CurrencyID'] = isset($data['CurrencyID'])?empty($data['CurrencyID'])?0:$data['CurrencyID']:0;
         if(isset($data['opportunityClosed']) && !empty($data['opportunityClosed']) && $data['opportunityClosed']!='false'){
-            $data['Status'] = Opportunity::Close;
+            $data['OpportunityClosed'] = 1;
+        }else{
+            $data['OpportunityClosed'] = 0;
         }
         if($data['fetchType']=='Grid') {
             $rules['iDisplayStart'] = 'required|Min:1';
@@ -66,7 +68,7 @@ class OpportunityController extends BaseController {
             $columns = ['OpportunityName', 'Status','UserID','RelatedTo','Rating'];
             $sort_column = $columns[$data['iSortCol_0']];
 
-            $query = "call prc_GetOpportunityGrid (" . $companyID . ", " . $id . ",'" . $data['opportunityName'] . "','" . $data['Tags'] . "', " . $data['AccountOwner'] . ", " . $data['AccountID'] .",'".$data['Status']."',".$data['CurrencyID'].",".(ceil($data['iDisplayStart'] / $data['iDisplayLength'])) . " ," . $data['iDisplayLength'] . ",'" . $sort_column . "','" . $data['sSortDir_0'] . "')";
+            $query = "call prc_GetOpportunityGrid (" . $companyID . ", " . $id . ",'" . $data['opportunityName'] . "','" . $data['Tags'] . "', " . $data['AccountOwner'] . ", " . $data['AccountID'] .",'".$data['Status']."',".$data['CurrencyID'].",".$data['OpportunityClosed'].",".(ceil($data['iDisplayStart'] / $data['iDisplayLength'])) . " ," . $data['iDisplayLength'] . ",'" . $sort_column . "','" . $data['sSortDir_0'] . "')";
             Log::info($query);
             try {
                 $result = DataTableSql::of($query)->make();
@@ -76,7 +78,7 @@ class OpportunityController extends BaseController {
                 return $this->response->errorInternal($ex->getMessage());
             }
         }elseif($data['fetchType']=='Board') {
-            $query = "call prc_GetOpportunities (" . $companyID . ", " . $id . ",'" . $data['opportunityName'] . "'," . "'" . $data['Tags'] . "'," . $data['AccountOwner'] . ", " . $data['AccountID'] . ",'" . $data['Status'] . "',".$data['CurrencyID']. ")";
+            $query = "call prc_GetOpportunities (" . $companyID . ", " . $id . ",'" . $data['opportunityName'] . "'," . "'" . $data['Tags'] . "'," . $data['AccountOwner'] . ", " . $data['AccountID'] . ",'" . $data['Status'] . "',".$data['CurrencyID'].",".$data['OpportunityClosed']. ")";
             Log::info($query);
             try {
                 $result = DB::select($query);
@@ -299,8 +301,9 @@ class OpportunityController extends BaseController {
                 }
                 if(isset($data['opportunityClosed']) && $data['opportunityClosed']==Opportunity::Close){
                     $data['ClosingDate'] = date('Y-m-d H:i:s');
-                    $data['Status'] = Opportunity::Close;
+                    $data['OpportunityClosed'] = 1;
                 }else{
+                    $data['OpportunityClosed'] = 0;
                     if(empty($data['Status'])){
                         $data['Status'] = Opportunity::Open;
                     }

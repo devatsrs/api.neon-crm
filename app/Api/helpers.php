@@ -473,6 +473,7 @@ function SendTaskMailUpdate($NewData,$OldData,$type='Task'){
                 $NewData['Subject']      =   "(Neon) ".$NewData['Subject'];
                 $NewData['CreatedBy']      =   $OldData['CreatedBy'];
                 $NewData['TitleHeading']  =   $LogginedUserName." <strong>Assigned</strong> you a ".$type;
+                $NewData['UserProfileImage']  =  UserProfile::get_user_picture_url($LogginedUser);
                 $status        =   sendMail('emails.task.TaskEmailSend', $NewData);
             }
         }
