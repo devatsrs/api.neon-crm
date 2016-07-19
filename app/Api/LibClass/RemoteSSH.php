@@ -13,7 +13,7 @@ class RemoteSSH{
 
     public static function setConfig(){
         $Configuration = CompanyConfiguration::getConfiguration();
-        if(!empty($Configuration)){
+        if(!empty($Configuration) && isset($Configuration['SSH'])){
             self::$config = json_decode($Configuration['SSH'],true);
             self::$uploadPath = $Configuration['UPLOADPATH'];
         }
