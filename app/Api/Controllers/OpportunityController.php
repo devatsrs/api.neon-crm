@@ -82,7 +82,7 @@ class OpportunityController extends BaseController {
                 return generateResponse($validator->errors(),true);
             }
 
-            $columns = ['OpportunityName', 'Status','UserID','RelatedTo','ExpectedClosing','Rating'];
+            $columns = ['OpportunityName', 'Status','UserID','RelatedTo','ExpectedClosing','Value','Rating'];
             $sort_column = $columns[$data['iSortCol_0']];
 
             $query = "call prc_GetOpportunityGrid (" . $companyID . ", " . $id . ",'" . $data['opportunityName'] . "','" . $data['Tags'] . "', '" . $data['AccountOwner'] . "', " . $data['AccountID'] .",'".$data['Status']."',".$data['CurrencyID'].",".$data['OpportunityClosed'].",".(ceil($data['iDisplayStart'] / $data['iDisplayLength'])) . " ," . $data['iDisplayLength'] . ",'" . $sort_column . "','" . $data['sSortDir_0'] . "')";
