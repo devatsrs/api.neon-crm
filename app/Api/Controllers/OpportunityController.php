@@ -45,7 +45,7 @@ class OpportunityController extends BaseController {
             $data['fetchType'] = 'Grid';
         }
 
-        $data['AccountOwner'] = isset($data['AccountOwner'])?empty($data['AccountOwner'])?0:$data['AccountOwner']:0;
+        $data['AccountOwner'] = isset($data['AccountOwner'])?empty($data['AccountOwner'])?'':$data['AccountOwner']:'';
         $data['AccountID'] = isset($data['AccountID'])?empty($data['AccountID'])?0:$data['AccountID']:0;
         $data['opportunityName'] = isset($data['opportunityName'])?empty($data['opportunityName'])?'':$data['opportunityName']:'';
         $data['Tags'] = isset($data['Tags'])?empty($data['Tags'])?'':$data['Tags']:'';
@@ -56,6 +56,23 @@ class OpportunityController extends BaseController {
         }else{
             $data['OpportunityClosed'] = 0;
         }
+        $duedate   = '0000-00-00'; $Starttime = '00:00:00';
+        if(isset($data['ExpectedClosing']) && !empty($data['ExpectedClosing'])){
+            $duedate = $data['ExpectedClosing'];
+        }
+        if(isset($data['StartTime']) && !empty($data['StartTime'])){
+            $Starttime = $data['StartTime'];
+        }
+        if($duedate  == '0000-00-00'){
+            unset($data['ExpectedClosing']);
+            unset($data['StartTime']);
+        }else{
+            if($Starttime  == '00:00:00'){
+                $data['ExpectedClosing'] = $data['ExpectedClosing'].' 23:59:59';
+            }else{
+                $data['ExpectedClosing'] = $data['ExpectedClosing'].' '.$data['StartTime'];
+            }
+        }
         if($data['fetchType']=='Grid') {
             $rules['iDisplayStart'] = 'required|Min:1';
             $rules['iDisplayLength'] = 'required';
@@ -65,10 +82,10 @@ class OpportunityController extends BaseController {
                 return generateResponse($validator->errors(),true);
             }
 
-            $columns = ['OpportunityName', 'Status','UserID','RelatedTo','Rating'];
+            $columns = ['OpportunityName', 'Status','UserID','RelatedTo','ExpectedClosing','Rating'];
             $sort_column = $columns[$data['iSortCol_0']];
 
-            $query = "call prc_GetOpportunityGrid (" . $companyID . ", " . $id . ",'" . $data['opportunityName'] . "','" . $data['Tags'] . "', " . $data['AccountOwner'] . ", " . $data['AccountID'] .",'".$data['Status']."',".$data['CurrencyID'].",".$data['OpportunityClosed'].",".(ceil($data['iDisplayStart'] / $data['iDisplayLength'])) . " ," . $data['iDisplayLength'] . ",'" . $sort_column . "','" . $data['sSortDir_0'] . "')";
+            $query = "call prc_GetOpportunityGrid (" . $companyID . ", " . $id . ",'" . $data['opportunityName'] . "','" . $data['Tags'] . "', '" . $data['AccountOwner'] . "', " . $data['AccountID'] .",'".$data['Status']."',".$data['CurrencyID'].",".$data['OpportunityClosed'].",".(ceil($data['iDisplayStart'] / $data['iDisplayLength'])) . " ," . $data['iDisplayLength'] . ",'" . $sort_column . "','" . $data['sSortDir_0'] . "')";
             Log::info($query);
             try {
                 $result = DataTableSql::of($query)->make();
@@ -78,7 +95,7 @@ class OpportunityController extends BaseController {
                 return $this->response->errorInternal($ex->getMessage());
             }
         }elseif($data['fetchType']=='Board') {
-            $query = "call prc_GetOpportunities (" . $companyID . ", " . $id . ",'" . $data['opportunityName'] . "'," . "'" . $data['Tags'] . "'," . $data['AccountOwner'] . ", " . $data['AccountID'] . ",'" . $data['Status'] . "',".$data['CurrencyID'].",".$data['OpportunityClosed']. ")";
+            $query = "call prc_GetOpportunities (" . $companyID . ", " . $id . ",'" . $data['opportunityName'] . "'," . "'" . $data['Tags'] . "','" . $data['AccountOwner'] . "', " . $data['AccountID'] . ",'" . $data['Status'] . "',".$data['CurrencyID'].",".$data['OpportunityClosed']. ")";
             Log::info($query);
             try {
                 $result = DB::select($query);
@@ -202,6 +219,25 @@ class OpportunityController extends BaseController {
         if ($validator->fails()) {
             return generateResponse($validator->errors(),true);
         }
+
+        $duedate   = '0000-00-00'; $Starttime = '00:00:00';
+        if(isset($data['ExpectedClosing']) && !empty($data['ExpectedClosing'])){
+            $duedate = $data['ExpectedClosing'];
+        }
+        if(isset($data['StartTime']) && !empty($data['StartTime'])){
+            $Starttime = $data['StartTime'];
+        }
+        if($duedate  == '0000-00-00'){
+            unset($data['ExpectedClosing']);
+            unset($data['StartTime']);
+        }else{
+            if($Starttime  == '00:00:00'){
+                $data['ExpectedClosing'] = $data['ExpectedClosing'].' 23:59:59';
+            }else{
+                $data['ExpectedClosing'] = $data['ExpectedClosing'].' '.$data['StartTime'];
+            }
+        }
+
         try {
             if ($data['leadcheck'] == 'No') {
                 $AccountType = $data['leadOrAccount'] == 'Lead' ? 0 : 1;
@@ -236,7 +272,7 @@ class OpportunityController extends BaseController {
             $data["CreatedBy"] = User::get_user_full_name();
             $data['Status'] = isset($data['Status']) && !empty($data['Status'])?$data['Status']:Opportunity::Open;
 
-			$data = cleanarray($data,['OppertunityID','leadcheck','leadOrAccount']);
+			$data = cleanarray($data,['OppertunityID','leadcheck','leadOrAccount','StartTime']);
 
             Opportunity::create($data);
         }
@@ -286,12 +322,29 @@ class OpportunityController extends BaseController {
                 generateResponse($validator->errors(),true);
             }
 			if(isset($data['TaskBoardUrl']) && $data['TaskBoardUrl']!=''){
-					$TaskBoardUrl	=	$data['TaskBoardUrl'];
-				}
-			unset($data['TaskBoardUrl']);
+				$TaskBoardUrl	=	$data['TaskBoardUrl'];
+			}
+
+            $duedate   = '0000-00-00'; $Starttime = '00:00:00';
+            if(isset($data['ExpectedClosing']) && !empty($data['ExpectedClosing'])){
+                $duedate = $data['ExpectedClosing'];
+            }
+            if(isset($data['StartTime']) && !empty($data['StartTime'])){
+                $Starttime = $data['StartTime'];
+            }
+            if($duedate  == '0000-00-00'){
+                unset($data['ExpectedClosing']);
+                unset($data['StartTime']);
+            }else{
+                if($Starttime  == '00:00:00'){
+                    $data['ExpectedClosing'] = $data['ExpectedClosing'].' 23:59:59';
+                }else{
+                    $data['ExpectedClosing'] = $data['ExpectedClosing'].' '.$data['StartTime'];
+                }
+            }
+
             try {
 
-                //$data['ClosingDate'] = '';
                 if(isset($data['TaggedUsers']) && !empty($data['TaggedUsers'])) {
                     Tags::insertNewTags(['tags' => $data['Tags'], 'TagType' => Tags::Opportunity_tag]);
                     $taggedUsers = implode(',', $data['TaggedUsers']);
@@ -309,7 +362,7 @@ class OpportunityController extends BaseController {
                     }
                 }
 
-				$data = cleanarray($data,['OpportunityID','opportunityClosed']);
+				$data = cleanarray($data,['OpportunityID','opportunityClosed','TaskBoardUrl','StartTime']);
                 $Opportunity = Opportunity::find($id);
                 if($Opportunity->BoardID!=$data['BoardID']){
                     $data["BoardColumnID"] = CRMBoardColumn::where(['BoardID' => $data['BoardID'], 'Order' => 0])->pluck('BoardColumnID');
