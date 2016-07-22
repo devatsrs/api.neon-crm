@@ -134,8 +134,8 @@ class DashboardController extends BaseController {
 		$Closingdate		=	explode(' - ',$data['Closingdate']);
 		$StartDate			=   $Closingdate[0]." 00:00:00";
 		$EndDate			=	$Closingdate[1]." 23:59:59";		
-		$statusarray		=	(isset($data['Status']))?$data['Status']:'';
-		$query  			= 	"call prc_GetCrmDashboardSales (".$companyID.",'".$UserID."', '".$statusarray."','".$CurrencyID."','".$StartDate."','".$EndDate."')";  
+		$statusarray		=	(isset($data['Status']))?implode(",",$data['Status']):'';
+		$query  			= 	"call prc_GetCrmDashboardSales (".$companyID.",'".$UserID."', '".$statusarray."','".$CurrencyID."','".$StartDate."','".$EndDate."')";  Log::info($query);
 		$result 			= 	DB::select($query);
 		$TotalWorth			=	0;
 		
@@ -176,10 +176,11 @@ class DashboardController extends BaseController {
 
 		
 		foreach($array_data as $key => $array_data_loop){
-			$array_return1[] = array("user"=>$key,"worth"=>implode(",",$array_data_loop));
+			$array_return1[] = array("user"=>$key,"worth"=>implode(",",$array_data_loop));			
 		}
 		
 		if(count($array_users)>0){
+			$worth = number_format($worth,$result_data->round_number);
 			$array_final = array("data"=>$array_return1,"dates"=>implode(",",$array_dates),'TotalWorth'=>$worth,"count"=>count($array_users),"CurrencyCode"=>$result_data->v_CurrencyCode_,"status"=>"success");
 		}		
 		
@@ -256,6 +257,7 @@ class DashboardController extends BaseController {
 		}
 		
 		if(count($array_users)>0){
+			$worth = number_format($worth,$result_data->round_number);
 			$array_final = array("data"=>$array_return1,"dates"=>implode(",",$array_dates),'TotalWorth'=>$worth,"count"=>count($array_users),"CurrencyCode"=>$result_data->v_CurrencyCode_,"status"=>"success");
 		}		
 		
@@ -287,8 +289,8 @@ class DashboardController extends BaseController {
 			return generateResponse($validator->errors(),true);
 		}
 
-         $columns 					= 	['OpportunityName', 'Status','UserID','RelatedTo','Rating'];
-         $sort_column 				= 	$columns[$data['iSortCol_0']];
+         $columns 				= 	['OpportunityName', 'Status','UserID','RelatedTo','ExpectedClosing','Value','Rating'];
+         $sort_column 			= 	$columns[$data['iSortCol_0']];
 		 
          $query = "call prc_GetOpportunityGrid (" . $companyID . ",'0', '','', '" . $UserID . "', 0,'1', ".$data['CurrencyID'].", '0',".(ceil($data['iDisplayStart'] / $data['iDisplayLength'])) . "," . $data['iDisplayLength'] . ",'" . $sort_column . "','" . $data['sSortDir_0'] . "')"; 
 		    try {
