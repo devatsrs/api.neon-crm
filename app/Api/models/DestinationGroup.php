@@ -15,7 +15,7 @@ class DestinationGroup extends Model
     public $timestamps = false; // no created_at and updated_at
 
     public static function checkForeignKeyById($id) {
-        $hasInDiscountPlan = DiscountPlan::where("DestinationGroupID",$id)->count();
+        $hasInDiscountPlan = Discount::where("DestinationGroupID",$id)->count();
         if( intval($hasInDiscountPlan) > 0 ){
             return true;
         }else{
