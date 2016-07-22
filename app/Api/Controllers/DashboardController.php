@@ -74,6 +74,7 @@ class DashboardController extends BaseController {
 	}
 	
 	function GetPipleLineData(){
+		
         $companyID 			= 	User::get_companyID();
         $userID 			= 	'';
         $data 				= 	Input::all();
@@ -146,17 +147,17 @@ class DashboardController extends BaseController {
 		}
 		
 		foreach($result as $result_data){			
-			if(!in_array($result_data->ClosingDate,$array_dates)){			
-				$array_dates[]   = $result_data->ClosingDate;
+			if(!in_array($result_data->MonthName,$array_dates)){			
+				$array_dates[]   = $result_data->MonthName;
 			}
 		}
 		
 		foreach($result as $result_data){
-			if(isset($array_date[$result_data->ClosingDate][$result_data->AssignedUserText])){
-				$current_data = $array_date[$result_data->ClosingDate][$result_data->AssignedUserText];	
-				$array_date[$result_data->ClosingDate][$result_data->AssignedUserText] 	 = 	$result_data->TotalWorth+$current_data;
+			if(isset($array_date[$result_data->MonthName][$result_data->AssignedUserText])){
+				$current_data = $array_date[$result_data->MonthName][$result_data->AssignedUserText];	
+				$array_date[$result_data->MonthName][$result_data->AssignedUserText] 	 = 	$result_data->TotalWorth+$current_data;
 			}else{
-				$array_date[$result_data->ClosingDate][$result_data->AssignedUserText] 	 = 	$result_data->TotalWorth;
+				$array_date[$result_data->MonthName][$result_data->AssignedUserText] 	 = 	$result_data->TotalWorth;
 			}			
 			$worth = $worth+$result_data->TotalWorth;
 		}
@@ -181,7 +182,7 @@ class DashboardController extends BaseController {
 		
 		if(count($array_users)>0){
 			$worth = number_format($worth,$result_data->round_number);
-			$array_final = array("data"=>$array_return1,"dates"=>implode(",",$array_dates),'TotalWorth'=>$worth,"count"=>count($array_users),"CurrencyCode"=>$result_data->v_CurrencyCode_,"status"=>"success");
+			$array_final = array("data"=>$array_return1,"dates"=>implode(",",$array_dates),'TotalWorth'=>$worth,"count"=>count($array_users),"CurrencyCode"=>$result_data->v_CurrencyCode_,"TotalOpportunites"=>count($result),"status"=>"success");
 		}		
 		
 		return generateResponse('',false,false,json_encode($array_final));
@@ -223,17 +224,17 @@ class DashboardController extends BaseController {
 		}
 		
 		foreach($result as $result_data){			
-			if(!in_array($result_data->ClosingDate,$array_dates)){			
-				$array_dates[]   = $result_data->ClosingDate;
+			if(!in_array($result_data->MonthName,$array_dates)){			
+				$array_dates[]   = $result_data->MonthName;
 			}
 		}
 		
 		foreach($result as $result_data){
-			if(isset($array_date[$result_data->ClosingDate][$result_data->AssignedUserText])){
-				$current_data = $array_date[$result_data->ClosingDate][$result_data->AssignedUserText];	
-				$array_date[$result_data->ClosingDate][$result_data->AssignedUserText] 	 = 	$result_data->TotalWorth+$current_data;
+			if(isset($array_date[$result_data->MonthName][$result_data->AssignedUserText])){
+				$current_data = $array_date[$result_data->MonthName][$result_data->AssignedUserText];	
+				$array_date[$result_data->MonthName][$result_data->AssignedUserText] 	 = 	$result_data->TotalWorth+$current_data;
 			}else{
-				$array_date[$result_data->ClosingDate][$result_data->AssignedUserText] 	 = 	$result_data->TotalWorth;
+				$array_date[$result_data->MonthName][$result_data->AssignedUserText] 	 = 	$result_data->TotalWorth;
 			}			
 			$worth = $worth+$result_data->TotalWorth;
 		}
@@ -258,7 +259,7 @@ class DashboardController extends BaseController {
 		
 		if(count($array_users)>0){
 			$worth = number_format($worth,$result_data->round_number);
-			$array_final = array("data"=>$array_return1,"dates"=>implode(",",$array_dates),'TotalWorth'=>$worth,"count"=>count($array_users),"CurrencyCode"=>$result_data->v_CurrencyCode_,"status"=>"success");
+			$array_final = array("data"=>$array_return1,"dates"=>implode(",",$array_dates),'TotalWorth'=>$worth,"count"=>count($array_users),"CurrencyCode"=>$result_data->CurrencyCode,"status"=>"success");
 		}		
 		
 		return generateResponse('',false,false,json_encode($array_final));
