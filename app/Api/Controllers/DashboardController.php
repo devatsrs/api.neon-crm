@@ -89,9 +89,11 @@ class DashboardController extends BaseController {
 		}
 		$CurrencyID			=	(isset($data['CurrencyID']) && !empty($data['CurrencyID']))?$data['CurrencyID']:0;
 		$array_return 		= 	array();
+		$array_users		=	array();
+		$array_worth		=	array();
 		$TotalOpportunites  =   0;
 		$TotalWorth			=	0;
-		$query  			= 	"call prc_GetCrmDashboardPipeLine (".$companyID.",'".$UserID."','".$CurrencyID."')"; 
+		$query  			= 	"call prc_GetCrmDashboardPipeLine (".$companyID.",'".$UserID."','".$CurrencyID."')";  Log::info($query);
 		$result 			= 	DB::select($query);
 		
 		foreach($result as $result_data){
@@ -100,12 +102,19 @@ class DashboardController extends BaseController {
 			$TotalWorth					=	$TotalWorth+$result_data->TotalWorth;	
 		}
 		
+		foreach($result as $result_data){
+			$array_users[]		=	$result_data->AssignedUserText;
+			$array_worth[]		=	$result_data->TotalWorth;
+		}
+		
 		if(!isset($array_return['data'])){
 			$array_return['data']				= 	array('Worth'=>0,"Opportunites"=>0,'CurrencyCode'=>'');
 		}
 		$round								=	isset($result_data->RoundVal)?$result_data->RoundVal:0;
 		$array_return['CurrencyCode'] 		= 	isset($result_data->v_CurrencyCode_)?$result_data->v_CurrencyCode_:'';
 		$array_return['TotalOpportunites']	=	$TotalOpportunites;
+		$array_return['users']				=	implode(",",$array_users);
+		$array_return['worth']				=	implode(",",$array_worth);
 		$array_return['TotalWorth']			=	number_format((int)$TotalWorth,(int)$round);
 		return generateResponse('',false,false,json_encode($array_return));
 	}
@@ -131,6 +140,7 @@ class DashboardController extends BaseController {
 		$worth				=	0;
 		$array_dates		=	array();	
 		$array_users		=	array();				
+		$total_opp			=	0;
 		$array_final 		= 	array("count"=>0,"status"=>"success");
 		$Closingdate		=	explode(' - ',$data['Closingdate']);
 		$StartDate			=   $Closingdate[0]." 00:00:00";
@@ -144,6 +154,7 @@ class DashboardController extends BaseController {
 			if(!in_array($result_data->AssignedUserText,$array_users)){			
 				$array_users[]   = $result_data->AssignedUserText;
 			}
+			$total_opp = $total_opp+$result_data->Opportunitescount;
 		}
 		
 		foreach($result as $result_data){			
@@ -171,7 +182,6 @@ class DashboardController extends BaseController {
 				}else{
 					$array_data[$array_users_data][] = 0;
 				}
-				
 			}
 		}
 
@@ -182,7 +192,7 @@ class DashboardController extends BaseController {
 		
 		if(count($array_users)>0){
 			$worth = number_format($worth,$result_data->round_number);
-			$array_final = array("data"=>$array_return1,"dates"=>implode(",",$array_dates),'TotalWorth'=>$worth,"count"=>count($array_users),"CurrencyCode"=>$result_data->v_CurrencyCode_,"TotalOpportunites"=>count($result),"status"=>"success");
+			$array_final = array("data"=>$array_return1,"dates"=>implode(",",$array_dates),'TotalWorth'=>$worth,"count"=>count($array_users),"CurrencyCode"=>$result_data->v_CurrencyCode_,"TotalOpportunites"=>$total_opp,"status"=>"success");
 		}		
 		
 		return generateResponse('',false,false,json_encode($array_final));
@@ -206,6 +216,7 @@ class DashboardController extends BaseController {
 		$array_return1 		= 	array();
 		$array_date			=	array();
 		$worth				=	0;
+		$total_opp			=	0;
 		$array_dates		=	array();	
 		$array_users		=	array();				
 		$array_final 		= 	array("count"=>0,"status"=>"success");
@@ -221,6 +232,7 @@ class DashboardController extends BaseController {
 			if(!in_array($result_data->AssignedUserText,$array_users)){			
 				$array_users[]   = $result_data->AssignedUserText;
 			}
+			$total_opp			=	$total_opp+$result_data->Opportunitescount;
 		}
 		
 		foreach($result as $result_data){			
@@ -259,7 +271,7 @@ class DashboardController extends BaseController {
 		
 		if(count($array_users)>0){
 			$worth = number_format($worth,$result_data->round_number);
-			$array_final = array("data"=>$array_return1,"dates"=>implode(",",$array_dates),'TotalWorth'=>$worth,"count"=>count($array_users),"CurrencyCode"=>$result_data->CurrencyCode,"status"=>"success");
+			$array_final = array("data"=>$array_return1,"dates"=>implode(",",$array_dates),'TotalWorth'=>$worth,"count"=>count($array_users),"CurrencyCode"=>$result_data->CurrencyCode,"TotalOpportunites"=>$total_opp,"status"=>"success");
 		}		
 		
 		return generateResponse('',false,false,json_encode($array_final));
