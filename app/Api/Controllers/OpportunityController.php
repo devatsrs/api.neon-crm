@@ -113,8 +113,8 @@ class OpportunityController extends BaseController {
                 }
                 $return['columns'] = $columns;
                 $return['columnsWithOpportunities'] = $columnsWithOpportunities;
-                $return['WorthTotal'] = $row->WorthTotal;
-				$return['Currency'] = $row->CurrencyCode;
+				$return['WorthTotal'] = isset($row->WorthTotal)?$row->WorthTotal:0.00;
+				$return['Currency'] = isset($row->CurrencyCode)?$row->CurrencyCode:'';
                 return generateResponse('', false, false, $return);
             } catch (\Exception $ex) {
                 Log::info($ex);
