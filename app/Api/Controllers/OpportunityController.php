@@ -86,7 +86,6 @@ class OpportunityController extends BaseController {
             $sort_column = $columns[$data['iSortCol_0']];
 
             $query = "call prc_GetOpportunityGrid (" . $companyID . ", " . $id . ",'" . $data['opportunityName'] . "','" . $data['Tags'] . "', '" . $data['AccountOwner'] . "', " . $data['AccountID'] .",'".$data['Status']."',".$data['CurrencyID'].",".$data['OpportunityClosed'].",".(ceil($data['iDisplayStart'] / $data['iDisplayLength'])) . " ," . $data['iDisplayLength'] . ",'" . $sort_column . "','" . $data['sSortDir_0'] . "')";
-            Log::info($query);
             try {
                 $result = DataTableSql::of($query)->make();
                 return generateResponse('',false,false,$result);
@@ -96,7 +95,6 @@ class OpportunityController extends BaseController {
             }
         }elseif($data['fetchType']=='Board') {
             $query = "call prc_GetOpportunities (" . $companyID . ", " . $id . ",'" . $data['opportunityName'] . "'," . "'" . $data['Tags'] . "','" . $data['AccountOwner'] . "', " . $data['AccountID'] . ",'" . $data['Status'] . "',".$data['CurrencyID'].",".$data['OpportunityClosed']. ")";
-            Log::info($query);
             try {
                 $result = DB::select($query);
                 $columnsWithOpportunities = [];
@@ -116,6 +114,7 @@ class OpportunityController extends BaseController {
                 $return['columns'] = $columns;
                 $return['columnsWithOpportunities'] = $columnsWithOpportunities;
                 $return['WorthTotal'] = $row->WorthTotal;
+				$return['Currency'] = $row->CurrencyCode;
                 return generateResponse('', false, false, $return);
             } catch (\Exception $ex) {
                 Log::info($ex);
@@ -295,7 +294,7 @@ class OpportunityController extends BaseController {
     public function updateOpportunity($id)
     {
         if( $id > 0 ) {
-            $data = Input::all(); Log::info($data);
+            $data = Input::all();
 			$old_Opportunity_data = Opportunity::find($id);
             $companyID = User::get_companyID();
             $data["CompanyID"] = $companyID;
