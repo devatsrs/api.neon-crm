@@ -295,13 +295,14 @@ class OpportunityController extends BaseController {
     public function updateOpportunity($id)
     {
         if( $id > 0 ) {
-            $data = Input::all();
+            $data = Input::all(); Log::info($data);
 			$old_Opportunity_data = Opportunity::find($id);
             $companyID = User::get_companyID();
             $data["CompanyID"] = $companyID;
             $data['Worth']    = !empty($data['Worth'])?$data['Worth']:0;
 			$TaskBoardUrl=	'';
-            $rules = array(
+            
+			$rules = array(
                 'CompanyID' => 'required',
                 'OpportunityName' => 'required',
                 'Company'=>'required',
@@ -311,7 +312,21 @@ class OpportunityController extends BaseController {
                 //'Phone'=>'required',
                 'BoardID'=>'required'
             );
-
+			
+			 if(isset($data['opportunityClosed']) && $data['opportunityClosed']==Opportunity::Close){
+				 $rules = array(
+					'CompanyID' => 'required',
+					'OpportunityName' => 'required',
+					'Company'=>'required',
+					'FirstName'=>'required',
+					'LastName'=>'required',
+					'Email'=>'required',
+					//'Phone'=>'required',
+					'BoardID'=>'required',
+					"ClosingDate"=>"required"
+					
+          		  );
+			 }
             $messages = array(
                 'BoardID.required' => 'Opportunity Board field is required.'
             );
@@ -325,6 +340,10 @@ class OpportunityController extends BaseController {
 				$TaskBoardUrl	=	$data['TaskBoardUrl'];
 			}
 
+			
+			if(isset($data['ClosingDate']) && empty($data['ClosingDate'])){
+                unset($data['ClosingDate']);
+            }
             $duedate   = '0000-00-00'; $Starttime = '00:00:00';
             if(isset($data['ExpectedClosing']) && !empty($data['ExpectedClosing'])){
                 $duedate = $data['ExpectedClosing'];
@@ -353,7 +372,7 @@ class OpportunityController extends BaseController {
                     $data['TaggedUsers'] = '';
                 }
                 if(isset($data['opportunityClosed']) && $data['opportunityClosed']==Opportunity::Close){
-                    $data['ClosingDate'] = date('Y-m-d H:i:s');
+                   // $data['ClosingDate'] = date('Y-m-d H:i:s');
                     $data['OpportunityClosed'] = 1;
                 }else{
                     $data['OpportunityClosed'] = 0;
