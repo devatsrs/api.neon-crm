@@ -311,30 +311,19 @@ class OpportunityController extends BaseController {
                 'Email'=>'required',
                 //'Phone'=>'required',
                 'BoardID'=>'required'
-            );
+            ); 
 			
 			 if(isset($data['opportunityClosed']) && $data['opportunityClosed']==Opportunity::Close){
-				 $rules = array(
-					'CompanyID' => 'required',
-					'OpportunityName' => 'required',
-					'Company'=>'required',
-					'FirstName'=>'required',
-					'LastName'=>'required',
-					'Email'=>'required',
-					//'Phone'=>'required',
-					'BoardID'=>'required',
-					"ClosingDate"=>"required"
-					
-          		  );
-			 }
+				 $rules['ClosingDate']  ="required";
+			 }  
             $messages = array(
                 'BoardID.required' => 'Opportunity Board field is required.'
             );
-
             $validator = Validator::make($data, $rules, $messages);
-
-            if ($validator->fails()) {
-                generateResponse($validator->errors(),true);
+			
+            if ($validator->fails()) {  Log::info($validator->errors());
+             	return   generateResponse($validator->errors(),true);
+				
             }
 			if(isset($data['TaskBoardUrl']) && $data['TaskBoardUrl']!=''){
 				$TaskBoardUrl	=	$data['TaskBoardUrl'];
