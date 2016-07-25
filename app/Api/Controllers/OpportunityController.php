@@ -86,7 +86,6 @@ class OpportunityController extends BaseController {
             $sort_column = $columns[$data['iSortCol_0']];
 
             $query = "call prc_GetOpportunityGrid (" . $companyID . ", " . $id . ",'" . $data['opportunityName'] . "','" . $data['Tags'] . "', '" . $data['AccountOwner'] . "', " . $data['AccountID'] .",'".$data['Status']."',".$data['CurrencyID'].",".$data['OpportunityClosed'].",".(ceil($data['iDisplayStart'] / $data['iDisplayLength'])) . " ," . $data['iDisplayLength'] . ",'" . $sort_column . "','" . $data['sSortDir_0'] . "')";
-            Log::info($query);
             try {
                 $result = DataTableSql::of($query)->make();
                 return generateResponse('',false,false,$result);
@@ -96,7 +95,6 @@ class OpportunityController extends BaseController {
             }
         }elseif($data['fetchType']=='Board') {
             $query = "call prc_GetOpportunities (" . $companyID . ", " . $id . ",'" . $data['opportunityName'] . "'," . "'" . $data['Tags'] . "','" . $data['AccountOwner'] . "', " . $data['AccountID'] . ",'" . $data['Status'] . "',".$data['CurrencyID'].",".$data['OpportunityClosed']. ")";
-            Log::info($query);
             try {
                 $result = DB::select($query);
                 $columnsWithOpportunities = [];
@@ -115,7 +113,8 @@ class OpportunityController extends BaseController {
                 }
                 $return['columns'] = $columns;
                 $return['columnsWithOpportunities'] = $columnsWithOpportunities;
-                $return['WorthTotal'] = $row->WorthTotal;
+				$return['WorthTotal'] = isset($row->WorthTotal)?$row->WorthTotal:0.00;
+				$return['Currency'] = isset($row->CurrencyCode)?$row->CurrencyCode:'';
                 return generateResponse('', false, false, $return);
             } catch (\Exception $ex) {
                 Log::info($ex);
@@ -301,7 +300,8 @@ class OpportunityController extends BaseController {
             $data["CompanyID"] = $companyID;
             $data['Worth']    = !empty($data['Worth'])?$data['Worth']:0;
 			$TaskBoardUrl=	'';
-            $rules = array(
+            
+			$rules = array(
                 'CompanyID' => 'required',
                 'OpportunityName' => 'required',
                 'Company'=>'required',
@@ -310,21 +310,31 @@ class OpportunityController extends BaseController {
                 'Email'=>'required',
                 //'Phone'=>'required',
                 'BoardID'=>'required'
-            );
-
-            $messages = array(
+            ); 
+			
+		 $messages = array(
                 'BoardID.required' => 'Opportunity Board field is required.'
             );
+			
+			 if(isset($data['opportunityClosed']) && $data['opportunityClosed']==Opportunity::Close){
+				 $rules['ClosingDate']  ="required";
+				$messages['ClosingDate.required']	 = 'Actual Close Date field is required';
+			 }  
 
             $validator = Validator::make($data, $rules, $messages);
-
-            if ($validator->fails()) {
-                generateResponse($validator->errors(),true);
+			
+            if ($validator->fails()) {  Log::info($validator->errors());
+             	return   generateResponse($validator->errors(),true);
+				
             }
 			if(isset($data['TaskBoardUrl']) && $data['TaskBoardUrl']!=''){
 				$TaskBoardUrl	=	$data['TaskBoardUrl'];
 			}
 
+			
+			if(isset($data['ClosingDate']) && empty($data['ClosingDate'])){
+                unset($data['ClosingDate']);
+            }
             $duedate   = '0000-00-00'; $Starttime = '00:00:00';
             if(isset($data['ExpectedClosing']) && !empty($data['ExpectedClosing'])){
                 $duedate = $data['ExpectedClosing'];
@@ -353,7 +363,7 @@ class OpportunityController extends BaseController {
                     $data['TaggedUsers'] = '';
                 }
                 if(isset($data['opportunityClosed']) && $data['opportunityClosed']==Opportunity::Close){
-                    $data['ClosingDate'] = date('Y-m-d H:i:s');
+                   // $data['ClosingDate'] = date('Y-m-d H:i:s');
                     $data['OpportunityClosed'] = 1;
                 }else{
                     $data['OpportunityClosed'] = 0;
