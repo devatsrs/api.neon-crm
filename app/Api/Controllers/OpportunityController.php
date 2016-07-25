@@ -312,12 +312,15 @@ class OpportunityController extends BaseController {
                 'BoardID'=>'required'
             ); 
 			
-			 if(isset($data['opportunityClosed']) && $data['opportunityClosed']==Opportunity::Close){
-				 $rules['ClosingDate']  ="required";
-			 }  
-            $messages = array(
+		 $messages = array(
                 'BoardID.required' => 'Opportunity Board field is required.'
             );
+			
+			 if(isset($data['opportunityClosed']) && $data['opportunityClosed']==Opportunity::Close){
+				 $rules['ClosingDate']  ="required";
+				$messages['ClosingDate.required']	 = 'Actual Close Date field is required';
+			 }  
+
             $validator = Validator::make($data, $rules, $messages);
 			
             if ($validator->fails()) {  Log::info($validator->errors());
