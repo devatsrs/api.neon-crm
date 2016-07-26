@@ -113,7 +113,7 @@ class OpportunityController extends BaseController {
                 }
                 $return['columns'] = $columns;
                 $return['columnsWithOpportunities'] = $columnsWithOpportunities;
-                $return['WorthTotal'] = isset($row->WorthTotal)?$row->WorthTotal:0.00;
+				$return['WorthTotal'] = isset($row->WorthTotal)?$row->WorthTotal:0.00;
 				$return['Currency'] = isset($row->CurrencyCode)?$row->CurrencyCode:'';
                 return generateResponse('', false, false, $return);
             } catch (\Exception $ex) {
@@ -312,7 +312,7 @@ class OpportunityController extends BaseController {
                 'BoardID'=>'required'
             ); 
 			
-			 $messages = array(
+		 $messages = array(
                 'BoardID.required' => 'Opportunity Board field is required.'
             );
 			
