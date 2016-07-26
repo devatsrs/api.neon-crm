@@ -113,8 +113,8 @@ class OpportunityController extends BaseController {
                 }
                 $return['columns'] = $columns;
                 $return['columnsWithOpportunities'] = $columnsWithOpportunities;
-                $return['WorthTotal'] = $row->WorthTotal;
-				$return['Currency'] = $row->CurrencyCode;
+                $return['WorthTotal'] = isset($row->WorthTotal)?$row->WorthTotal:0.00;
+				$return['Currency'] = isset($row->CurrencyCode)?$row->CurrencyCode:'';
                 return generateResponse('', false, false, $return);
             } catch (\Exception $ex) {
                 Log::info($ex);
@@ -312,12 +312,15 @@ class OpportunityController extends BaseController {
                 'BoardID'=>'required'
             ); 
 			
-			 if(isset($data['opportunityClosed']) && $data['opportunityClosed']==Opportunity::Close){
-				 $rules['ClosingDate']  ="required";
-			 }  
-            $messages = array(
+			 $messages = array(
                 'BoardID.required' => 'Opportunity Board field is required.'
             );
+			
+			 if(isset($data['opportunityClosed']) && $data['opportunityClosed']==Opportunity::Close){
+				 $rules['ClosingDate']  ="required";
+				$messages['ClosingDate.required']	 = 'Actual Close Date field is required';
+			 }  
+
             $validator = Validator::make($data, $rules, $messages);
 			
             if ($validator->fails()) {  Log::info($validator->errors());
