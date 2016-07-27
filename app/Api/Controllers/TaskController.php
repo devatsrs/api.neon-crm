@@ -63,7 +63,7 @@ class TaskController extends BaseController {
             $columns = ['Subject', 'DueDate', 'Status','UserID','RelatedTo'];
             $sort_column = $columns[$data['iSortCol_0']];
 
-            $query = "call prc_GetTasksGrid (" . $companyID . ", " . $id . ",'" . $data['taskName'] . "'," . $data['AccountOwner'] . ", " . $data['AccountIDs'] . ", " . $data['Priority'] .",'".$data['DueDateFrom']."','".$data['DueDateTo']."',".$data['TaskStatus'].",".$data['taskClosed'].",".(ceil($data['iDisplayStart'] / $data['iDisplayLength'])) . " ," . $data['iDisplayLength'] . ",'" . $sort_column . "','" . $data['sSortDir_0'] . "')";
+            $query = "call prc_GetTasksGrid (" . $companyID . ", " . $id . ",'" . $data['taskName'] . "'," . $data['AccountOwner'] . ", " . $data['AccountIDs'] . ", " . $data['Priority'] .",'".$data['DueDateFrom']."','".$data['DueDateTo']."',".$data['TaskStatus'].",".$data['taskClosed'].",".(ceil($data['iDisplayStart'] / $data['iDisplayLength'])) . " ," . $data['iDisplayLength'] . ",'" . $sort_column . "','" . $data['sSortDir_0'] . "')";  
             try {
                 $result = DataTableSql::of($query)->make();
                 return generateResponse('',false,false,$result);
@@ -195,7 +195,27 @@ class TaskController extends BaseController {
         if ($validator->fails()) {
             return generateResponse($validator->errors(),true);
         }
-        $data['DueDate'] = isset($data['StartTime']) && !empty($data['StartTime'])?$data['DueDate'].' '.$data['StartTime']:$data['DueDate'];
+		
+       // $data['DueDate'] = (isset($data['StartTime']) && !empty($data['StartTime']) && isset($data['DueDate']) && !empty($data['DueDate']))?$data['DueDate'].' '.$data['StartTime']:$data['DueDate'];
+		//$data['DueDate']	   =	!empty($data['DueDate'])?$data['DueDate']:'0000-00-00 00:00:00';
+		   $duedate   = '0000-00-00'; $Starttime = '00:00:00'; 
+		   if(isset($data['DueDate']) && !empty($data['DueDate'])){
+				$duedate = $data['DueDate'];
+		   }			   
+		   if(isset($data['StartTime']) && !empty($data['StartTime'])){
+				$Starttime = $data['StartTime'];
+		   }		   
+			if($duedate  == '0000-00-00'){
+				unset($data['DueDate']);
+				unset($data['StartTime']);
+			}else{ 
+				if($Starttime  == '00:00:00'){
+					$data['DueDate'] = $data['DueDate'].' 23:59:59';
+				}else{
+					$data['DueDate'] = $data['DueDate'].' '.$data['StartTime'];
+				}
+			}
+		
         $Task_view = isset($data['Task_view'])?1:0;
 		$data = cleanarray($data,['StartTime','scrol','Task_view']);
 		try {
@@ -327,7 +347,27 @@ class TaskController extends BaseController {
                     $data['taskClosed'] = Task::Open;
                 }
                 $data['BoardColumnID'] = $data["TaskStatus"];
-                $data['DueDate'] = isset($data['StartTime']) && !empty($data['StartTime'])?$data['DueDate'].' '.$data['StartTime']:$data['DueDate'];
+               // $data['DueDate'] = isset($data['StartTime']) && !empty($data['StartTime'])?$data['DueDate'].' '.$data['StartTime']:$data['DueDate'];
+			   $duedate   = '0000-00-00'; $Starttime = '00:00:00'; 
+			   if(isset($data['DueDate']) && !empty($data['DueDate'])){
+			 		$duedate = $data['DueDate'];
+			   }			   
+			   if(isset($data['StartTime']) && !empty($data['StartTime'])){
+			 		$Starttime = $data['StartTime'];
+			   }
+			   
+				if($duedate  == '0000-00-00'){
+					unset($data['DueDate']);
+					unset($data['StartTime']);
+					//$data['DueDate'] = "''";
+				}else{ 
+					if($Starttime  == '00:00:00'){
+						$data['DueDate'] = $data['DueDate'].' 23:59:59';
+					}else{
+						$data['DueDate'] = $data['DueDate'].' '.$data['StartTime'];
+					}
+				}
+				//$data['DueDate']	   =	!empty($data['DueDate'])?$data['DueDate']:"'0000-00-00 00:00:00'";
                 $data['Priority'] = isset($data['Priority'])?1:0;
 				if(isset($data['required_data']) && $data['required_data']!=''){
 					$required_data = 1;

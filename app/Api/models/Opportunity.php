@@ -21,4 +21,12 @@ class Opportunity extends \Eloquent {
     public static $status = [Opportunity::Open=>'Open',Opportunity::Won=>'Won',Opportunity::Lost=>'Lost',
         Opportunity::Abandoned=>'Abandoned'];
 
+    public static function getOpportunityList($select=1){
+        $companyID = User::get_companyID();
+        $row = Opportunity::where(['CompanyID'=>$companyID])->select(['OpportunityID','OpportunityName'])->lists('OpportunityName','OpportunityID');
+        if(!empty($row) & $select==1){
+            $row = array(""=> "Select an Opportunity")+$row;
+        }
+        return $row;
+    }
 }

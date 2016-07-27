@@ -11,7 +11,7 @@ $api->version('v1', function ($api) {
 		$api->post('login', 'AuthController@authenticate');
         $api->post('logout', 'AuthController@logout');
 		$api->post('register', 'AuthController@register');
-        $api->post('l/{id}', 'AuthController@authenticate');
+		$api->post('l/{id}', 'AuthController@authenticate');
 
 		// Dogs! All routes in here are protected and thus need a valid token
 		//$api->group( [ 'protected' => true, 'middleware' => 'jwt.refresh' ], function ($api) {
@@ -34,15 +34,27 @@ $api->version('v1', function ($api) {
             $api->get('account/GetAccountLeadByContactNumber', 'AccountController@GetAccountLeadByContactNumber');
 
             $api->post('emailattachment/{id}/getattachment/{attachmentID}', 'AccountActivityController@getAttachment');
+			
+			//dashboard			
+			$api->post('dashboard/GetUsersTasks', 'DashboardController@GetUsersTasks');
+			$api->post('dashboard/GetPipleLineData', 'DashboardController@GetPipleLineData');
+			$api->post('dashboard/GetSalesdata', 'DashboardController@GetSalesdata');
+			$api->post('dashboard/GetForecastData', 'DashboardController@GetForecastData');			
+			$api->post('dashboard/get_opportunities_grid','DashboardController@getOpportunitiesGrid');
+			
+			$api->post('dashboard/get_opportunities_grid','DashboardController@getOpportunitiesGrid');
 
 
 			// account credit
             $api->get('account/get_credit', 'AccountController@GetCredit');
 			$api->post('account/update_credit', 'AccountController@UpdateCredit');
 			$api->delete('account/delete_credit', 'AccountController@DeleteCredit');
+			$api->get('account/get_creditinfo', 'AccountController@GetCreditInfo');
+			$api->post('account/update_creditinfo', 'AccountController@UpdateCreditInfo');
+			$api->get('account/get_credithistorygrid', 'AccountController@GetCreditHistoryGrid');
 
 			// account temp credit
-			$api->get('account/get_credit', 'AccountController@GetTempCredit');
+			$api->get('account/get_temp_credit', 'AccountController@GetTempCredit');
 			$api->post('account/update_temp_credit', 'AccountController@UpdateTempCredit');
 			$api->delete('account/delete_temp_credit', 'AccountController@DeleteTempCredit');
 			$api->post('account/add_note', 'AccountController@add_note');
