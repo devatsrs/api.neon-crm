@@ -134,24 +134,7 @@ class DestinationGroupController extends BaseController
             $insertdata['created_at'] = get_currenttime();
             $DestinationGroup = DestinationGroup::create($insertdata);
 
-            $RateID= $Description =  $Code ='';
-            $CountryID = 0;
-            if(isset($post_data['RateID'])) {
-                $RateID = $post_data['RateID'];
-            }
-            if(isset($post_data['Code'])) {
-                $Code = $post_data['Code'];
-            }
-            if(isset($post_data['CountryID'])) {
-                $CountryID = intval($post_data['CountryID']);
-            }
-            if(isset($post_data['Description'])) {
-                $Description = $post_data['Description'];
-            }
 
-            $insert_query = "call prc_insertUpdateDestinationCode(?,?,?,?,?)";
-            Log::info($insert_query);
-            DB::statement($insert_query,array(intval($DestinationGroup->DestinationGroupID),$RateID,$CountryID,$Code,$Description));
             return generateResponse('Destination Group added successfully');
         } catch (\Exception $e) {
             Log::info($e);
@@ -211,7 +194,7 @@ class DestinationGroupController extends BaseController
             $post_data = Input::all();
             $CompanyID = User::get_companyID();
 
-            $rules['Name'] = 'required|unique:tblDestinationGroup,Name,' . $DestinationGroupID . ',DestinationGroupID,CompanyID,' . $CompanyID;
+            //$rules['Name'] = 'required|unique:tblDestinationGroup,Name,' . $DestinationGroupID . ',DestinationGroupID,CompanyID,' . $CompanyID;
             $rules['DestinationGroupID'] = 'required';
             $validator = Validator::make($post_data, $rules);
             if ($validator->fails()) {
@@ -256,6 +239,46 @@ class DestinationGroupController extends BaseController
         }
 
     }
+    /**
+     * Update Destination Group ID
+     *
+     * @param $DestinationGroupID
+     */
+    public function UpdateName($DestinationGroupID)
+    {
+        if ($DestinationGroupID > 0) {
+            $post_data = Input::all();
+            $CompanyID = User::get_companyID();
+
+            $rules['Name'] = 'required|unique:tblDestinationGroup,Name,' . $DestinationGroupID . ',DestinationGroupID,CompanyID,' . $CompanyID;
+            $rules['DestinationGroupID'] = 'required';
+            $validator = Validator::make($post_data, $rules);
+            if ($validator->fails()) {
+                return generateResponse($validator->errors(),true);
+            }
+            try {
+                try {
+                    $DestinationGroup = DestinationGroup::findOrFail($DestinationGroupID);
+                } catch (\Exception $e) {
+                    $reponse_data = ['status' => 'failed', 'message' => 'Destination Group not found', 'status_code' => 200];
+                    return API::response()->array($reponse_data)->statusCode(200);
+                }
+                $updatedata = array();
+                if (isset($post_data['Name'])) {
+                    $updatedata['Name'] = $post_data['Name'];
+                }
+                $DestinationGroup->update($updatedata);
+                return generateResponse('Destination Group updated successfully');
+            } catch (\Exception $e) {
+                Log::info($e);
+                return $this->response->errorInternal('Internal Server');
+            }
+        } else {
+            return generateResponse('Provide Valid Integer Value.',true,true);
+        }
+
+    }
+
 
 
 

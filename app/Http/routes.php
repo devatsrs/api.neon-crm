@@ -135,6 +135,7 @@ $api->version('v1', function ($api) {
             //$api->get('destinationgroup/{id}', 'DestinationGroupController@show');
             $api->post('destinationgroup/store', 'DestinationGroupController@Store');
             $api->put('destinationgroup/update/{DestinationGroupID}', 'DestinationGroupController@Update');
+            $api->put('destinationgroup/update_name/{DestinationGroupID}', 'DestinationGroupController@UpdateName');
             $api->delete('destinationgroup/delete/{DestinationGroupID}', 'DestinationGroupController@Delete');
             $api->get('destinationgroupsetcode/datagrid', 'DestinationGroupController@CodeDataGrid');
 

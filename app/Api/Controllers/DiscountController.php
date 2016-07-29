@@ -90,6 +90,9 @@ class DiscountController extends BaseController
         if ($validator->fails()) {
             return generateResponse($validator->errors(),true);
         }
+        if(Discount::where(array('DiscountPlanID'=>$post_data['DiscountPlanID'],'DestinationGroupID'=>$post_data['DestinationGroupID']))->count()){
+            return generateResponse('Destination Group Already Taken.',true,true);
+        }
 
         try {
             $discountdata = array();
@@ -102,7 +105,7 @@ class DiscountController extends BaseController
 
             $discountschemedata = array();
             $discountschemedata['Discount'] = $post_data['Discount'];
-            $discountschemedata['Threshold'] = $post_data['Threshold'];
+            $discountschemedata['Threshold'] = $post_data['Threshold']*60;
             $discountschemedata['DiscountID'] = $Discount->DiscountID;
             $discountschemedata['Unlimited'] = isset($post_data['Unlimited'])?1:0;
             $discountschemedata['CreatedBy'] = User::get_user_full_name();
@@ -128,8 +131,10 @@ class DiscountController extends BaseController
             if (intval($DiscountID) > 0) {
                 if (!Discount::checkForeignKeyById($DiscountID)) {
                     try {
+                        DB::beginTransaction();
                         $result = DiscountScheme::where('DiscountID',$DiscountID)->delete();
                         $result = Discount::find($DiscountID)->delete();
+                        DB::commit();
                         if ($result) {
                             return generateResponse('Discount Successfully Deleted');
                         } else {
@@ -176,6 +181,9 @@ class DiscountController extends BaseController
             if ($validator->fails()) {
                 return generateResponse($validator->errors(),true);
             }
+            if(Discount::where('DiscountID','!=',$DiscountID)->where(array('DiscountPlanID'=>$post_data['DiscountPlanID'],'DestinationGroupID'=>$post_data['DestinationGroupID']))->count()){
+                return generateResponse('Destination Group Already Taken.',true,true);
+            }
             try {
 
                 try {
@@ -195,7 +203,7 @@ class DiscountController extends BaseController
 
                 $discountschemedata = array();
                 $discountschemedata['Discount'] = $post_data['Discount'];
-                $discountschemedata['Threshold'] = $post_data['Threshold'];
+                $discountschemedata['Threshold'] = $post_data['Threshold']*60;
                 $discountschemedata['DiscountID'] = $Discount->DiscountID;
                 $discountschemedata['Unlimited'] = isset($post_data['Unlimited'])?1:0;
                 $discountschemedata['UpdatedBy'] = User::get_user_full_name();

@@ -14,8 +14,12 @@ class Discount extends Model
     public static function checkForeignKeyById($id) {
 
 
-        /** todo implement this function   */
-        return false;
+        $hasInAccountDiscountScheme = AccountDiscountScheme::where("DiscountID",$id)->count();
+        if( intval($hasInAccountDiscountScheme) > 0){
+            return true;
+        }else{
+            return false;
+        }
     }
 
 }
