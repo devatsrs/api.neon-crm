@@ -438,6 +438,7 @@ function SendTaskMail($data){
         $data['Subject_task']   =   $data['Subject'];
         $data['Subject']      =   "(Neon) ".$data['Subject'];
         $data['TitleHeading']   =   $LogginedUserName." <strong>Assigned</strong> you a Task";
+		$data['UserProfileImage']  =  UserProfile::get_user_picture_url($LogginedUser);
         $status       =   sendMail('emails.task.TaskEmailSend', $data);
     }
 }

@@ -5,6 +5,7 @@ use Dingo\Api\Http\Request;
 use Api\Model\Opportunity;
 use Api\Model\Task;
 use Api\Model\User;
+use Api\Model\DataTableSql;
 use App\Http\Requests;
 use Dingo\Api\Facade\API;
 use Illuminate\Support\Facades\Input;
@@ -24,69 +25,101 @@ class DashboardController extends BaseController {
     
 
 	public function GetUsersTasks(){
-	    $data 					= 	Input::all();		
-		$companyID			 	= 	User::get_companyID();
-		$SearchDate				=	'';		
-		$where['taskClosed']	=	0;
-		$task 					= 	Task::where($where)->select(['tblTask.Subject','tblTask.DueDate','tblCRMBoardColumn.BoardColumnName as Status','tblAccount.AccountName as Company','tblTask.Priority']);
+		
+        $companyID = User::get_companyID();
+        $data = Input::all(); 
+        if(!isset($data['fetchType'])){
+            $data['fetchType'] = 'Grid';
+        }
+        $data['AccountOwner'] 	= 	isset($data['AccountOwner'])?empty($data['AccountOwner'])?'':$data['AccountOwner']:'';
+        $data['taskClosed'] 	= 	isset($data['taskClosed'])?empty($data['taskClosed']) || $data['taskClosed']=='false'?0:$data['taskClosed']:0;
 		
 		
-		$UserID			=	(isset($data['UsersID']) && is_array($data['UsersID']))?implode(",",array_filter($data['UsersID'])):$data['UsersID'];
-		if(!empty($UserID)){
-			$task->whereRaw('find_in_set(tblTask.UsersIDs,"'.$UserID.'")');
-		}		
-
-		if(isset($data['TaskTypeData']) && $data['TaskTypeData']!=''){
-		 if($data['TaskTypeData'] == 'duetoday'){
-             $task->whereRaw("DATE(tblTask.DueDate) =".date('Y-m-d'));
-		 }
-		 else if($data['TaskTypeData'] == 'duesoon'){
-			 $task->whereBetween('tblTask.DueDate',array(date("Y-m-d"),date("Y-m-d",strtotime(''.date('Y-m-d').' +1 months'))));						
-		 }
-		 else if($data['TaskTypeData'] == 'overdue'){
-			$task->where("tblTask.DueDate","<",DB::raw(''.date('Y-m-d')).'');			
-		 }
-		 if($data['TaskTypeData'] != 'All'){
-			$task->where("tblTask.DueDate","!=",DB::raw("'0000-00-00 00:00:00'")); 			 
-		 }		 
+		if(isset($data['DueDateFilter']) && !empty($data['DueDateFilter'])){
+			if($data['DueDateFilter']=='duetoday'){
+					$data['DueDateFrom'] = date('Y-m-d')." 00:00:00";
+					$data['DueDateTo']   = date('Y-m-d')." 23:59:59";
+			}else if($data['DueDateFilter']=='duesoon'){
+					$data['DueDateFrom'] = Task::DueSoon;
+					$data['DueDateTo']   = Task::DueSoon;
+			}else if($data['DueDateFilter']=='overdue'){
+					$data['DueDateFrom'] = Task::Overdue;
+					$data['DueDateTo']   = Task::Overdue;
+			}else{
+					$data['DueDateFrom'] = Task::All;
+					$data['DueDateTo']   = Task::All;
+			}
+			
 		}
-				
-		$task->join('tblCRMBoardColumn', 'tblTask.BoardColumnID', '=', 'tblCRMBoardColumn.BoardColumnID');
-		
-		$task->join('tblAccount', 'tblTask.AccountIDs', '=', 'tblAccount.AccountID');
-		
-        $UserTasks 		 	 	= 	$task->orderBy('tblTask.DueDate', 'desc')->get();
-	    $jsondata['UserTasks']	=	$UserTasks;
-		return generateResponse('',false,false,json_encode($jsondata));
+       
+            $rules['iDisplayStart'] 	= 	'required|Min:1';
+            $rules['iDisplayLength'] 	= 	'required';
+            $rules['sSortDir_0'] 		= 	'required';
+			
+            $validator = Validator::make($data, $rules);
+            if ($validator->fails()) {
+                return generateResponse($validator->errors(),true);
+            }
+
+            $columns 		= 	['Subject', 'DueDate', 'Status','UserID','RelatedTo'];
+            $sort_column 	= 	$columns[$data['iSortCol_0']];
+            $query = "call prc_GetTasksGrid (" . $companyID . ",".$data['id'].",'','" . $data['AccountOwner']. "', '0', '0','".$data['DueDateFrom']."','".$data['DueDateTo']."','0','0',".(ceil($data['iDisplayStart'] / $data['iDisplayLength'])) . " ," . $data['iDisplayLength'] . ",'" . $sort_column . "','" . $data['sSortDir_0'] . "')"; 
+            try {
+                $result = DataTableSql::of($query)->make();
+                return generateResponse('',false,false,$result);
+            }catch (\Exception $ex){
+                Log::info($ex);
+                return $this->response->errorInternal($ex->getMessage());
+            }       
 	}
 	
 	function GetPipleLineData(){
+		
         $companyID 			= 	User::get_companyID();
         $userID 			= 	'';
         $data 				= 	Input::all();
-		$UserID				=	(isset($data['UsersID']) && is_array($data['UsersID']))?implode(",",array_filter($data['UsersID'])):'';
+		if(isset($data['UsersID'])){
+			if(is_array($data['UsersID'])){
+				$UserID = 	implode(",",array_filter($data['UsersID']));
+			}else{
+				$UserID = 	$data['UsersID'];
+			}			
+		}else{
+			$UserID = 	$data['UsersID'];
+		}
 		$CurrencyID			=	(isset($data['CurrencyID']) && !empty($data['CurrencyID']))?$data['CurrencyID']:0;
-		$array_return 		= 	array("TotalOpportunites"=>0,"TotalWorth"=>0);
-		$array_status 		= 	array();
-		$statusarray 		=	implode(",", array(Opportunity::Open,Opportunity::Won,Opportunity::Lost,Opportunity::Abandoned));
-		$query  			= 	"call prc_GetCrmDashboardPipeLine (".$companyID.",'".$UserID."', '".$statusarray."','".$CurrencyID."')";
+		$array_return 		= 	array();
+		$array_users		=	array();
+		$array_worth		=	array();
+		$TotalOpportunites  =   0;
+		$TotalWorth			=	0;
+		$query  			= 	"call prc_GetCrmDashboardPipeLine (".$companyID.",'".$UserID."','".$CurrencyID."')";  Log::info($query);
 		$result 			= 	DB::select($query);
 		
-			foreach($result as $result_data){
-				$array_status[$result_data->Status] = array("Worth"=>$result_data->TotalWorth,"Opportunites"=>$result_data->TotalOpportunites);
-			}
-			foreach(Opportunity::$status as $index => $status_text){		
-				$array_return['CurrencyCode'] 	= 	isset($result_data->v_CurrencyCode_)?$result_data->v_CurrencyCode_:'';		
-				$array_return['data'][$index] = isset($array_status[$index])?array("status"=>$status_text,"Worth"=>$array_status[$index]["Worth"],"Opportunites"=>$array_status[$index]["Opportunites"],"CurrencyCode"=>$array_return['CurrencyCode']): array("status"=>$status_text,"Worth"=>0,"Opportunites"=>0,"CurrencyCode"=>$array_return['CurrencyCode']);
-				
-				$array_return['TotalOpportunites'] 			=   $array_return['TotalOpportunites']+(isset($array_status[$index]["Opportunites"])?$array_status[$index]["Opportunites"]:0);
-				
-				$array_return['TotalWorth'] 	= 	$array_return['TotalWorth']+(isset($array_status[$index]['Worth'])?$array_status[$index]['Worth']:0);	
-			}
+		foreach($result as $result_data){
+			$array_return['data'][] = array("Worth"=>$result_data->TotalWorth,"Opportunites"=>$result_data->TotalOpportunites,'User'=>$result_data->AssignedUserText,'CurrencyCode'=>$result_data->v_CurrencyCode_);
+			$TotalOpportunites 			=   $result_data->TotalOpportunites+$TotalOpportunites;	
+			$TotalWorth					=	$TotalWorth+$result_data->TotalWorth;	
+		}
+		
+		foreach($result as $result_data){
+			$array_users[]		=	$result_data->AssignedUserText;
+			$array_worth[]		=	$result_data->TotalWorth;
+		}
+		
+		if(!isset($array_return['data'])){
+			$array_return['data']				= 	array('Worth'=>0,"Opportunites"=>0,'CurrencyCode'=>'');
+		}
+		$round								=	isset($result_data->RoundVal)?$result_data->RoundVal:0;
+		$array_return['CurrencyCode'] 		= 	isset($result_data->v_CurrencyCode_)?$result_data->v_CurrencyCode_:'';
+		$array_return['TotalOpportunites']	=	$TotalOpportunites;
+		$array_return['users']				=	implode(",",$array_users);
+		$array_return['worth']				=	implode(",",$array_worth);
+		$array_return['TotalWorth']			=	number_format((int)$TotalWorth,(int)$round);
 		return generateResponse('',false,false,json_encode($array_return));
 	}
 	
-	public function GetForecastData(){ //crm dashboard
+	public function GetSalesdata(){ //crm dashboard
 			
         $companyID 			= 	User::get_companyID();
         $userID 			= 	'';
@@ -102,56 +135,264 @@ class DashboardController extends BaseController {
 		$UserID				=	(isset($data['UsersID']) && is_array($data['UsersID']))?implode(",",array_filter($data['UsersID'])):$data['UsersID'];
 		$CurrencyID			=	(isset($data['CurrencyID']) && !empty($data['CurrencyID']))?$data['CurrencyID']:0;
 		$array_return 		= 	array();
+		$array_return1 		= 	array();
+		$array_date			=	array();
+		$worth				=	0;
+		$array_dates		=	array();	
+		$array_users		=	array();
+		$array_worth		=	array();				
+		$total_opp			=	0;
+		$array_final 		= 	array("count"=>0,"status"=>"success");
 		$Closingdate		=	explode(' - ',$data['Closingdate']);
 		$StartDate			=   $Closingdate[0]." 00:00:00";
 		$EndDate			=	$Closingdate[1]." 23:59:59";		
-		$statusarray		=	(isset($data['Status']))?$data['Status']:'';
-		$query  			= 	"call prc_GetCrmDashboardForecast (".$companyID.",'".$UserID."', '".$statusarray."','".$CurrencyID."','".$StartDate."','".$EndDate."')"; 
+		$statusarray		=	(isset($data['Status']))?implode(",",$data['Status']):'';
+		$query  			= 	"call prc_GetCrmDashboardSales (".$companyID.",'".$UserID."', '".$statusarray."','".$CurrencyID."','".$StartDate."','".$EndDate."')";  Log::info($query);
 		$result 			= 	DB::select($query);
 		$TotalWorth			=	0;
+		
 		foreach($result as $result_data){
-				$CurrencySign 			   = 	    isset($result_data->v_CurrencyCode_)?$result_data->v_CurrencyCode_:'';	
-				if(isset($array_return['data'][$result_data->ClosingDate]))
-				{
-					$CcurrentDataWorth 			=	 $array_return['data'][$result_data->ClosingDate]['TotalWorth'];
-					$CcurrentDataOpportunites 	=	 $array_return['data'][$result_data->ClosingDate]['Opportunites'];
-					$CcurrentDataStatusStr 		=	 $array_return['data'][$result_data->ClosingDate]['StatusStr'];
-					
-					if(isset($CcurrentDataStatusStr[Opportunity::$status[$result_data->StatusSum]])){ 	
-					
-					 	$currentStatusdata = 	$CcurrentDataStatusStr[Opportunity::$status[$result_data->StatusSum]];
-						$CcurrentDataStatusStr[Opportunity::$status[$result_data->StatusSum]] = array("Status"=>Opportunity::$status[$result_data->StatusSum],"worth"=>$currentStatusdata['worth']+$result_data->TotalWorth);						
-					}else{
-						$CcurrentDataStatusStr[Opportunity::$status[$result_data->StatusSum]]	=	array("Status"=>Opportunity::$status[$result_data->StatusSum],"worth"=>$result_data->TotalWorth);	
-					}
-					$array_return['data'][$result_data->ClosingDate]    = 		array("TotalWorth"=>$CcurrentDataWorth+$result_data->TotalWorth,"Opportunites"=>$CcurrentDataOpportunites+1,"ClosingDate"=>$result_data->ClosingDate,"CurrencyCode"=>$CurrencySign,'StatusStr'=>$CcurrentDataStatusStr );
-				}
-				else
-				{ 	$StatusArray = array();
-					$StatusArray[Opportunity::$status[$result_data->StatusSum]]  = array("Status"=>Opportunity::$status[$result_data->StatusSum],"worth"=>$result_data->TotalWorth);
-					$array_return['data'][$result_data->ClosingDate]    = 		array("TotalWorth"=>$result_data->TotalWorth,"Opportunites"=>1,"ClosingDate"=>$result_data->ClosingDate,"CurrencyCode"=>$CurrencySign,'StatusStr'=>$StatusArray);			
-				}				
-				$TotalWorth 			   = 		$TotalWorth+$result_data->TotalWorth;
+			if(!in_array($result_data->AssignedUserText,$array_users)){			
+				$array_users[]   = $result_data->AssignedUserText;
+			}
+			$total_opp = $total_opp+$result_data->Opportunitescount;
+			$array_worth[] = $result_data->TotalWorth;
 		}
-		//Log::info($array_return);
-		$array_final = array();
-		if(isset($array_return['data'])){ 
-			foreach($array_return['data'] as $key => $array_return_data){
-				$ArrStatus			= 	$array_return_data['StatusStr'];
-				$ArrChild			= 	array();
-				foreach($ArrStatus as $ArrStatusData){
-					$ArrChild[]	 = $ArrStatusData;
-				}
-				$array_return_data['StatusStr'] = 	$ArrChild;
-				$array_final['data'][] 			= 	$array_return_data;
+		
+		foreach($result as $result_data){			
+			if(!in_array($result_data->MonthName,$array_dates)){			
+				$array_dates[]   = $result_data->MonthName;
 			}
 		}
 		
-		if(count($array_final)>0){					
-			$array_final['status'] 	   	   	   = 		'success';
-			$array_final['CurrencyCode'] 	   = 		isset($result_data->v_CurrencyCode_)?$result_data->v_CurrencyCode_:'';
+		foreach($result as $result_data){
+			if(isset($array_date[$result_data->MonthName][$result_data->AssignedUserText])){
+				$current_data = $array_date[$result_data->MonthName][$result_data->AssignedUserText];	
+				$array_date[$result_data->MonthName][$result_data->AssignedUserText] 	 = 	$result_data->TotalWorth+$current_data;
+			}else{
+				$array_date[$result_data->MonthName][$result_data->AssignedUserText] 	 = 	$result_data->TotalWorth;
+			}			
+			$worth = $worth+$result_data->TotalWorth;
 		}
-		$array_final['TotalWorth'] 	  		   = 		$TotalWorth;
+		
+		$array_data = array();
+		
+		foreach($array_users as $array_users_data){
+			foreach($array_dates as $array_dates_data){
+				if(isset($array_date[$array_dates_data][$array_users_data])){
+					$array_data[$array_users_data][] = $array_date[$array_dates_data][$array_users_data];
+				}else{
+					$array_data[$array_users_data][] = 0;
+				}
+			}
+		}
+
+		
+		foreach($array_data as $key => $array_data_loop){
+			$array_return1[] = array("user"=>$key,"worth"=>implode(",",$array_data_loop));			
+		}
+		
+		if(count($array_users)>0){
+			$worth = number_format($worth,$result_data->round_number);
+			$array_final = array("data"=>$array_return1,"dates"=>implode(",",$array_dates),'TotalWorth'=>$worth,"count"=>count($array_users),"CurrencyCode"=>$result_data->v_CurrencyCode_,"TotalOpportunites"=>$total_opp,"worth"=>implode(",",$array_worth),"users"=>implode(",",$array_users),"status"=>"success");
+		}		
+		
 		return generateResponse('',false,false,json_encode($array_final));
 	}
+	
+	
+	function CrmDashboardSalesRevenue(){				
+        $companyID 			= 	User::get_companyID();
+        $userID 			= 	'';
+        $data 				= 	Input::all();		
+		$rules = array(
+            'Duedate' =>      'required',                 
+        );
+		$message	 = array("Duedate.required"=> "Date field is required.");
+        $validator   = Validator::make($data, $rules,$message);
+		if ($validator->fails()) {
+            return generateResponse($validator->errors(),true);
+        }
+		$UserID				=	(isset($data['UsersID']) && is_array($data['UsersID']))?implode(",",array_filter($data['UsersID'])):$data['UsersID'];
+		$CurrencyID			=	(isset($data['CurrencyID']) && !empty($data['CurrencyID']))?$data['CurrencyID']:0;
+		$array_return 		= 	array();
+		$array_return1 		= 	array();
+		$array_date			=	array();
+		$worth				=	0;
+		$array_dates		=	array();	
+		$array_users		=	array();
+		$array_worth		=	array();				
+		$total_opp			=	0;
+		$array_final 		= 	array("count"=>0,"status"=>"success");
+		$Duedate			=	explode(' - ',$data['Duedate']);
+		$StartDate			=   $Duedate[0]." 00:00:00";
+		$EndDate			=	$Duedate[1]." 23:59:59";		
+		$query  			= 	"CALL `prc_GetCrmDashboardSalesManager`(".$companyID.",'".$UserID."','".$CurrencyID."','".$StartDate."','".$EndDate."') ";  	
+		
+		$result 			= 	DB::select($query);
+		$TotalWorth			=	0;
+		
+				foreach($result as $result_data){
+			if(!in_array($result_data->AssignedUserText,$array_users)){			
+				$array_users[]   = $result_data->AssignedUserText;
+			}
+			$array_worth[] = $result_data->Revenue;
+		}
+		
+		foreach($result as $result_data){			
+			if(!in_array($result_data->MonthName,$array_dates)){			
+				$array_dates[]   = $result_data->MonthName;
+			}
+		}
+		
+		foreach($result as $result_data){
+			if(isset($array_date[$result_data->MonthName][$result_data->AssignedUserText])){
+				$current_data = $array_date[$result_data->MonthName][$result_data->AssignedUserText];	
+				$array_date[$result_data->MonthName][$result_data->AssignedUserText] 	 = 	$result_dataRevenue+$current_data;
+			}else{
+				$array_date[$result_data->MonthName][$result_data->AssignedUserText] 	 = 	$result_data->Revenue;
+			}			
+			$worth = $worth+$result_data->Revenue;
+		}
+		
+		$array_data = array();
+		
+		foreach($array_users as $array_users_data){
+			foreach($array_dates as $array_dates_data){
+				if(isset($array_date[$array_dates_data][$array_users_data])){
+					$array_data[$array_users_data][] = $array_date[$array_dates_data][$array_users_data];
+				}else{
+					$array_data[$array_users_data][] = 0;
+				}
+			}
+		}
+		
+		foreach($array_data as $key => $array_data_loop){
+			$array_return1[] = array("user"=>$key,"worth"=>implode(",",$array_data_loop));			
+		}
+		
+		if(count($array_users)>0){
+			$worth = number_format($worth,$result_data->round_number);
+			$array_final = array("data"=>$array_return1,"dates"=>implode(",",$array_dates),'TotalWorth'=>$worth,"count"=>count($array_users),"CurrencyCode"=>$result_data->v_CurrencyCode_,"worth"=>implode(",",$array_worth),"users"=>implode(",",$array_users),"status"=>"success");
+		}
+		return generateResponse('',false,false,json_encode($array_final));
+	}
+	
+	
+	function GetForecastData(){	 //crm dashboard
+        $companyID 			= 	User::get_companyID();
+        $userID 			= 	'';
+        $data 				= 	Input::all();		
+		$rules = array(
+            'Closingdate' =>      'required',                 
+        );
+		$message	 = array("Closingdate.required"=> "Close Date field is required.");
+        $validator   = Validator::make($data, $rules,$message);
+		if ($validator->fails()) {
+            return generateResponse($validator->errors(),true);
+        }
+		$UserID				=	(isset($data['UsersID']) && is_array($data['UsersID']))?implode(",",array_filter($data['UsersID'])):$data['UsersID'];
+		$CurrencyID			=	(isset($data['CurrencyID']) && !empty($data['CurrencyID']))?$data['CurrencyID']:0;
+		$array_return 		= 	array();
+		$array_return1 		= 	array();
+		$array_date			=	array();
+		$worth				=	0;
+		$total_opp			=	0;
+		$array_dates		=	array();	
+		$array_users		=	array();				
+		$array_final 		= 	array("count"=>0,"status"=>"success");
+		$Closingdate		=	explode(' - ',$data['Closingdate']);
+		$StartDate			=   $Closingdate[0]." 00:00:00";
+		$EndDate			=	$Closingdate[1]." 23:59:59";		
+		$statusarray		=	Opportunity::Open;
+		$query  			= 	"call prc_GetCrmDashboardForecast (".$companyID.",'".$UserID."', '".$statusarray."','".$CurrencyID."','".$StartDate."','".$EndDate."')";   Log::info($query);
+		$result 			= 	DB::select($query);
+		$TotalWorth			=	0;
+		
+		foreach($result as $result_data){
+			if(!in_array($result_data->AssignedUserText,$array_users)){			
+				$array_users[]   = $result_data->AssignedUserText;
+			}
+			$total_opp			=	$total_opp+$result_data->Opportunitescount;
+		}
+		
+		foreach($result as $result_data){			
+			if(!in_array($result_data->MonthName,$array_dates)){			
+				$array_dates[]   = $result_data->MonthName;
+			}
+		}
+		
+		foreach($result as $result_data){
+			if(isset($array_date[$result_data->MonthName][$result_data->AssignedUserText])){
+				$current_data = $array_date[$result_data->MonthName][$result_data->AssignedUserText];	
+				$array_date[$result_data->MonthName][$result_data->AssignedUserText] 	 = 	$result_data->TotalWorth+$current_data;
+			}else{
+				$array_date[$result_data->MonthName][$result_data->AssignedUserText] 	 = 	$result_data->TotalWorth;
+			}			
+			$worth = $worth+$result_data->TotalWorth;
+		}
+		
+		$array_data = array();
+		
+		foreach($array_users as $array_users_data){
+			foreach($array_dates as $array_dates_data){
+				if(isset($array_date[$array_dates_data][$array_users_data])){
+					$array_data[$array_users_data][] = $array_date[$array_dates_data][$array_users_data];
+				}else{
+					$array_data[$array_users_data][] = 0;
+				}
+				
+			}
+		}
+
+		
+		foreach($array_data as $key => $array_data_loop){
+			$array_return1[] = array("user"=>$key,"worth"=>implode(",",$array_data_loop));
+		}
+		
+		if(count($array_users)>0){
+			$worth = number_format($worth,$result_data->round_number);
+			$array_final = array("data"=>$array_return1,"dates"=>implode(",",$array_dates),'TotalWorth'=>$worth,"count"=>count($array_users),"CurrencyCode"=>$result_data->CurrencyCode,"TotalOpportunites"=>$total_opp,"status"=>"success");
+		}		
+		
+		return generateResponse('',false,false,json_encode($array_final));
+	}
+	
+	
+	
+	 public function getOpportunitiesGrid(){       
+        $companyID 					= 	User::get_companyID();
+        $data 						= 	Input::all();
+		if(isset($data['AccountOwner'])){
+			if(is_array($data['AccountOwner'])){
+				$UserID = 	implode(",",array_filter($data['AccountOwner']));
+			}else{
+				$UserID =	$data['AccountOwner'];
+				}			
+		}else{
+			$UserID = 	'';
+		}
+		
+        $data['CurrencyID'] 		= 	isset($data['CurrencyID'])?empty($data['CurrencyID'])?0:$data['CurrencyID']:0;
+	    $rules['iDisplayStart'] 	= 	'required|Min:1';
+        $rules['iDisplayLength'] 	= 	'required';
+        $rules['sSortDir_0'] 		= 	'required';
+		
+        $validator 					= 	Validator::make($data, $rules);
+		if ($validator->fails()) {
+			return generateResponse($validator->errors(),true);
+		}
+
+         $columns 				= 	['OpportunityName', 'Status','UserID','RelatedTo','ExpectedClosing','Value','Rating'];
+         $sort_column 			= 	$columns[$data['iSortCol_0']];
+		 
+         $query = "call prc_GetOpportunityGrid (" . $companyID . ",'0', '','', '" . $UserID . "', 0,'1', ".$data['CurrencyID'].", '0',".(ceil($data['iDisplayStart'] / $data['iDisplayLength'])) . "," . $data['iDisplayLength'] . ",'" . $sort_column . "','" . $data['sSortDir_0'] . "')"; 
+		    try {
+                $result = DataTableSql::of($query)->make();
+                return generateResponse('',false,false,$result);
+            }catch (\Exception $ex){
+                Log::info($ex);
+                return $this->response->errorInternal($ex->getMessage());
+            }
+    }
 }

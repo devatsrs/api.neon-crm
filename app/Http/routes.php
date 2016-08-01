@@ -38,7 +38,11 @@ $api->version('v1', function ($api) {
 			//dashboard			
 			$api->post('dashboard/GetUsersTasks', 'DashboardController@GetUsersTasks');
 			$api->post('dashboard/GetPipleLineData', 'DashboardController@GetPipleLineData');
-			$api->post('dashboard/GetForecastData', 'DashboardController@GetForecastData');
+			$api->post('dashboard/GetSalesdata', 'DashboardController@GetSalesdata');
+			$api->post('dashboard/GetForecastData', 'DashboardController@GetForecastData');			
+			$api->post('dashboard/get_opportunities_grid','DashboardController@getOpportunitiesGrid');			
+			$api->post('dashboard/get_opportunities_grid','DashboardController@getOpportunitiesGrid');			
+			$api->post('dashboard/CrmDashboardSalesRevenue','DashboardController@CrmDashboardSalesRevenue');
 
 
 			// account credit
