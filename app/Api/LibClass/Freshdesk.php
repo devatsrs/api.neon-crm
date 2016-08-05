@@ -14,6 +14,11 @@ protected $key;
 protected $url;
 protected $per_page;
 protected $page;
+protected $status;
+protected $priority;
+protected $groups;
+protected $Agent;
+
 
 
 	 public function __construct($data = array()){
@@ -22,6 +27,7 @@ protected $page;
 		 }		 		 
 		 set_exception_handler(array($this, 'handleException'));	
 		 $this->MakeUrl();
+		 $this->GetFields();
 	 }
 	 
 	 protected function MakeUrl(){
@@ -76,6 +82,41 @@ protected $page;
 		return $this->Call();
 	 }
 	 
+	 public function GetFields(){
+		$this->MakeUrl();
+		$this->url  	= 	$this->url."/api/v2/ticket_fields/";		
+		$data			=	$this->Call();
+		if($data['StatusCode']==200 && count($data['data'])>0){
+			foreach($data['data'] as $FieldsData){
+				if($FieldsData->description == 'Ticket status'){				
+					$StatusArray = json_decode(json_encode($FieldsData->choices), True);
+					foreach($StatusArray as $key => $StatusArrayData){
+						$this->status[$key]	=	$StatusArrayData[0];		
+					}					
+				}				
+				if($FieldsData->description == 'Ticket priority'){				
+					$priorityArray = json_decode(json_encode($FieldsData->choices), True);
+					foreach($priorityArray as $key => $priorityArrayData){
+						$this->priority[$priorityArrayData]	=	$key;		
+					}					
+				}
+				if($FieldsData->description == 'Ticket group'){
+					$groupArray = json_decode(json_encode($FieldsData->choices), True);
+					foreach($groupArray as $key => $groupArrayData){
+						$this->groups[$groupArrayData]	=	$key;		
+					}					
+				}
+				
+				if($FieldsData->description == 'Agent'){
+					$AgentArray = json_decode(json_encode($FieldsData->choices), True);
+					foreach($AgentArray as $key => $AgentArrayData){
+						$this->Agent[$AgentArrayData]	=	$key;		
+					}					
+				}
+			}
+		}	
+	}
+	 
 	 
 	 public function Call(){
 		try {  
@@ -102,7 +143,7 @@ protected $page;
 					$array_return  = array("StatusCode"=>$httpCode,"description"=>$json_data['description'],"errors"=>$json_data['errors'],"data"=>"");
 					
 				}
-				if($httpCode == 200){  Log::info($json_data);
+				if($httpCode == 200){  
 					$array_return	=	array("StatusCode"=>$httpCode,"data"=>$json_data,"description"=>"","errors"=>"");
 				}
 				
@@ -118,6 +159,18 @@ protected $page;
 	
 	function MakeResult($data =array()){
 		
+	}
+	
+	public function SetPriority($id){
+		return $this->priority[$id];
+	}
+	
+	public function SetStatus($id){
+		return $this->status[$id];
+	}
+	
+	public function SetGroup($id){
+			return $this->groups[$id];
 	}
 }
 ?>
