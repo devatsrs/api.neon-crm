@@ -10,6 +10,7 @@ use Api\Model\User;
 use Api\Model\Account;
 use Api\Model\Note;
 use Api\Model\Invoice;
+use Api\Model\Ticket;
 use Api\Model\Company;
 use Api\Model\CompanySetting;
 use App\Http\Requests;
@@ -22,13 +23,14 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 use Api\Model\Tags;
 use Api\Model\PaymentGateway;
 use Api\Model\AccountPaymentProfile;
-
+use App\Freshdesk;
 
 class AccountController extends BaseController
 {
-
+	protected $tokenClass;
+	
     public function __construct(Request $request)
-    {
+    { 
         $this->middleware('jwt.auth');
         Parent::__Construct($request);
     }
@@ -251,7 +253,7 @@ class AccountController extends BaseController
 
     public function GetTimeLine()
     {
-        $data                       =   Input::all();
+        $data                       =   Input::all();  
         $companyID                  =   User::get_companyID();
         $rules['iDisplayStart']     =   'required|numeric|Min:0';
         $rules['iDisplayLength']    =   'required|numeric';
@@ -261,9 +263,12 @@ class AccountController extends BaseController
         if ($validator->fails()) {
             return generateResponse($validator->errors(),true);
         }
+			if($data['iDisplayStart']==0){
+				$this->FreshSDeskGetTickets($data['AccountID'],$data['GUID']);
+			}
         try {
             $columns =  ['Timeline_type','ActivityTitle','ActivityDescription','ActivityDate','ActivityType','ActivityID','Emailfrom','EmailTo','EmailSubject','EmailMessage','AccountEmailLogID','NoteID','Note','CreatedBy','created_at','updated_at'];
-            $query = "call prc_getAccountTimeLine(" . $data['AccountID'] . "," . $companyID . "," . $data['iDisplayStart'] . "," . $data['iDisplayLength'] . ")";
+            $query = "call prc_getAccountTimeLine(" . $data['AccountID'] . "," . $companyID . ",'".$data['GUID']."'," . $data['iDisplayStart'] . "," . $data['iDisplayLength'] . ")"; 
             $result_array = DB::select($query);
             return generateResponse('',false,false,$result_array);
        }
@@ -272,6 +277,50 @@ class AccountController extends BaseController
             return $this->response->errorInternal($ex->getMessage());
         }
     }
+
+	
+	function FreshSDeskGetTickets($AccountID,$GUID){
+	    $companyID 		=	 	User::get_companyID();
+		Ticket::where(['AccountID'=>$AccountID,"GUID"=>$GUID])->delete();
+		$AccountEmail   =		Account::where("AccountID",$AccountID)->pluck("Email");
+		$data 			= 		array("domain"=>"cdpk","email"=>"umer.ahmed@code-desk.com","password"=>"computer123","key"=>"se0nymUkCgk9eVlOOJN");
+		$obj 			= 		new FreshDesk($data);
+		$GetTickets 	= 		$obj->GetTickets(array("email"=>$AccountEmail));  
+		if($GetTickets['StatusCode'] == 200 && count($GetTickets['data'])>0){  
+			foreach($GetTickets['data'] as $GetTickets_data){   
+				$TicketData['CompanyID']		=	$companyID;
+				$TicketData['AccountID'] 		=   $AccountID;
+				$TicketData['TicketID']			=   $GetTickets_data->id;	
+				$TicketData['Subject']			=	$GetTickets_data->subject;
+				$TicketData['Description']		=	$GetTickets_data->description;
+				$TicketData['Priority']			=	$GetTickets_data->priority;
+				$TicketData['Status']			=	$GetTickets_data->status;
+				$TicketData['Type']				=	$GetTickets_data->type;				
+				$TicketData['group_id']			=	$GetTickets_data->group_id;
+				$TicketData['to_emails']		=	$GetTickets_data->to_emails;				
+				$TicketData['ApiCreatedDate']	=   date("Y-m-d H:i:s",strtotime($GetTickets_data->created_at));
+				$TicketData['ApiUpdateDate']	=   date("Y-m-d H:i:s",strtotime($GetTickets_data->updated_at));	
+				$TicketData['created_by']  		= 	User::get_user_full_name();
+				$TicketData['GUID']  			= 	$GUID;
+				$result 						= 	Ticket::create($TicketData);		
+				unset($TicketData);
+			}			
+		} 	    
+    }
+	
+	function GetTicketConversations(){
+		$companyID 			=	 	User::get_companyID();
+		$data           	=   	Input::all();  
+		$Freshdeskdata 		= 		array("domain"=>"cdpk","email"=>"umer.ahmed@code-desk.com","password"=>"computer123","key"=>"se0nymUkCgk9eVlOOJN");
+		$obj 				= 		new FreshDesk($Freshdeskdata);
+		$GetTicketsCon 		= 		$obj->GetTicketConversations($data['id']);  
+		if($GetTicketsCon['StatusCode'] == 200 && count($GetTicketsCon['data'])>0){ 
+			return generateResponse('',false,false,$GetTicketsCon['data']);
+		}
+		else{
+			return generateResponse('No Record Found.',false,false);
+		} 	
+	}
 
     public function DeleteNote(){
         $data = Input::all();
@@ -577,7 +626,5 @@ class AccountController extends BaseController
             Log::info($e);
             return $this->response->errorInternal($e->getMessage());
         }
-    }
-
-
+    }	
 }

@@ -61,12 +61,13 @@ $api->version('v1', function ($api) {
             $api->get('account/get_note','AccountController@GetNote');
             $api->post('account/delete_note','AccountController@DeleteNote');
 			$api->post('account/update_note','AccountController@UpdateNote');
-			
+			$api->post('account/GetTicketConversations','AccountController@GetTicketConversations');
 
             $api->get('account/GetTimeLine', 'AccountController@GetTimeLine');
             $api->post('accounts/sendemail', 'AccountActivityController@sendMail');
             $api->get('account/get_email','AccountActivityController@GetMail');
             $api->post('account/delete_email','AccountActivityController@DeleteMail');
+			
 
 			// account threshold credit
 			$api->get('account/get_account_threshold', 'AccountController@GetAccountThreshold');
@@ -118,7 +119,10 @@ $api->version('v1', function ($api) {
             $api->post('task/{id}/getattachment/{attachmentid}', 'TaskController@getAttachment');
 
 
-
+			//freshdesk
+			$api->post('freshdesk/GetContacts', 'FreshDeskController@GetContacts');
+			$api->post('freshdesk/GetTickets', 'FreshDeskController@GetTickets');			
+			
             //Allowed extensions
             $api->get('get_allowed_extensions', 'TaskController@get_allowed_extensions');
 
