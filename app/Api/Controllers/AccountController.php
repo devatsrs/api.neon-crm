@@ -269,7 +269,7 @@ class AccountController extends BaseController
         try {
             $columns =  ['Timeline_type','ActivityTitle','ActivityDescription','ActivityDate','ActivityType','ActivityID','Emailfrom','EmailTo','EmailSubject','EmailMessage','AccountEmailLogID','NoteID','Note','CreatedBy','created_at','updated_at'];
             $query = "call prc_getAccountTimeLine(" . $data['AccountID'] . "," . $companyID . ",'".$data['GUID']."'," . $data['iDisplayStart'] . "," . $data['iDisplayLength'] . ")"; 
-            $result_array = DB::select($query);
+            $result_array = DB::select($query); Log::info($query);
             return generateResponse('',false,false,$result_array);
        }
         catch (\Exception $ex){
@@ -286,19 +286,19 @@ class AccountController extends BaseController
 		//$data 			= 		array("domain"=>"cdpk","email"=>"umer.ahmed@code-desk.com","password"=>"computer123","key"=>"se0nymUkCgk9eVlOOJN");
 		$data 			= 		array("domain"=>"wavetel","email"=>"Khurram.saeed@wave-tel.com","password"=>"Khurr@m28912891","key"=>"f37bdfQKo7zkSLr1yA6");		
 		$obj 			= 		new FreshDesk($data);
-		$GetTickets 	= 		$obj->GetTickets(array("email"=>$AccountEmail));  
+		$GetTickets 	= 		$obj->GetTickets(array("email"=>trim($AccountEmail)));  
 		if($GetTickets['StatusCode'] == 200 && count($GetTickets['data'])>0){  
 			foreach($GetTickets['data'] as $GetTickets_data){   
 				$TicketData['CompanyID']		=	$companyID;
 				$TicketData['AccountID'] 		=   $AccountID;
 				$TicketData['TicketID']			=   $GetTickets_data->id;	
 				$TicketData['Subject']			=	$GetTickets_data->subject;
-				$TicketData['Description']		=	$GetTickets_data->description;
+				$TicketData['Description']		=	$GetTickets_data->description_text;
 				$TicketData['Priority']			=	$obj->SetPriority($GetTickets_data->priority);
 				$TicketData['Status']			=	$obj->SetStatus($GetTickets_data->status);
 				$TicketData['Type']				=	$GetTickets_data->type;				
 				$TicketData['Group']			=	$obj->SetGroup($GetTickets_data->group_id);
-				$TicketData['to_emails']		=	$GetTickets_data->to_emails;				
+				$TicketData['to_emails']		=	implode(",",$GetTickets_data->to_emails);				
 				$TicketData['ApiCreatedDate']	=   date("Y-m-d H:i:s",strtotime($GetTickets_data->created_at));
 				$TicketData['ApiUpdateDate']	=   date("Y-m-d H:i:s",strtotime($GetTickets_data->updated_at));	
 				$TicketData['created_by']  		= 	User::get_user_full_name();
