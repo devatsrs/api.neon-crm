@@ -286,9 +286,9 @@ class AccountController extends BaseController
 		//$data 			= 		array("domain"=>"cdpk","email"=>"umer.ahmed@code-desk.com","password"=>"computer123","key"=>"se0nymUkCgk9eVlOOJN");
 		$data 			= 		array("domain"=>"wavetel","email"=>"Khurram.saeed@wave-tel.com","password"=>"Khurr@m28912891","key"=>"f37bdfQKo7zkSLr1yA6");		
 		$obj 			= 		new FreshDesk($data);
-		$GetTickets 	= 		$obj->GetTickets(array("email"=>trim($AccountEmail)));  
-		if($GetTickets['StatusCode'] == 200 && count($GetTickets['data'])>0){  
-			foreach($GetTickets['data'] as $GetTickets_data){   
+		$GetTickets 	= 		$obj->GetTickets(array("email"=>trim($AccountEmail),"include"=>"requester")); 
+		if($GetTickets['StatusCode'] == 200 && count($GetTickets['data'])>0){   
+			foreach($GetTickets['data'] as $GetTickets_data){    Log::info($GetTickets_data);
 				$TicketData['CompanyID']		=	$companyID;
 				$TicketData['AccountID'] 		=   $AccountID;
 				$TicketData['TicketID']			=   $GetTickets_data->id;	
