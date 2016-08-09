@@ -227,7 +227,7 @@ class DashboardController extends BaseController {
 		$Duedate			=	explode(' - ',$data['Duedate']);
 		$StartDate			=   $Duedate[0]." 00:00:00";
 		$EndDate			=	$Duedate[1]." 23:59:59";		
-		$query  			= 	"CALL `prc_GetCrmDashboardSalesManager`(".$companyID.",'".$UserID."','".$CurrencyID."','".$StartDate."','".$EndDate."') ";  	
+		$query  			= 	"CALL `prc_GetCrmDashboardSalesManager`(".$companyID.",'".$UserID."','".$CurrencyID."','".$data['ListType']."','".$StartDate."','".$EndDate."') ";  	 Log::info($query);
 		
 		$result 			= 	DB::select($query);
 		$TotalWorth			=	0;
@@ -239,21 +239,44 @@ class DashboardController extends BaseController {
 			$array_worth[] = $result_data->Revenue;
 		}
 		
-		foreach($result as $result_data){			
-			if(!in_array($result_data->MonthName,$array_dates)){			
-				$array_dates[]   = $result_data->MonthName;
+		if($data['ListType']=='Monthly'){
+			
+			foreach($result as $result_data){			
+				if(!in_array($result_data->MonthName,$array_dates)){			
+					$array_dates[]   = $result_data->MonthName;
+				}
+			}
+			
+			foreach($result as $result_data){
+				if(isset($array_date[$result_data->MonthName][$result_data->AssignedUserText])){
+					$current_data = $array_date[$result_data->MonthName][$result_data->AssignedUserText];	
+					$array_date[$result_data->MonthName][$result_data->AssignedUserText] 	 = 	$result_dataRevenue+$current_data;
+				}else{
+					$array_date[$result_data->MonthName][$result_data->AssignedUserText] 	 = 	$result_data->Revenue;
+				}			
+				$worth = $worth+$result_data->Revenue;
 			}
 		}
 		
-		foreach($result as $result_data){
-			if(isset($array_date[$result_data->MonthName][$result_data->AssignedUserText])){
-				$current_data = $array_date[$result_data->MonthName][$result_data->AssignedUserText];	
-				$array_date[$result_data->MonthName][$result_data->AssignedUserText] 	 = 	$result_dataRevenue+$current_data;
-			}else{
-				$array_date[$result_data->MonthName][$result_data->AssignedUserText] 	 = 	$result_data->Revenue;
-			}			
-			$worth = $worth+$result_data->Revenue;
+		if($data['ListType']=='Weekly'){
+			foreach($result as $result_data){			
+				if(!in_array($result_data->Week,$array_dates)){			
+					$array_dates[]   = $result_data->Week;
+				}
+			}
+			
+			foreach($result as $result_data){
+				if(isset($array_date[$result_data->Week][$result_data->AssignedUserText])){
+					$current_data = $array_date[$result_data->Week][$result_data->AssignedUserText];	
+					$array_date[$result_data->Week][$result_data->AssignedUserText] 	 = 	$result_dataRevenue+$current_data;
+				}else{
+					$array_date[$result_data->Week][$result_data->AssignedUserText] 	 = 	$result_data->Revenue;
+				}			
+				$worth = $worth+$result_data->Revenue;
+			}
+		
 		}
+		
 		
 		$array_data = array();
 		
