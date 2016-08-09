@@ -13,6 +13,7 @@ use Api\Model\Invoice;
 use Api\Model\Ticket;
 use Api\Model\Company;
 use Api\Model\CompanySetting;
+use Api\Model\CompanyConfiguration;
 use App\Http\Requests;
 use Dingo\Api\Facade\API;
 use Illuminate\Support\Facades\DB;
@@ -258,7 +259,7 @@ class AccountController extends BaseController
         $rules['iDisplayStart']     =   'required|numeric|Min:0';
         $rules['iDisplayLength']    =   'required|numeric';
         $rules['AccountID']         =   'required|numeric';
-
+		
         $validator = Validator::make($data, $rules);
         if ($validator->fails()) {
             return generateResponse($validator->errors(),true);
@@ -269,7 +270,7 @@ class AccountController extends BaseController
         try {
             $columns =  ['Timeline_type','ActivityTitle','ActivityDescription','ActivityDate','ActivityType','ActivityID','Emailfrom','EmailTo','EmailSubject','EmailMessage','AccountEmailLogID','NoteID','Note','CreatedBy','created_at','updated_at'];
             $query = "call prc_getAccountTimeLine(" . $data['AccountID'] . "," . $companyID . ",'".$data['GUID']."'," . $data['iDisplayStart'] . "," . $data['iDisplayLength'] . ")"; 
-            $result_array = DB::select($query); Log::info($query);
+            $result_array = DB::select($query); 
             return generateResponse('',false,false,$result_array);
        }
         catch (\Exception $ex){
@@ -281,14 +282,13 @@ class AccountController extends BaseController
 	
 	function FreshSDeskGetTickets($AccountID,$GUID){
 		date_default_timezone_set("Europe/London");
-	    $companyID 		=	 	User::get_companyID(); 
 		Ticket::where(['AccountID'=>$AccountID,"GUID"=>$GUID])->delete();
+	    $companyID 		=	 	User::get_companyID(); 		
 		$AccountEmails  =	Account::where("AccountID",$AccountID)->select(['Email','BillingEmail'])->first();
-		$AccountEmails = json_decode(json_encode($AccountEmails),true);
-		Log::info($AccountEmails);
+		$AccountEmails  = 	json_decode(json_encode($AccountEmails),true);
 		$emails			=	array_unique($AccountEmails);
-		$TicketsIDs		=	array();
-		$data 			= 	array("domain"=>"wavetel","email"=>"Khurram.saeed@wave-tel.com","password"=>"Khurr@m28912891","key"=>"f37bdfQKo7zkSLr1yA6");
+		$TicketsIDs		=	array();   
+		$data 			= 	array("domain"=>CompanyConfiguration::get('FreshdeskDomain'),"email"=>CompanyConfiguration::get('FreshdeskEmail'),"password"=>CompanyConfiguration::get('FreshdeskPassword'),"key"=>CompanyConfiguration::get('Freshdeskkey')); 
 		$obj 			= 	new FreshDesk($data);			
 		if(count($emails)>0)
 		{ 
@@ -326,8 +326,9 @@ class AccountController extends BaseController
 	function GetTicketConversations(){
 		$companyID 			=	 	User::get_companyID();
 		$data           	=   	Input::all();  
-		//$Freshdeskdata 		= 		array("domain"=>"cdpk","email"=>"umer.ahmed@code-desk.com","password"=>"computer123","key"=>"se0nymUkCgk9eVlOOJN");
-		$Freshdeskdata 		= 		array("domain"=>"wavetel","email"=>"Khurram.saeed@wave-tel.com","password"=>"Khurr@m28912891","key"=>"f37bdfQKo7zkSLr1yA6");
+		//$Freshdeskdata 	= 		array("domain"=>"cdpk","email"=>"umer.ahmed@code-desk.com","password"=>"computer123","key"=>"se0nymUkCgk9eVlOOJN");
+		$Freshdeskdata 		= 	array("domain"=>CompanyConfiguration::get('FreshdeskDomain'),"email"=>CompanyConfiguration::get('FreshdeskEmail'),"password"=>CompanyConfiguration::get('FreshdeskPassword'),"key"=>CompanyConfiguration::get('Freshdeskkey'));
+		
 		$obj 				= 		new FreshDesk($Freshdeskdata);
 		$GetTicketsCon 		= 		$obj->GetTicketConversations($data['id']);  
 		if($GetTicketsCon['StatusCode'] == 200 && count($GetTicketsCon['data'])>0){ 

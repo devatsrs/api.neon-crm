@@ -32,7 +32,7 @@ protected $Agent;
 	 
 	 protected function MakeUrl(){
 		 if(empty($this->domain)){
-			   throw new RuntimeException("Mention the domain");
+			   throw new Exception("Mention the domain");
 		 }
 	 	$this->url = 'https://'.$this->domain.'.freshdesk.com';
 	 }
@@ -122,7 +122,7 @@ protected $Agent;
 		try {  
 				$array_return  	= 	array("StatusCode"=>00);
 				$header[] 	   	= 	"Content-type: application/json";
-				$ch 			= 	curl_init ($this->url);
+				$ch 			= 	curl_init ($this->url); 
 				curl_setopt ($ch, CURLOPT_POST, false);
 				curl_setopt($ch, CURLOPT_USERPWD, "$this->email:$this->password");
 				curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
