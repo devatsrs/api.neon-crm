@@ -254,7 +254,7 @@ class TaskController extends BaseController {
                  */
                 $attendees = Task::get_all_attendees_email($result);
                 $timezone = Company::getCompanyField($companyID, "TimeZone");
-                $StartDate = date("Y-m-d 00:00:00",strtotime($data['DueDate']));
+                $StartDate = date("Y-m-d H:i:s",strtotime($data['DueDate']));
                 $options = [
                     "timezone" => $timezone,
                     "start_date" => $StartDate,
@@ -425,7 +425,7 @@ class TaskController extends BaseController {
                      */
                     $attendees = Task::get_all_attendees_email($Task);
                     $timezone = Company::getCompanyField($companyID, "TimeZone");
-                    $StartDate = date("Y-m-d 00:00:00",strtotime($data['DueDate']));
+                    $StartDate = date("Y-m-d H:i:s",strtotime($data['DueDate']));
                     $options = [
                         "timezone" => $timezone,
                         "start_date" => $StartDate,
