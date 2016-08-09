@@ -36,6 +36,7 @@ use PhpEws\EwsConnection;
 class OutlookCalendarAPI
 {
     protected  $ews;
+    const REMINDER_MIN = 15;
 
     public function  __construct($server,$username,$password){
 
@@ -108,7 +109,7 @@ class OutlookCalendarAPI
         $request->Items->CalendarItem->ReminderIsSet = false;
 
 // Or use this to specify when reminder is displayed (if this is not set, the default is 15 minutes)
-        $request->Items->CalendarItem->ReminderMinutesBeforeStart = 15;
+        $request->Items->CalendarItem->ReminderMinutesBeforeStart = self::REMINDER_MIN;
 
 // Build the body.
         $request->Items->CalendarItem->Body = new BodyType();
@@ -195,7 +196,7 @@ class OutlookCalendarAPI
 // Set no reminders
         $request->Items->CalendarItem->ReminderIsSet = false;
 // Or use this to specify when reminder is displayed (if this is not set, the default is 15 minutes)
-        $request->Items->CalendarItem->ReminderMinutesBeforeStart = 15;
+        $request->Items->CalendarItem->ReminderMinutesBeforeStart = self::REMINDER_MIN;
 
 // Build the body.
         $request->Items->CalendarItem->Body = new BodyType();
