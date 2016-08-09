@@ -106,7 +106,7 @@ class OutlookCalendarAPI
         $request->Items->CalendarItem->StartTimeZone->Periods = new NonEmptyArrayOfPeriodsType();
 
 // Set no reminders
-        $request->Items->CalendarItem->ReminderIsSet = false;
+        $request->Items->CalendarItem->ReminderIsSet = true;
 
 // Or use this to specify when reminder is displayed (if this is not set, the default is 15 minutes)
         $request->Items->CalendarItem->ReminderMinutesBeforeStart = self::REMINDER_MIN;
@@ -194,7 +194,7 @@ class OutlookCalendarAPI
         Log::info(print_r($due_date,true));
 
 // Set no reminders
-        $request->Items->CalendarItem->ReminderIsSet = false;
+        $request->Items->CalendarItem->ReminderIsSet = true;
 // Or use this to specify when reminder is displayed (if this is not set, the default is 15 minutes)
         $request->Items->CalendarItem->ReminderMinutesBeforeStart = self::REMINDER_MIN;
 
