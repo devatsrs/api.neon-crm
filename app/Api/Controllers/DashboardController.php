@@ -313,9 +313,10 @@ class DashboardController extends BaseController {
 		$date_range			=	explode($split,$data['date_range']);
 		$WeekOrMonth		=	$date_range[0];
 		$Year				=	$date_range[1];
+		$CurrencyID			=	(isset($data['CurrencyID']) && !empty($data['CurrencyID']))?$data['CurrencyID']:0;
 		$array_return		=	array();
 		
-			$query  			= 	"CALL `prc_GetCrmDashboardSalesUser`(".$companyID.",'".$data['userid']."','".$data['CurrencyID']."','".$data['ListType']."','".$StartDate."','".$EndDate."','".$WeekOrMonth."','".$Year."') ";
+			$query  			= 	"CALL `prc_GetCrmDashboardSalesUser`(".$companyID.",'".$data['userid']."','".$CurrencyID."','".$data['ListType']."','".$StartDate."','".$EndDate."','".$WeekOrMonth."','".$Year."') ";
 			$result = DB::select($query); 
 			
 			foreach($result as $result_data){ 
