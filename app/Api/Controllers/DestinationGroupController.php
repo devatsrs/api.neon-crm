@@ -83,7 +83,7 @@ class DestinationGroupController extends BaseController
             if ($validator->fails()) {
                 return generateResponse($validator->errors(),true);
             }
-            $DestinationGroupID = $CountryID = 0;
+            $DestinationGroupID = $CountryID = $Selected = 0;
             $Code = $Description = '';
             $post_data['iDisplayStart'] += 1;
             if (isset($post_data['DestinationGroupID'])) {
@@ -98,7 +98,10 @@ class DestinationGroupController extends BaseController
             if (isset($post_data['CountryID'])) {
                 $CountryID = (int)$post_data['CountryID'];
             }
-            $query = "call prc_getDestinationCode(" . intval($post_data['DestinationGroupSetID']) . "," . intval($DestinationGroupID) . ",'".$CountryID."','".$Code."','".$Description."','".(ceil($post_data['iDisplayStart'] / $post_data['iDisplayLength']))."','".$post_data['iDisplayLength']."')";
+            if (isset($post_data['Selected'])) {
+                $Selected = $post_data['Selected'] == 'true'?1:0;
+            }
+            $query = "call prc_getDestinationCode(" . intval($post_data['DestinationGroupSetID']) . "," . intval($DestinationGroupID) . ",'".$CountryID."','".$Code."','".$Selected."','".$Description."','".(ceil($post_data['iDisplayStart'] / $post_data['iDisplayLength']))."','".$post_data['iDisplayLength']."')";
             $result = DataTableSql::of($query)->make();
 
             Log::info($query);
@@ -211,7 +214,7 @@ class DestinationGroupController extends BaseController
                 if (isset($post_data['Name'])) {
                     $updatedata['Name'] = $post_data['Name'];
                 }
-                $RateID= $Description =  $Code ='';
+                $RateID= $Description =  $Code = $Action ='';
                 $CountryID = 0;
                 if(isset($post_data['RateID'])) {
                     $RateID = $post_data['RateID'];
@@ -225,10 +228,13 @@ class DestinationGroupController extends BaseController
                 if(isset($post_data['Description'])) {
                     $Description = $post_data['Description'];
                 }
+                if(isset($post_data['Action'])) {
+                    $Action = $post_data['Action'];
+                }
                 $DestinationGroup->update($updatedata);
-                $insert_query = "call prc_insertUpdateDestinationCode(?,?,?,?,?)";
+                $insert_query = "call prc_insertUpdateDestinationCode(?,?,?,?,?,?)";
                 Log::info($insert_query);
-                DB::statement($insert_query,array(intval($DestinationGroup->DestinationGroupID),$RateID,$CountryID,$Code,$Description));
+                DB::statement($insert_query,array(intval($DestinationGroup->DestinationGroupID),$RateID,$CountryID,$Code,$Description,$Action));
                 return generateResponse('Destination Group updated successfully');
             } catch (\Exception $e) {
                 Log::info($e);
