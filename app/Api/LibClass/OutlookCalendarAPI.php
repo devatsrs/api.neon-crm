@@ -183,6 +183,8 @@ class OutlookCalendarAPI
         date_default_timezone_set($timezone);
 
         $start_date = new \DateTime($start_date);
+        $start_date->modify('-30 minute');
+
         $request->Items->CalendarItem->Start = $start_date->format('c');
 
         Log::info($start_date->format('c'));
@@ -269,6 +271,21 @@ class OutlookCalendarAPI
             $field->CalendarItem = new CalendarItemType();
             $field->CalendarItem->Subject = $subject;
             $change->Updates->SetItemField[] = $field;
+
+
+
+
+            $start_date = new \DateTime($start_date);
+            $start_date->modify('-30 minute');
+
+            // Update Start Property
+            $field = new SetItemFieldType();
+            $field->FieldURI = new PathToUnindexedFieldType();
+            $field->FieldURI->FieldURI = 'calendar:Start';
+            $field->CalendarItem = new CalendarItemType();
+            $field->CalendarItem->Start = $start_date->format('c');
+            $change->Updates->SetItemField[] = $field;
+
 
             $due_date = new \DateTime($due_date);
 
