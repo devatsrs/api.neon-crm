@@ -93,7 +93,7 @@ class DashboardController extends BaseController {
 		$array_worth		=	array();
 		$TotalOpportunites  =   0;
 		$TotalWorth			=	0;
-		$query  			= 	"call prc_GetCrmDashboardPipeLine (".$companyID.",'".$UserID."','".$CurrencyID."')";  Log::info($query);
+		$query  			= 	"call prc_GetCrmDashboardPipeLine (".$companyID.",'".$UserID."','".$CurrencyID."')";  
 		$result 			= 	DB::select($query);
 		
 		foreach($result as $result_data){
@@ -147,7 +147,7 @@ class DashboardController extends BaseController {
 		$StartDate			=   $Closingdate[0]." 00:00:00";
 		$EndDate			=	$Closingdate[1]." 23:59:59";		
 		$statusarray		=	(isset($data['Status']))?implode(",",$data['Status']):'';
-		$query  			= 	"call prc_GetCrmDashboardSales (".$companyID.",'".$UserID."', '".$statusarray."','".$CurrencyID."','".$StartDate."','".$EndDate."')";  Log::info($query);
+		$query  			= 	"call prc_GetCrmDashboardSales (".$companyID.",'".$UserID."', '".$statusarray."','".$CurrencyID."','".$StartDate."','".$EndDate."')"; 
 		$result 			= 	DB::select($query);
 		$TotalWorth			=	0;
 		
@@ -354,7 +354,7 @@ class DashboardController extends BaseController {
 		$StartDate			=   $Closingdate[0]." 00:00:00";
 		$EndDate			=	$Closingdate[1]." 23:59:59";		
 		$statusarray		=	Opportunity::Open;
-		$query  			= 	"call prc_GetCrmDashboardForecast (".$companyID.",'".$UserID."', '".$statusarray."','".$CurrencyID."','".$StartDate."','".$EndDate."')";   Log::info($query);
+		$query  			= 	"call prc_GetCrmDashboardForecast (".$companyID.",'".$UserID."', '".$statusarray."','".$CurrencyID."','".$StartDate."','".$EndDate."')";   
 		$result 			= 	DB::select($query);
 		$TotalWorth			=	0;
 		
