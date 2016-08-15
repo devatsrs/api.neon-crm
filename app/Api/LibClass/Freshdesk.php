@@ -87,7 +87,8 @@ protected $Agent;
 		$this->url  	= 	$this->url."/api/v2/ticket_fields/";		
 		$data			=	$this->Call();
 		if($data['StatusCode']==200 && count($data['data'])>0){
-			foreach($data['data'] as $FieldsData){
+			foreach($data['data'] as $FieldsData){ 
+			$array = json_decode(json_encode($FieldsData), True);
 				if($FieldsData->description == 'Ticket status'){				
 					$StatusArray = json_decode(json_encode($FieldsData->choices), True);
 					foreach($StatusArray as $key => $StatusArrayData){
@@ -122,7 +123,7 @@ protected $Agent;
 		try {  
 				$array_return  	= 	array("StatusCode"=>00);
 				$header[] 	   	= 	"Content-type: application/json";
-				$ch 			= 	curl_init ($this->url); 
+				$ch 			= 	curl_init ($this->url);  
 				curl_setopt ($ch, CURLOPT_POST, false);
 				curl_setopt($ch, CURLOPT_USERPWD, "$this->email:$this->password");
 				curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
