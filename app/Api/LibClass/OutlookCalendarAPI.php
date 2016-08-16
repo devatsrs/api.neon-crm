@@ -348,21 +348,21 @@ class OutlookCalendarAPI
             $request = new DeleteItemType();
 
             // Send to trash can, or use EWSType_DisposalType::HARD_DELETE instead to bypass the bin directly
-            $request->DeleteType = DisposalType::MOVE_TO_DELETED_ITEMS;
-// Inform no one who shares the item that it has been deleted
-            $request->SendMeetingCancellations = CalendarItemCreateOrDeleteOperationType::SEND_TO_NONE;
+            $request->DeleteType = DisposalType::HARD_DELETE;
+            // Inform no one who shares the item that it has been deleted
+            $request->SendMeetingCancellations = CalendarItemCreateOrDeleteOperationType::SEND_ONLY_TO_ALL;
 
-// Set the item to be deleted
+            // Set the item to be deleted
             $item = new ItemIdType();
             $item->Id = $options["event_id"];
             $item->ChangeKey = $options["change_key"];
 
-// We can use this to mass delete but in this case it's just one item
+            // We can use this to mass delete but in this case it's just one item
             $items = new NonEmptyArrayOfBaseItemIdsType();
             $items->ItemId = $item;
             $request->ItemIds = $items;
 
-// Send the request
+            // Send the request
             $response = $this->ews->DeleteItem($request);
 
             return $this->parse_response($response);
@@ -428,8 +428,6 @@ class OutlookCalendarAPI
                 $response->ResponseMessages->DeleteItemResponseMessage->ResponseClass == 'Success'
             ){
 
-                $output['event_id'] = $response->ResponseMessages->DeleteItemResponseMessage->Items->CalendarItem->ItemId->Id;
-                $output['change_key'] = $response->ResponseMessages->DeleteItemResponseMessage->Items->CalendarItem->ItemId->ChangeKey;
                 $output['message'] = "Event Deleted Successfully.";
             }
         }
