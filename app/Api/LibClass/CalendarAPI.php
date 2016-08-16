@@ -61,6 +61,17 @@ class CalendarAPI
 
     }
 
+    public function delete_event($options = array())
+    {
+
+        if($this->has_outlook) {
+            return $this->request->delete_event($options);
+        }
+
+        return false;
+
+    }
+
     public function is_outlook() {
 
         $outlook_key = "OUTLOOKCALENDAR_API";
