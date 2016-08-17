@@ -482,7 +482,22 @@ class TaskController extends BaseController {
         }
 
         try{
+
+            $CalendarEventID = Task::where(['TaskID'=>$data['TaskID']])->pluck("CalendarEventID");
+            if (!empty($CalendarEventID)) {
+
+                $CalendarEventIDJson = json_decode($CalendarEventID, true);
+                if (isset($CalendarEventIDJson["event_id"]) && isset($CalendarEventIDJson["change_key"]) && !empty($CalendarEventIDJson["event_id"]) && !empty($CalendarEventIDJson["change_key"])) {
+
+                    $options["event_id"] = $CalendarEventIDJson["event_id"];
+                    $options["change_key"] = $CalendarEventIDJson["change_key"];
+
+                    $response = $this->delete_calendar_event($options);
+                }
+            }
+
             Task::where(['TaskID'=>$data['TaskID']])->delete();
+
         }catch (\Exception $ex){
             Log::info($ex);
             return $this->response->errorInternal($ex->getMessage());
@@ -571,5 +586,34 @@ class TaskController extends BaseController {
         }
 
         return $response;
+    }
+
+    /** Delete calendar event.
+     * @param array $options
+     * @return array|bool
+     */
+    public function delete_calendar_event( $options = array() ){
+
+        Log::info("Calendar Event Options");
+        Log::info($options);
+
+        $calendar_request = new CalendarAPI();
+
+        if(isset($options["event_id"]) && isset($options["change_key"]) && !empty($options["event_id"]) && !empty($options["change_key"]) ) {
+
+            $response = $calendar_request->delete_event($options);
+        } else {
+
+            Log::info("No calendar event id found");
+         }
+
+        if(isset($response["event_id"]) && isset($response["change_key"]) && !empty($response["event_id"]) && !empty($response["change_key"]) ) {
+
+            Log::info("Calendar Response");
+            Log::info(print_r($response,true));
+        }
+
+        return $response;
+
     }
 }
