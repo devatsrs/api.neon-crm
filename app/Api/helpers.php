@@ -44,12 +44,14 @@ function sendMail($view,$data)
         $companyID = $data['companyID'];
     }
 	
+	$body 	=   View::make($view,compact('data'))->render(); 
+	
 	if(\App\SiteIntegration::is_EmailIntegration($companyID)){
-		$status = 	 \App\SiteIntegration::SendMail($view,$data,$companyID);
+		$status = 	 \App\SiteIntegration::SendMail($view,$data,$companyID,$body);
 	}
 	else{
 		$config = \Api\Model\Company::select('SMTPServer','SMTPUsername','CompanyName','SMTPPassword','Port','IsSSL','EmailFrom')->where("CompanyID", '=', $companyID)->first();
-		$status = 	 \App\PHPMAILERIntegtration::SendMail($view,$data,$config,$companyID);
+		$status = 	 \App\PHPMAILERIntegtration::SendMail($view,$data,$config,$companyID,$body);
 	}
 
    /* $status = array('status' => 0, 'message' => 'Something wrong with sending mail.');

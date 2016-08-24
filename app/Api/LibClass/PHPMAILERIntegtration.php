@@ -45,16 +45,13 @@ class PHPMAILERIntegtration{
 		return $mail;		
 	}	 
 	
-	public static function SendMail($view,$data,$config,$companyID='')
+	public static function SendMail($view,$data,$config,$companyID='',$body)
 	{
 		if(empty($companyID)){
 			 $companyID = User::get_companyID();
 		}
 		
 		 $mail 		=   self::SetEmailConfiguration($config,$companyID);
-			
-		 $body 		=   View::make($view,compact('data'))->render();
-		 
 		 $status 	= 	array('status' => 0, 'message' => 'Something wrong with sending mail.');
 	
 		if(getenv('APP_ENV') != 'Production'){

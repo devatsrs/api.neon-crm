@@ -10,7 +10,7 @@ class MandrilIntegration{
 	public function __construct(){
 	 } 
 	
-	static function SendMail($view,$data,$config,$companyID)
+	static function SendMail($view,$data,$config,$companyID,$body)
 	{
 		$result = Company::select('CompanyName','EmailFrom')->where("CompanyID", '=', $companyID)->first();
 		$config_array =(object)array(
@@ -23,7 +23,7 @@ class MandrilIntegration{
 			"SMTPPassword"=>$config->MandrilPassword
 		);
 		
-		return PHPMAILERIntegtration::SendMail($view,$data,$config_array,$companyID);
+		return PHPMAILERIntegtration::SendMail($view,$data,$config_array,$companyID,$body);
 	}
 }
 ?>

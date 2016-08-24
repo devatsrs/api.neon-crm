@@ -190,12 +190,12 @@ class SiteIntegration{
 		}
 	}
 	
-	public static function SendMail($view,$data,$companyID){
+	public static function SendMail($view,$data,$companyID,$Body){
 		$config = self::is_EmailIntegration($companyID,true);
 		
 		switch ($config->Slug){
 			case "mandrill":
-       		return MandrilIntegration::SendMail($view,$data,$config,$companyID);
+       		return MandrilIntegration::SendMail($view,$data,$config,$companyID,$Body);
       	  break;
 		}	
 	}
