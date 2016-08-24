@@ -4,6 +4,8 @@ namespace App;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Config;
+use Api\Model\Company;
+use Api\Model\User;
 
 class PHPMAILERIntegtration{ 
 
@@ -49,7 +51,7 @@ class PHPMAILERIntegtration{
 			 $companyID = User::get_companyID();
 		}
 		
-		 $mail 		=   PHPMAILERIntegtration::SetEmailConfiguration($config,$companyID);
+		 $mail 		=   self::SetEmailConfiguration($config,$companyID);
 			
 		 $body 		=   View::make($view,compact('data'))->render();
 		 
