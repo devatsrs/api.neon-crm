@@ -266,9 +266,8 @@ class AccountController extends BaseController
         }
 			
 			if($data['iDisplayStart']==0) {
-				$IntegrationTickets  =	Account::GetActiveTicketCategory();
-				if($IntegrationTickets !=0  && $IntegrationTickets['Slug']=='freshdesk'){
-					$this->FreshSDeskGetTickets($data['AccountID'],$data['GUID'],$IntegrationTickets['Settings']);
+				if(\App\SiteIntegration::is_FreshDesk()){
+					$this->FreshSDeskGetTickets($data['AccountID'],$data['GUID']);
 				}
 			}
         try {
@@ -284,38 +283,27 @@ class AccountController extends BaseController
     }
 
 	
-	function FreshSDeskGetTickets($AccountID,$GUID,$configuration){ 
+	function FreshSDeskGetTickets($AccountID,$GUID){ 
 		//date_default_timezone_set("Europe/London");
-		Ticket::where(['AccountID'=>$AccountID,"GUID"=>$GUID])->delete();
-	    $companyID 		=	 	User::get_companyID(); 		
+		Ticket::where(['AccountID'=>$AccountID,"GUID"=>$GUID])->delete(); //delete old tickets
+	    $companyID 		=	User::get_companyID(); 		
 		$AccountEmails  =	Account::where("AccountID",$AccountID)->select(['Email','BillingEmail'])->first();
 		$AccountEmails  = 	json_decode(json_encode($AccountEmails),true);
 		$emails			=	array_unique($AccountEmails);
-		$TicketsIDs		=	array();   
-		$Filter_Groups	=	array();
-		if(isset($configuration->FreshdeskGroup) && $configuration->FreshdeskGroup!='')
-		{
-			$Filter_Groups = explode(",",$configuration->FreshdeskGroup);
-		}
+		$TicketsIDs		=	array();  
 		
-		
-		$data 			= 	array("domain"=>$configuration->FreshdeskDomain,"email"=>$configuration->FreshdeskEmail,"password"=>$configuration->FreshdeskPassword,"key"=>$configuration->Freshdeskkey); 
-		$obj 			= 	new FreshDesk($data);			
+		$FreshDeskObj 	=  new \App\SiteIntegration();
+		$FreshDeskObj->SetSupportSettings();		
 		if(count($emails)>0)
 		{ 
 			foreach($emails as $UsersEmails)
 			{				
-				$GetTickets 	= 		$obj->GetTickets(array("email"=>trim($UsersEmails),"include"=>"requester"));
+				$GetTickets 	= 		$FreshDeskObj->GetSupportTickets(array("email"=>trim($UsersEmails),"include"=>"requester"));
 				if($GetTickets['StatusCode'] == 200 && count($GetTickets['data'])>0)
 				{   
 					foreach($GetTickets['data'] as $GetTickets_data)
 					{   
 						if(in_array($GetTickets_data->id,$TicketsIDs)){continue;}else{$TicketsIDs[] = $GetTickets_data->id;} //ticket duplication
-						if(count($Filter_Groups)>0){		//group filter
-							if(!in_array($obj->SetGroup($GetTickets_data->group_id),$Filter_Groups)){
-								continue;
-							}							
-						}
 						
 						$TicketData['CompanyID']		=	$companyID;
 						$TicketData['AccountID'] 		=   $AccountID;
@@ -342,12 +330,11 @@ class AccountController extends BaseController
 	
 	function GetTicketConversations(){
 		$companyID 			=	 	User::get_companyID();
-		$data           	=   	Input::all();  
-		//$Freshdeskdata 	= 		array("domain"=>"cdpk","email"=>"umer.ahmed@code-desk.com","password"=>"computer123","key"=>"se0nymUkCgk9eVlOOJN");
-		$Freshdeskdata 		= 	array("domain"=>CompanyConfiguration::get('FreshdeskDomain'),"email"=>CompanyConfiguration::get('FreshdeskEmail'),"password"=>CompanyConfiguration::get('FreshdeskPassword'),"key"=>CompanyConfiguration::get('Freshdeskkey'));
+		$data           	=   	Input::all();  		
+		$FreshDeskObj 		= 		new \App\SiteIntegration();
+		$FreshDeskObj->SetSupportSettings();		
 		
-		$obj 				= 		new FreshDesk($Freshdeskdata);
-		$GetTicketsCon 		= 		$obj->GetTicketConversations($data['id']);  
+		$GetTicketsCon 		= 		$FreshDeskObj->GetSupportTicketConversations($data['id']);  
 		if($GetTicketsCon['StatusCode'] == 200 && count($GetTicketsCon['data'])>0){ 
 			return generateResponse('',false,false,$GetTicketsCon['data']);
 		}

@@ -34,9 +34,25 @@ function rename_win($oldfile,$newfile) {
 }
 
 
-function sendMail($view,$data){
+function sendMail($view,$data)
+{
+		
+	if(empty($data['companyID']))
+    {
+        $companyID = \Api\Model\User::get_companyID();
+    }else{
+        $companyID = $data['companyID'];
+    }
+	
+	if(\App\SiteIntegration::is_EmailIntegration($companyID)){
+		$status = 	 \App\SiteIntegration::SendMail($view,$data,$companyID);
+	}
+	else{
+		$config = \Api\Model\Company::select('SMTPServer','SMTPUsername','CompanyName','SMTPPassword','Port','IsSSL','EmailFrom')->where("CompanyID", '=', $companyID)->first();
+		$status = 	 \App\PHPMAILERIntegtration::SendMail($view,$data,$config,$companyID);
+	}
 
-    $status = array('status' => 0, 'message' => 'Something wrong with sending mail.');
+   /* $status = array('status' => 0, 'message' => 'Something wrong with sending mail.');
     if(empty($data['companyID']))
     {
         $companyID = \Api\Model\User::get_companyID();
@@ -88,7 +104,7 @@ function sendMail($view,$data){
         $status['status'] = 1;
         $status['message'] = 'Email has been sent';
         $status['body'] = $body;
-    }
+    }*/
     return $status;
 }
 function setMailConfig($CompanyID,$mandrill,$data=array()){

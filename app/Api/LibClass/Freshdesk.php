@@ -4,6 +4,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Log;
 use Curl\Curl;
 use \Exception;
+use Api\Model\IntegrationConfiguration;
 
 class Freshdesk{
 
@@ -73,7 +74,36 @@ protected $Agent;
 		}
 					
 		return $this->MakeResult(array("total"=>count($FullResult),"result"=>$result));*/
-		return $this->Call();
+		$result =  $this->Call();
+		if($result['StatusCode'] == 200 && count($result['data'])>0)
+		{
+			$FreshDeskDbData =  IntegrationConfiguration::GetIntegrationDataBySlug('freshdesk'); //db settings
+			$FreshdeskData   = 	isset($FreshDeskDbData->Settings)?json_decode($FreshDeskDbData->Settings):"";
+			
+			if(isset($FreshdeskData->FreshdeskGroup) && $FreshdeskData->FreshdeskGroup!='')
+			{
+				$Filter_Groups = explode(",",$FreshdeskData->FreshdeskGroup);
+			}
+			
+			$return_tickets = array();
+			
+			foreach($result['data'] as $GetTickets_data)
+			{   
+				if(count($Filter_Groups)>0){		//group filter
+					if(!in_array($this->SetGroup($GetTickets_data->group_id),$Filter_Groups)){
+						continue;
+					}							
+				}
+				
+				$return_tickets[] = $GetTickets_data;		
+			}
+			
+			return array("StatusCode"=>$result['StatusCode'],"data"=>$return_tickets,"description"=>"","errors"=>"");
+		}
+		else
+		{
+			return $result;
+		}
 	 }
 	 
 	 public function GetTicketConversations($id){

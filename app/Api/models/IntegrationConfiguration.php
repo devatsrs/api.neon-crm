@@ -12,8 +12,20 @@ class IntegrationConfiguration extends Model
     protected $primaryKey 	= 	"IntegrationConfigurationID";
 	
     public static $rules = array(
-    );
+    );	
 	
+   static function GetIntegrationDataBySlug($slug){
+	   
+	   $companyID	=  User::get_companyID();
+	   
+	  $Subcategory = Integration::select("*");
+	  $Subcategory->leftJoin('tblIntegrationConfiguration', function($join)
+		{
+			$join->on('tblIntegrationConfiguration.IntegrationID', '=', 'tblIntegration.IntegrationID');
 	
-   
+		})->where(["tblIntegration.CompanyID"=>$companyID])->where(["tblIntegration.Slug"=>$slug]);
+		 $result = $Subcategory->first();
+		 return $result;
+   }      
+
 }
