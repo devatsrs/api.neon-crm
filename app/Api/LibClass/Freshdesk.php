@@ -15,9 +15,9 @@ protected $key;
 protected $url;
 protected $per_page;
 protected $page;
-public    $status;
-public    $priority;
-public    $groups;
+protected $status;
+protected $priority;
+protected $groups;
 protected $Agent;
 
 

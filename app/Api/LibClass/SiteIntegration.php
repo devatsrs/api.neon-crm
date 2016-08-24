@@ -58,21 +58,21 @@ class SiteIntegration{
 	
 	public function SupportSetPriority($id){
 		  if($this->support){
-            return $this->support->priority[$id];
+            return $this->support->SetPriority($id);
         }
         return false;			
 	}
 	
 	public function SupportSetStatus($id){
 	 if($this->support){
-            return $this->support->status[$id];
+            return $this->support->SetStatus($id);
       }
         return false;	
 	}
 	
 	public function SupportSetGroup($id){
 	 if($this->support){
-        return $this->support->groups[$id];
+        return $this->support->SetGroup($id);
       }
         return false;	
 	}
