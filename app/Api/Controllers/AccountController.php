@@ -310,10 +310,10 @@ class AccountController extends BaseController
 						$TicketData['TicketID']			=   $GetTickets_data->id;	
 						$TicketData['Subject']			=	$GetTickets_data->subject;
 						$TicketData['Description']		=	$GetTickets_data->description_text;
-						$TicketData['Priority']			=	$obj->SetPriority($GetTickets_data->priority);
-						$TicketData['Status']			=	$obj->SetStatus($GetTickets_data->status);
+						$TicketData['Priority']			=	$FreshDeskObj->SetPriority($GetTickets_data->priority);
+						$TicketData['Status']			=	$FreshDeskObj->SetStatus($GetTickets_data->status);
 						$TicketData['Type']				=	$GetTickets_data->type;				
-						$TicketData['Group']			=	$obj->SetGroup($GetTickets_data->group_id);
+						$TicketData['Group']			=	$FreshDeskObj->SetGroup($GetTickets_data->group_id);
 						$TicketData['to_emails']		=	implode(",",$GetTickets_data->to_emails);	
 						$TicketData['RequestEmail']		=	$GetTickets_data->requester->email;				
 						$TicketData['ApiCreatedDate']	=   date("Y-m-d H:i:s",strtotime($GetTickets_data->created_at));

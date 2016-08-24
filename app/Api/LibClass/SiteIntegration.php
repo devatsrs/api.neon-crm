@@ -56,6 +56,27 @@ class SiteIntegration{
         return false;
     }
 	
+	public function SupportSetPriority($id){
+		  if($this->support){
+            return $this->support->priority[$id];
+        }
+        return false;			
+	}
+	
+	public function SupportSetStatus($id){
+	 if($this->support){
+            return $this->support->status[$id];
+      }
+        return false;	
+	}
+	
+	public function SupportSetGroup($id){
+	 if($this->support){
+        return $this->support->groups[$id];
+      }
+        return false;	
+	}
+	
 	 public static function is_FreshDesk($data = false){
 		$companyID		 =  User::get_companyID();
 		$Support	 	 =	Integration::where(["CompanyID" => $companyID,"Slug"=>self::$SupportSlug])->first();	
