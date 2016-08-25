@@ -43,9 +43,7 @@ function sendMail($view,$data)
     }else{
         $companyID = $data['companyID'];
     }
-	
-	$data   =   $data;
-	$body 	=   View::make($view,compact('data'))->render(); 
+	$body 	=  html_entity_decode(View::make($view,compact('data'))->render()); 
 
 	if(\App\SiteIntegration::is_EmailIntegration($companyID)){
 		$status = 	 \App\SiteIntegration::SendMail($view,$data,$companyID,$body);		

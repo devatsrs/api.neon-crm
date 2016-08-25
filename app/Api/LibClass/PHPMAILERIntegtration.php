@@ -38,7 +38,7 @@ class PHPMAILERIntegtration{
 	
 		$mail->From = $from['address'];
 		$mail->FromName = $from['name'];
-		$mail->isHTML(true);		
+		$mail->IsHTML(true);		
 		return $mail;		
 	}	 
 	
@@ -65,7 +65,7 @@ class PHPMAILERIntegtration{
             file_put_contents($file,file_get_contents($Attachmenturl));
             $mail->AddAttachment($file,$attachment_data['filename']);
         }
-    }
+    } 
 		$mail->Body = $body;
 		$mail->Subject = $data['Subject'];
 		if(!is_array($data['EmailTo']) && strpos($data['EmailTo'],',') !== false){

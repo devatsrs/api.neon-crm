@@ -34,7 +34,7 @@ class AccountActivityController extends BaseController {
 	 */
 
     public function sendMail(){
-		$data = Input::all(); 
+		$data = Input::all();  				
         $rules = array(
 			"email-to" =>'required',
             'Subject'=>'required',
