@@ -192,7 +192,7 @@ class SiteIntegration{
 	
 	public static function SendMail($view,$data,$companyID,$Body){
 		$config = self::is_EmailIntegration($companyID,true);
-		
+	
 		switch ($config->Slug){
 			case "mandrill":
        		return MandrilIntegration::SendMail($view,$data,$config,$companyID,$Body);
@@ -240,7 +240,7 @@ class SiteIntegration{
 	}	 
 	
 	
-	public static function is_amazon_configured(){
+	public static function is_amazon_configured($data = false){
 		
 		$Storage	 	=	Integration::where(["Slug"=>self::$AmazoneSlug])->first();	
 	

@@ -15,8 +15,6 @@ class PHPMAILERIntegtration{
 
 	public static function SetEmailConfiguration($config,$companyID)
 	{
-		$result = Company::select('SMTPServer','SMTPUsername','CompanyName','SMTPPassword','Port','IsSSL','EmailFrom')->where("CompanyID", '=', $companyID)->first();
-	
 		Config::set('mail.host',$config->SMTPServer);
 		Config::set('mail.port',$config->Port);
 		Config::set('mail.from.address',$config->EmailFrom);
@@ -40,8 +38,7 @@ class PHPMAILERIntegtration{
 	
 		$mail->From = $from['address'];
 		$mail->FromName = $from['name'];
-		$mail->isHTML(true);
-	
+		$mail->isHTML(true);		
 		return $mail;		
 	}	 
 	
@@ -57,21 +54,18 @@ class PHPMAILERIntegtration{
 		if(getenv('APP_ENV') != 'Production'){
 			$data['Subject'] = 'Test Mail '.$data['Subject'];
 		}
-		
 		$mail =  self::add_email_address($mail,$data,'EmailTo');
 		$mail =  self::add_email_address($mail,$data,'cc');
 		$mail =  self::add_email_address($mail,$data,'bcc');
-		
-		
+			
 		if(isset($data['AttachmentPaths']) && count($data['AttachmentPaths'])>0) {
-        foreach($data['AttachmentPaths'] as $attachment_data) {
+        foreach($data['AttachmentPaths'] as $attachment_data) { 
             $file = \Webpatser\Uuid\Uuid::generate()."_". basename($attachment_data['filepath']);
             $Attachmenturl = \App\AmazonS3::unSignedUrl($attachment_data['filepath']);
             file_put_contents($file,file_get_contents($Attachmenturl));
             $mail->AddAttachment($file,$attachment_data['filename']);
         }
     }
-		
 		$mail->Body = $body;
 		$mail->Subject = $data['Subject'];
 		if(!is_array($data['EmailTo']) && strpos($data['EmailTo'],',') !== false){
@@ -126,9 +120,8 @@ class PHPMAILERIntegtration{
 					$status['body'] = $body;
 				}
 			}
-		}
+		} 
 		return $status;
-	
 	}
 	
 	static function add_email_address($mail,$data,$type='EmailTo') //type add,bcc,cc

@@ -34,8 +34,7 @@ class AccountActivityController extends BaseController {
 	 */
 
     public function sendMail(){
-		
-        $data = Input::all();
+		$data = Input::all(); 
         $rules = array(
 			"email-to" =>'required',
             'Subject'=>'required',
@@ -69,14 +68,21 @@ class AccountActivityController extends BaseController {
         $data['extra'] = $extra;
         $data['replace'] = $replace;
 		// image upload end
+		
+			
 
         $data['mandrill'] = 0;
-		$data = cleanarray($data,[]);
+		$data = cleanarray($data,[]);	
+		
         try{
             if(isset($data['email_send'])&& $data['email_send']==1) {
+				
                 $status = sendMail('emails.account.AccountEmailSend', $data);
             }
-
+			if($status['status']==0){
+				 return generateResponse($status['message'],true,true);
+			}
+			
             $result 				= 	email_log_data($data,'emails.account.AccountEmailSend');
            	$result['message'] 		= 	'Email Sent Successfully';
 			$multiple_addresses		= 	strpos($data['EmailTo'],',');

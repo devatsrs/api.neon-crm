@@ -140,20 +140,20 @@ class AmazonS3 {
     }
 
     static function unSignedUrl($key=''){
-
+Log::info("amazon unsignedUrl1");
         $s3 = self::getS3Client();
 
         //When no amazon ;
         if($s3 == 'NoAmazon'){
             return  self::preSignedUrl($key);
         }
-
+Log::info("amazon unsignedUrl2");
         $bucket = self::getBucket();
         $unsignedUrl = '';
         if(!empty($key)){
 
             $unsignedUrl = $s3->getObjectUrl($bucket, $key);
-        }
+        } Log::info("amazon unsignedUrl3");
         return $unsignedUrl;
 
     }

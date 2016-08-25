@@ -44,10 +44,11 @@ function sendMail($view,$data)
         $companyID = $data['companyID'];
     }
 	
+	$data   =   $data;
 	$body 	=   View::make($view,compact('data'))->render(); 
-	
+
 	if(\App\SiteIntegration::is_EmailIntegration($companyID)){
-		$status = 	 \App\SiteIntegration::SendMail($view,$data,$companyID,$body);
+		$status = 	 \App\SiteIntegration::SendMail($view,$data,$companyID,$body);		
 	}
 	else{
 		$config = \Api\Model\Company::select('SMTPServer','SMTPUsername','CompanyName','SMTPPassword','Port','IsSSL','EmailFrom')->where("CompanyID", '=', $companyID)->first();
