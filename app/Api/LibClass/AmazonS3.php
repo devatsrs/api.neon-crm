@@ -140,7 +140,6 @@ class AmazonS3 {
     }
 
     static function unSignedUrl($key=''){
-Log::info("amazon unsignedUrl1");
         $s3 = self::getS3Client();
 
         //When no amazon ;
