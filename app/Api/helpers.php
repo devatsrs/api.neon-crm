@@ -528,3 +528,6 @@ function remove_front_slash($str = ""){
 
     }
 }
+function get_currenttime(){
+    return date('Y-m-d H:i:s');
+}
