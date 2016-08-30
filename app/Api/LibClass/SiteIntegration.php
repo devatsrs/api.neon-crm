@@ -17,6 +17,7 @@ class SiteIntegration{
  static    $EmailSlug		=	'email';
  static    $StorageSlug		=	'storage';
  static    $AmazoneSlug		=	'amazons3';
+ static    $AuthorizeSlug	=	'authorizenet';
 
  	public function __construct(){
 	
@@ -277,5 +278,44 @@ class SiteIntegration{
 			return 0;	
 		}
 	}	 
+	
+		public static function is_authorize_configured($data=false){ 
+		
+		$Authorize	 	 =	Integration::where(["Slug"=>SiteIntegration::$AuthorizeSlug])->first();	
+	
+		if(count($Authorize)>0)
+		{						
+			$AuthorizeSubcategory = Integration::select("*");
+			$AuthorizeSubcategory->join('tblIntegrationConfiguration', function($join)
+			{
+				$join->on('tblIntegrationConfiguration.IntegrationID', '=', 'tblIntegration.IntegrationID');
+	
+			})->where(["tblIntegration.ParentID"=>$Authorize->ParentID])->where(["tblIntegrationConfiguration.Status"=>1]);
+			 $result = $AuthorizeSubcategory->first();
+			 if(count($result)>0)
+			 {
+				 $AuthorizeData =  isset($result->Settings)?json_decode($result->Settings):array();
+				 if(count($AuthorizeData)>0){
+					 if($data ==true){
+						return $result;
+					 }else{
+						return 1;
+					 }
+				 }else
+				 {
+				 	return 0;
+				 }
+			 }
+			 else
+			 {
+				return 0;
+			 }
+		}
+		else
+		{
+			return 0;	
+		}
+	}	 
+
 }
 ?>

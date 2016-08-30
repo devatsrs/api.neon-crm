@@ -21,8 +21,9 @@ class AuthorizeNet {
     function __Construct(){
 		
 		//////
-		$AuthorizeData 						= 	\App\SiteIntegration::is_amazon_configured(true);;
+		$AuthorizeDbData 						= 	\App\SiteIntegration::is_authorize_configured(true);;
 		if(count($AuthorizeDbData)>0){					
+			$AuthorizeData					=	json_decode($AuthorizeDbData->Settings);
 			$AUTHORIZENET_API_LOGIN_ID  	= 	isset($AuthorizeData->AuthorizeLoginID)?$AuthorizeData->AuthorizeLoginID:'';		
 			$AUTHORIZENET_TRANSACTION_KEY  	= 	isset($AuthorizeData->AuthorizeTransactionKey)?$AuthorizeData->AuthorizeTransactionKey:'';
 			$isSandbox						=	isset($AuthorizeDbData->AuthorizeTestAccount)?$AuthorizeDbData->AuthorizeTestAccount:'';
