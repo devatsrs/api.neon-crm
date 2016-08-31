@@ -133,6 +133,37 @@ $api->version('v1', function ($api) {
             $api->get('taskcomments/{id}/get_comments', 'TaskCommentsController@get_comments');
             $api->post('taskcomment/{id}/getattachment/{attachmentid}', 'TaskCommentsController@getAttachment');
 
+            // Destination Group Set
+            $api->get('destinationgroupset/datagrid', 'DestinationGroupSetController@DataGrid');
+            //$api->get('destinationgroup/{id}', 'DestinationGroupSetController@show');
+            $api->post('destinationgroupset/store', 'DestinationGroupSetController@Store');
+            $api->put('destinationgroupset/update/{DestinationGroupSetID}', 'DestinationGroupSetController@Update');
+            $api->delete('destinationgroupset/delete/{DestinationGroupSetID}', 'DestinationGroupSetController@Delete');
+
+            // Destination Group
+            $api->get('destinationgroup/datagrid', 'DestinationGroupController@DataGrid');
+            //$api->get('destinationgroup/{id}', 'DestinationGroupController@show');
+            $api->post('destinationgroup/store', 'DestinationGroupController@Store');
+            $api->put('destinationgroup/update/{DestinationGroupID}', 'DestinationGroupController@Update');
+            $api->put('destinationgroup/update_name/{DestinationGroupID}', 'DestinationGroupController@UpdateName');
+            $api->delete('destinationgroup/delete/{DestinationGroupID}', 'DestinationGroupController@Delete');
+            $api->get('destinationgroupsetcode/datagrid', 'DestinationGroupController@CodeDataGrid');
+
+
+            // Discount Plan
+            $api->get('discountplan/datagrid', 'DiscountPlanController@DataGrid');
+            //$api->get('destinationgroup/{id}', 'DiscountPlanController@show');
+            $api->post('discountplan/store', 'DiscountPlanController@Store');
+            $api->put('discountplan/update/{DiscountPlanID}', 'DiscountPlanController@Update');
+            $api->delete('discountplan/delete/{DiscountPlanID}', 'DiscountPlanController@Delete');
+
+            // Discount
+            $api->get('discount/datagrid', 'DiscountController@DataGrid');
+            //$api->get('destinationgroup/{id}', 'DiscountPlanController@show');
+            $api->post('discount/store', 'DiscountController@Store');
+            $api->put('discount/update/{DiscountPlanID}', 'DiscountController@Update');
+            $api->delete('discount/delete/{DiscountPlanID}', 'DiscountController@Delete');
+
 
 		});
 
