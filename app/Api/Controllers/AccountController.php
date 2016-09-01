@@ -332,8 +332,10 @@ class AccountController extends BaseController
 						unset($TicketData);
 					}			
 				}else
-				{
-					Log::info("freshdesk StatusCode ".print_r($GetTickets,true));
+				{	
+					if($GetTickets['StatusCode']!='200'){
+						Log::info("freshdesk StatusCode ".print_r($GetTickets,true));
+					}
 				} 	    
 			}		
 		}
