@@ -167,11 +167,11 @@ protected $Agent;
 		
 				if ($httpCode < 200 || $httpCode > 299)
 			 	{ 
-					$array_return  = array("StatusCode"=>$httpCode,"description"=>$json_data->description,"errors"=>$json_data->errors,"data"=>"");
+					$array_return  = array("StatusCode"=>$httpCode,"description"=>$json_data->description,"errors"=>$json_data->errors,"data"=>"","url"=>$this->url);
 					  //throw new Exception( sprintf('%s returned unexpected HTTP code (%d), repsonse: %s',$this->url,$httpCode,$returndata));                
 			    }
 				if($httpCode == 400){ 
-					$array_return  = array("StatusCode"=>$httpCode,"description"=>$json_data->description,"errors"=>$json_data->errors,"data"=>"");
+					$array_return  = array("StatusCode"=>$httpCode,"description"=>$json_data->description,"errors"=>$json_data->errors,"data"=>"","url"=>$this->url);
 					
 				}
 				if($httpCode == 200){  
