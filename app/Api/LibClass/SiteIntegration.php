@@ -11,13 +11,15 @@ class SiteIntegration{
 
  protected $support;
  protected $companyID;
- static    $SupportSlug		=	'support';
- static    $FreshdeskSlug	=	'freshdesk';
- protected $PaymentSlug		=	'payment';
- static    $EmailSlug		=	'email';
- static    $StorageSlug		=	'storage';
- static    $AmazoneSlug		=	'amazons3';
- static    $AuthorizeSlug	=	'authorizenet';
+ static    $SupportSlug			=	'support';
+ protected $PaymentSlug			=	'payment';
+ static    $EmailSlug			=	'email';
+ static    $StorageSlug			=	'storage';
+ static    $AmazoneSlug			=	'amazons3';
+ static    $AuthorizeSlug		=	'authorizenet';
+ static    $GatewaySlug			=	'billinggateway';
+ static    $freshdeskSlug		=	'freshdesk';
+ static    $mandrillSlug		=	'mandrill';
 
  	public function __construct(){
 	
@@ -168,7 +170,7 @@ class SiteIntegration{
 		$config = self::is_EmailIntegration($companyID,true);
 	
 		switch ($config->Slug){
-			case "mandrill":
+			case SiteIntegration::$mandrillSlug:
        		return MandrilIntegration::SendMail($view,$data,$config,$companyID,$Body);
       	  break;
 		}	
