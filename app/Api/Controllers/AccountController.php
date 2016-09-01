@@ -333,7 +333,7 @@ class AccountController extends BaseController
 					}			
 				}else
 				{
-					Log::info("freshdesk StatusCode ".$GetTickets['StatusCode']);
+					Log::info("freshdesk StatusCode ".print_r($GetTickets,true));
 				} 	    
 			}		
 		}
