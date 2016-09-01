@@ -263,16 +263,16 @@ class AccountController extends BaseController
         $validator = Validator::make($data, $rules);
         if ($validator->fails()) {
             return generateResponse($validator->errors(),true);
-        }
+        }			
 			
+        try { 
 			if($data['iDisplayStart']==0) {
 				if(\App\SiteIntegration::is_FreshDesk()){
 					$this->FreshSDeskGetTickets($data['AccountID'],$data['GUID']);
 				}
 			}
-        try {
             $columns =  ['Timeline_type','ActivityTitle','ActivityDescription','ActivityDate','ActivityType','ActivityID','Emailfrom','EmailTo','EmailSubject','EmailMessage','AccountEmailLogID','NoteID','Note','CreatedBy','created_at','updated_at'];
-            $query = "call prc_getAccountTimeLine(" . $data['AccountID'] . "," . $companyID . ",'".$data['GUID']."'," . $data['iDisplayStart'] . "," . $data['iDisplayLength'] . ")"; 
+            $query = "call prc_getAccountTimeLine(" . $data['AccountID'] . "," . $companyID . ",'".$data['GUID']."'," . $data['iDisplayStart'] . "," . $data['iDisplayLength'] . ")";  
             $result_array = DB::select($query); 
             return generateResponse('',false,false,$result_array);
        }
@@ -298,13 +298,14 @@ class AccountController extends BaseController
 		{ 
 			foreach($emails as $UsersEmails)
 			{				
-				$GetTickets 	= 		$FreshDeskObj->GetSupportTickets(array("email"=>trim($UsersEmails),"include"=>"requester"));
+				$GetTickets 	= 		$FreshDeskObj->GetSupportTickets(array("email"=>trim($UsersEmails),"include"=>"requester")); 
+				
+				
 				if($GetTickets['StatusCode'] == 200 && count($GetTickets['data'])>0)
 				{   
 					foreach($GetTickets['data'] as $GetTickets_data)
 					{   
-						if(in_array($GetTickets_data->id,$TicketsIDs)){continue;}else{$TicketsIDs[] = $GetTickets_data->id;} //ticket duplication
-						
+						if(in_array($GetTickets_data->id,$TicketsIDs)){continue;}else{$TicketsIDs[] = $GetTickets_data->id;} //ticket duplication						
 						$TicketData['CompanyID']		=	$companyID;
 						$TicketData['AccountID'] 		=   $AccountID;
 						$TicketData['TicketID']			=   $GetTickets_data->id;	
@@ -314,15 +315,25 @@ class AccountController extends BaseController
 						$TicketData['Status']			=	$FreshDeskObj->SupportSetStatus($GetTickets_data->status);
 						$TicketData['Type']				=	$GetTickets_data->type;				
 						$TicketData['Group']			=	$FreshDeskObj->SupportSetGroup($GetTickets_data->group_id);
-						$TicketData['to_emails']		=	implode(",",$GetTickets_data->to_emails);	
 						$TicketData['RequestEmail']		=	$GetTickets_data->requester->email;				
 						$TicketData['ApiCreatedDate']	=   date("Y-m-d H:i:s",strtotime($GetTickets_data->created_at));
 						$TicketData['ApiUpdateDate']	=   date("Y-m-d H:i:s",strtotime($GetTickets_data->updated_at));	
 						$TicketData['created_by']  		= 	User::get_user_full_name();
-						$TicketData['GUID']  			= 	$GUID;
+						$TicketData['GUID']  			= 	$GUID; 
+						if(!empty($GetTickets_data->to_emails) && $GetTickets_data->to_emails!='null'){
+							if(is_array($GetTickets_data->to_emails)){
+								$TicketData['to_emails']		=	implode(",",$GetTickets_data->to_emails);	
+							}
+							else{
+								$TicketData['to_emails']		=	$GetTickets_data->to_emails;	
+							}
+						}
 						$result 						= 	Ticket::create($TicketData);		
 						unset($TicketData);
 					}			
+				}else
+				{
+					Log::info("freshdesk StatusCode ".$GetTickets['StatusCode']);
 				} 	    
 			}		
 		}

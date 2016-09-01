@@ -61,7 +61,7 @@ protected $Agent;
 		if(!empty($concat_url)){
 			$concat_url = "?".$concat_url;
 		}
-		$this->url  	= 	$this->url."/api/v2/tickets".$concat_url;
+		$this->url  	= 	$this->url."/api/v2/tickets".$concat_url; 
 		/*if(!empty($this->per_page)){
 			$this->url  	= 	$this->url."/api/v2/tickets".$concat_url;	
 			$FullResult		=	$this->Call();
@@ -164,7 +164,7 @@ protected $Agent;
 				$returndata 	= 	curl_exec($ch); 
 				$httpCode 		= 	(int) curl_getinfo($ch,\CURLINFO_HTTP_CODE); 
 			    $json_data 		= 	json_decode($returndata);
-				
+		
 				if ($httpCode < 200 || $httpCode > 299)
 			 	{ 
 					$array_return  = array("StatusCode"=>$httpCode,"description"=>$json_data->description,"errors"=>$json_data->errors,"data"=>"");

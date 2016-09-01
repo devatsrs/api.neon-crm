@@ -99,15 +99,8 @@ class SiteIntegration{
 					return 1;
 				 }
 			 }
-			 else
-			 {
-				return 0;
-			 }
 		}
-		else
-		{
-			return 0;	
-		}	
+		return 0;	
 	 }
 	 
 	 
@@ -133,20 +126,10 @@ class SiteIntegration{
 					 }else{
 						return 1;
 					 }
-				 }else
-				 {
-				 	return 0;
 				 }
 			 }
-			 else
-			 {
-				return 0;
-			 }
 		}
-		else
-		{
-			return 0;	
-		}
+		return 0;	
 	}	
 	
 	public static function is_EmailIntegration($companyID='',$data = false){
@@ -175,20 +158,10 @@ class SiteIntegration{
 					 }else{
 						return 1;
 					 }
-				 }else
-				 {
-				 	return 0;
 				 }
 			 }
-			 else
-			 {
-				return 0;
-			 }
 		}
-		else
-		{
-			return 0;	
-		}
+		return 0;	
 	}
 	
 	public static function SendMail($view,$data,$companyID,$Body){
@@ -224,20 +197,10 @@ class SiteIntegration{
 					 }else{
 						return 1;
 					 }
-				 }else
-				 {
-				 	return 0;
 				 }
 			 }
-			 else
-			 {
-				return 0;
-			 }
 		}
-		else
-		{
-			return 0;	
-		}
+		return 0;	
 	}	 
 	
 	
@@ -261,22 +224,12 @@ class SiteIntegration{
 					 if($data ==true){
 						return $StorageData;
 					 }else{
-						return 1;
+						return true;
 					 }
-				 }else
-				 {
-				 	return 0;
 				 }
 			 }
-			 else
-			 {
-				return 0;
-			 }
 		}
-		else
-		{
-			return 0;	
-		}
+		return false;	
 	}	 
 	
 		public static function is_authorize_configured($data=false){ 
@@ -301,20 +254,10 @@ class SiteIntegration{
 					 }else{
 						return 1;
 					 }
-				 }else
-				 {
-				 	return 0;
 				 }
-			 }
-			 else
-			 {
-				return 0;
-			 }
+			 }	
 		}
-		else
-		{
-			return 0;	
-		}
+		return 0;	
 	}	 
 
 }
