@@ -16,8 +16,8 @@ class DestinationGroupSet extends Model
 
     public static function checkForeignKeyById($id) {
 
-        $hasInDestinationSet = DestinationGroup::where("DestinationGroupSetID",$id)->count();
-        if( intval($hasInDestinationSet) > 0 ){
+        $hasInDiscountPlan = DiscountPlan::where("DestinationGroupSetID",$id)->count();
+        if( intval($hasInDiscountPlan) > 0 ){
             return true;
         }else{
             return false;
