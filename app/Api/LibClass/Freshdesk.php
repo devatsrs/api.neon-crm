@@ -90,9 +90,9 @@ protected $Agent;
 			foreach($result['data'] as $GetTickets_data)
 			{   
 				if(count($Filter_Groups)>0){		//group filter
-					if(!in_array($this->SetGroup($GetTickets_data->group_id),$Filter_Groups)){
+					if(!empty($GetTickets_data->group_id) && !in_array($this->SetGroup($GetTickets_data->group_id),$Filter_Groups)){
 						continue;
-					}							
+					}
 				}
 				
 				$return_tickets[] = $GetTickets_data;		
