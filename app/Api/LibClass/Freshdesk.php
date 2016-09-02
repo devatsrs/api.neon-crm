@@ -90,9 +90,9 @@ protected $Agent;
 			foreach($result['data'] as $GetTickets_data)
 			{   
 				if(count($Filter_Groups)>0){		//group filter
-					if(!empty($GetTickets_data->group_id) && !in_array($this->SetGroup($GetTickets_data->group_id),$Filter_Groups)){
+					if(!in_array($this->SetGroup($GetTickets_data->group_id),$Filter_Groups)){
 						continue;
-					}
+					}							
 				}
 				
 				$return_tickets[] = $GetTickets_data;		
@@ -188,20 +188,31 @@ protected $Agent;
 		 echo $e->getMessage();		
 	}
 	
-	function MakeResult($data =array()){
-		
+	function MakeResult($data =array()){		
 	}
 	
 	public function SetPriority($id){
-		return $this->priority[$id];
+		if($id){
+			return $this->priority[$id];
+		}else{
+			return '';
+		}
 	}
 	
 	public function SetStatus($id){
-		return $this->status[$id];
+		if($id){
+			return $this->status[$id];
+		}else{
+			return '';
+		}
 	}
 	
 	public function SetGroup($id){
+		if($id){
 			return $this->groups[$id];
+		}else{
+			return '';
+		}
 	}
 }
 ?>
