@@ -25,6 +25,10 @@ class SiteIntegration{
 	
 		$this->companyID = 	User::get_companyID();
 	 } 
+	 
+	 /*
+	 * Get support settings return current active support
+	 */
 
 	public function SetSupportSettings(){
 		
@@ -37,6 +41,10 @@ class SiteIntegration{
 		}		
 	}
 	
+	/*
+	 * Get support contacts from active support
+	 */
+	
 	public function GetSupportContacts($options = array()){
         if($this->support){
             return $this->support->GetContacts($options);
@@ -44,13 +52,20 @@ class SiteIntegration{
         return false;
     }
 	
+	/*
+	 * Get support tickets from active support
+	 */
+	
 	public function GetSupportTickets($options = array()){
         if($this->support){
             return $this->support->GetTickets($options);
         }
         return false;
-
     }
+	
+	/*
+	 * Get support tickets conversation from active support
+	 */	
 
 	public function GetSupportTicketConversations($id){
         if($this->support){
@@ -59,12 +74,20 @@ class SiteIntegration{
         return false;
     }
 	
+	/*
+	 * Set support proirity
+	 */
+	
 	public function SupportSetPriority($id){
 		  if($this->support){
             return $this->support->SetPriority($id);
         }
         return false;			
 	}
+	
+	/*
+	 * Set support status
+	 */
 	
 	public function SupportSetStatus($id){
 	 if($this->support){
@@ -73,12 +96,20 @@ class SiteIntegration{
         return false;	
 	}
 	
+	/*
+	 * Set support group
+	 */
+	
 	public function SupportSetGroup($id){
 	 if($this->support){
         return $this->support->SetGroup($id);
       }
         return false;	
 	}
+	
+	/*
+	 * check fresh desk support active
+	 */
 	
 	 public static function is_FreshDesk($data = false){
 		$companyID		 =  User::get_companyID();
@@ -105,6 +136,9 @@ class SiteIntegration{
 		return 0;	
 	 }
 	 
+	 /*
+	 * check authorize active and return its data if data = true
+	 */ 	 
 	 
 	public function is_Authorize($data = false){
 
@@ -133,6 +167,10 @@ class SiteIntegration{
 		}
 		return 0;	
 	}	
+	
+	/*
+	 * check Email configuration addded or not . return true,data or false
+	 */
 	
 	public static function is_EmailIntegration($companyID='',$data = false){
 		
@@ -166,6 +204,10 @@ class SiteIntegration{
 		return 0;	
 	}
 	
+	/*
+	 * send mail . check active mail settings 
+	 */
+	
 	public static function SendMail($view,$data,$companyID,$Body){
 		$config = self::is_EmailIntegration($companyID,true);
 	
@@ -175,6 +217,10 @@ class SiteIntegration{
       	  break;
 		}	
 	}
+	
+	/*
+	 * check storage configuration addded or not . return true,data or false
+	 */
 	
 	public static function is_storage_configured(){
 		
@@ -206,6 +252,10 @@ class SiteIntegration{
 	}	 
 	
 	
+	/*
+	 * check amazon addded or not . return true,data or false
+	 */
+	
 	public static function is_amazon_configured($data = false){
 		
 		$Storage	 	=	Integration::where(["Slug"=>self::$AmazoneSlug])->first();	
@@ -232,9 +282,14 @@ class SiteIntegration{
 			 }
 		}
 		return false;	
-	}	 
+	}
 	
-		public static function is_authorize_configured($data=false){ 
+	
+	/*
+	 * check authorize addded or not . return true,data or false
+	 */ 	 
+	
+	public static function is_authorize_configured($data=false){ 
 		
 		$Authorize	 	 =	Integration::where(["Slug"=>SiteIntegration::$AuthorizeSlug])->first();	
 	
@@ -260,7 +315,6 @@ class SiteIntegration{
 			 }	
 		}
 		return 0;	
-	}	 
-
+	}	
 }
 ?>
