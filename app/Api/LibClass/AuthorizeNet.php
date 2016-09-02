@@ -21,7 +21,7 @@ class AuthorizeNet {
     function __Construct(){
 		
 		//////
-		$AuthorizeDbData 						= 	\App\SiteIntegration::is_authorize_configured(true);;
+		$AuthorizeDbData 						= 	\App\SiteIntegration::is_authorize_configured(true);
 		if(count($AuthorizeDbData)>0){					
 			$AuthorizeData					=	json_decode($AuthorizeDbData->Settings);
 			$AUTHORIZENET_API_LOGIN_ID  	= 	isset($AuthorizeData->AuthorizeLoginID)?$AuthorizeData->AuthorizeLoginID:'';		

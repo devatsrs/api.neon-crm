@@ -36,7 +36,7 @@ class AmazonS3 {
     /** Get Amazon Settings from Company Config table
      * @return array|mixed
      */
-    private static function getAmazonSettings(){
+    public static function getAmazonSettings(){
 
       /*  $cache = CompanyConfiguration::getConfiguration();
         $amazon = array();
@@ -58,7 +58,7 @@ class AmazonS3 {
         return $amazon;
     }
 
-    private static function getBucket(){
+    public static function getBucket(){
 
         $amazon = self::getAmazonSettings();
         if(isset($amazon['AWS_BUCKET'])){
