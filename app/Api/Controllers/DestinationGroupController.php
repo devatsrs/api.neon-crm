@@ -122,7 +122,7 @@ class DestinationGroupController extends BaseController
         $post_data = Input::all();
         $CompanyID = User::get_companyID();
 
-        $rules['Name'] = 'required|unique:tblDestinationGroup,Name,NULL,CompanyID,CompanyID,' . $CompanyID;
+        $rules['Name'] = 'required|unique:tblDestinationGroup,Name,NULL,CompanyID,CompanyID,' . $CompanyID.',DestinationGroupSetID,'.$post_data['DestinationGroupSetID'];
         $rules['DestinationGroupSetID'] = 'required';
         $validator = Validator::make($post_data, $rules);
         if ($validator->fails()) {
@@ -166,6 +166,7 @@ class DestinationGroupController extends BaseController
                             return generateResponse('Problem Deleting Destination Group.',true,true);
                         }
                     } catch (\Exception $ex) {
+                        Log::info($ex);
                         try {
                             DB::rollback();
                         } catch (\Exception $err) {
@@ -256,7 +257,7 @@ class DestinationGroupController extends BaseController
             $post_data = Input::all();
             $CompanyID = User::get_companyID();
 
-            $rules['Name'] = 'required|unique:tblDestinationGroup,Name,' . $DestinationGroupID . ',DestinationGroupID,CompanyID,' . $CompanyID;
+            $rules['Name'] = 'required|unique:tblDestinationGroup,Name,' . $DestinationGroupID . ',DestinationGroupID,CompanyID,' . $CompanyID.',DestinationGroupSetID,'.$post_data['DestinationGroupSetID'];
             $rules['DestinationGroupID'] = 'required';
             $validator = Validator::make($post_data, $rules);
             if ($validator->fails()) {
