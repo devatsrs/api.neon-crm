@@ -3,7 +3,9 @@
 namespace Api\Controllers;
 
 use Api\Model\DataTableSql;
+use Api\Model\Discount;
 use Api\Model\DiscountPlan;
+use Api\Model\DiscountScheme;
 use Api\Model\User;
 use App\Http\Requests;
 use Dingo\Api\Facade\API;
@@ -113,13 +115,23 @@ class DiscountPlanController extends BaseController
             if (intval($DiscountPlanID) > 0) {
                 if (!DiscountPlan::checkForeignKeyById($DiscountPlanID)) {
                     try {
+                        DB::beginTransaction();
+                        DiscountScheme::join('tblDiscount','tblDiscountScheme.DiscountID','=','tblDiscount.DiscountID')->where('DiscountPlanID',$DiscountPlanID)->delete();
+                        Discount::where("DiscountPlanID",$DiscountPlanID)->delete();
                         $result = DiscountPlan::find($DiscountPlanID)->delete();
+                        DB::commit();
                         if ($result) {
                             return generateResponse('Discount Plan Successfully Deleted');
                         } else {
                             return generateResponse('Problem Deleting Discount Plan.',true,true);
                         }
                     } catch (\Exception $ex) {
+                        Log::info($ex);
+                        try {
+                            DB::rollback();
+                        } catch (\Exception $err) {
+                            Log::error($err);
+                        }
                         return generateResponse('Discount Plan is in Use, You cant delete this Discount Plan.',true,true);
                     }
                 } else {

@@ -13,9 +13,8 @@ class DiscountPlan extends Model
 
     public static function checkForeignKeyById($id) {
 
-        $hasInDiscount = Discount::where("DiscountPlanID",$id)->count();
         $hasInAccountDiscountPlan = AccountDiscountPlan::where("DiscountPlanID",$id)->count();
-        if( intval($hasInDiscount) > 0 || intval($hasInAccountDiscountPlan) > 0 ){
+        if( intval($hasInAccountDiscountPlan) > 0 ){
             return true;
         }else{
             return false;

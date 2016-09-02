@@ -3,6 +3,8 @@
 namespace Api\Controllers;
 
 use Api\Model\DataTableSql;
+use Api\Model\DestinationGroup;
+use Api\Model\DestinationGroupCode;
 use Api\Model\DestinationGroupSet;
 use Api\Model\User;
 use App\Http\Requests;
@@ -107,13 +109,23 @@ class DestinationGroupSetController extends BaseController
             if (intval($DestinationGroupSetID) > 0) {
                 if (!DestinationGroupSet::checkForeignKeyById($DestinationGroupSetID)) {
                     try {
+                        DB::beginTransaction();
+                        DestinationGroupCode::join('tblDestinationGroup','tblDestinationGroup.DestinationGroupID','=','tblDestinationGroupCode.DestinationGroupID')->where('DestinationGroupSetID',$DestinationGroupSetID)->delete();
+                        DestinationGroup::where("DestinationGroupSetID",$DestinationGroupSetID)->delete();
                         $result = DestinationGroupSet::find($DestinationGroupSetID)->delete();
+                        DB::commit();
                         if ($result) {
                             return generateResponse('Destination Group Set Successfully Deleted');
                         } else {
                             return generateResponse('Problem Deleting Destination Group Set.',true,true);
                         }
                     } catch (\Exception $ex) {
+                        Log::info($ex);
+                        try {
+                            DB::rollback();
+                        } catch (\Exception $err) {
+                            Log::error($err);
+                        }
                         return generateResponse('Destination Group Set is in Use, You cant delete this Destination Group Set.',true,true);
                     }
                 } else {
