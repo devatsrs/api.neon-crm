@@ -108,6 +108,7 @@ function sendMail($view,$data)
     }*/
     return $status;
 }
+/*
 function setMailConfig($CompanyID,$mandrill,$data=array()){
 
 
@@ -166,7 +167,7 @@ function setMailConfig($CompanyID,$mandrill,$data=array()){
     }
     return $mail;
 }
-
+*/
 function add_email_address($mail,$data,$type='EmailTo') //type add,bcc,cc
 {
     if(isset($data[$type]))

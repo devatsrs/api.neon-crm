@@ -36,7 +36,7 @@ class AmazonS3 {
     /** Get Amazon Settings from Company Config table
      * @return array|mixed
      */
-    private static function getAmazonSettings(){
+    public static function getAmazonSettings(){
 
       /*  $cache = CompanyConfiguration::getConfiguration();
         $amazon = array();
@@ -51,14 +51,14 @@ class AmazonS3 {
 		$amazon 		= 	array();
 		$AmazonData		=	\App\SiteIntegration::is_amazon_configured(true);
 		
-		if(!empty($AmazonData)){
+		if($AmazonData){
 			$amazon 	=	 array("AWS_BUCKET"=>$AmazonData->AmazonAwsBucket,"AMAZONS3_KEY"=>$AmazonData->AmazonKey,"AMAZONS3_SECRET"=>$AmazonData->AmazonSecret,"AWS_REGION"=>$AmazonData->AmazonAwsRegion);	
 		}
 		
         return $amazon;
     }
 
-    private static function getBucket(){
+    public static function getBucket(){
 
         $amazon = self::getAmazonSettings();
         if(isset($amazon['AWS_BUCKET'])){
