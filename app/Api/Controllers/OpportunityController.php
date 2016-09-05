@@ -326,7 +326,7 @@ class OpportunityController extends BaseController {
 
             $validator = Validator::make($data, $rules, $messages);
 			
-            if ($validator->fails()) {  Log::info($validator->errors());
+            if ($validator->fails()) {  
              	return   generateResponse($validator->errors(),true);
 				
             }

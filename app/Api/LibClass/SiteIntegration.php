@@ -222,7 +222,7 @@ class SiteIntegration{
 	 * check storage configuration addded or not . return true,data or false
 	 */
 	
-	public static function is_storage_configured(){
+	public static function is_storage_configured($data=false){
 		
 		$companyID		 =  User::get_companyID();
 		$Storage	 	 =	Integration::where(["CompanyID" => $companyID,"Slug"=> self::$StorageSlug])->first();	

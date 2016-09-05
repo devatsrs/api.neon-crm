@@ -153,7 +153,7 @@ protected $Agent;
 		try {  
 				$array_return  	= 	array("StatusCode"=>00);
 				$header[] 	   	= 	"Content-type: application/json";
-				$ch 			= 	curl_init ($this->url);  
+				$ch 			= 	curl_init ($this->url);   
 				curl_setopt ($ch, CURLOPT_POST, false);
 				curl_setopt($ch, CURLOPT_USERPWD, "$this->email:$this->password");
 				curl_setopt($ch, CURLOPT_HTTPHEADER, $header);

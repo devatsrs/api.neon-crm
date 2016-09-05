@@ -268,7 +268,10 @@ class AccountController extends BaseController
         try { 
 			if($data['iDisplayStart']==0) {
 				if(\App\SiteIntegration::is_FreshDesk()){
-					$this->FreshSDeskGetTickets($data['AccountID'],$data['GUID']);
+				 $freshsdesk = 	$this->FreshSDeskGetTickets($data['AccountID'],$data['GUID']); 
+					if($freshsdesk){
+						return generateResponse(array("freshsdesk"=>array(0=>$freshsdesk['errors'][0]->message)),true);
+					}
 				}
 			}
             $columns =  ['Timeline_type','ActivityTitle','ActivityDescription','ActivityDate','ActivityType','ActivityID','Emailfrom','EmailTo','EmailSubject','EmailMessage','AccountEmailLogID','NoteID','Note','CreatedBy','created_at','updated_at'];
@@ -298,8 +301,7 @@ class AccountController extends BaseController
 		{ 
 			foreach($emails as $UsersEmails)
 			{				
-				$GetTickets 	= 		$FreshDeskObj->GetSupportTickets(array("email"=>trim($UsersEmails),"include"=>"requester")); 
-				
+				$GetTickets 	= 		$FreshDeskObj->GetSupportTickets(array("email"=>trim($UsersEmails),"include"=>"requester"));				
 				
 				if($GetTickets['StatusCode'] == 200 && count($GetTickets['data'])>0)
 				{   
@@ -310,7 +312,8 @@ class AccountController extends BaseController
 						$TicketData['AccountID'] 		=   $AccountID;
 						$TicketData['TicketID']			=   $GetTickets_data->id;	
 						$TicketData['Subject']			=	$GetTickets_data->subject;
-						$TicketData['Description']		=	$GetTickets_data->description_text;
+						$TicketData['Description']		=	$GetTickets_data->description;
+						//$TicketData['Description']		=	$GetTickets_data->description_text;
 						$TicketData['Priority']			=	$FreshDeskObj->SupportSetPriority($GetTickets_data->priority);
 						$TicketData['Status']			=	$FreshDeskObj->SupportSetStatus($GetTickets_data->status);
 						$TicketData['Type']				=	$GetTickets_data->type;				
@@ -330,11 +333,13 @@ class AccountController extends BaseController
 						}
 						$result 						= 	Ticket::create($TicketData);		
 						unset($TicketData);
-					}			
+					}	
 				}else
-				{	
-					if($GetTickets['StatusCode']!='200'){
+				{
+					//return $GetTickets;	
+					if($GetTickets['StatusCode']!='200' && $GetTickets['StatusCode']!='400'){
 						Log::info("freshdesk StatusCode ".print_r($GetTickets,true));
+						return $GetTickets;							
 					}
 				} 	    
 			}		

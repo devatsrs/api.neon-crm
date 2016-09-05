@@ -179,9 +179,6 @@ class TaskController extends BaseController {
 
     public function addTask(){
         $data = Input::all();
-        Log::info("addTask Task");
-        Log::info($data);
-
         $companyID = User::get_companyID();
         $message = '';
         $data ["CompanyID"] = $companyID;
