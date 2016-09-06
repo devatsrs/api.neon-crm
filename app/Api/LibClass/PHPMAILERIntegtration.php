@@ -30,7 +30,7 @@ class PHPMAILERIntegtration{
 		$mail->Host = $host;  // Specify main and backup SMTP servers
 		$mail->SMTPAuth = true;                               // Enable SMTP authentication
 		$mail->Username = $username;                 // SMTP username
-	
+		$mail->CharSet = 'UTF-8';
 		$mail->Password = $password;                           // SMTP password
 		$mail->SMTPSecure = $encryption;                            // Enable TLS encryption, `ssl` also accepted
 	
