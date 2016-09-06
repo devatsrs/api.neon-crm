@@ -267,7 +267,7 @@ class AccountController extends BaseController
 			
         try { 
 			if($data['iDisplayStart']==0) {
-				if(\App\SiteIntegration::is_FreshDesk()){
+				if(\App\SiteIntegration::CheckIntegrationConfiguration(false,\App\SiteIntegration::$freshdeskSlug)){
 				 $freshsdesk = 	$this->FreshSDeskGetTickets($data['AccountID'],$data['GUID']); 
 					if($freshsdesk){
 						return generateResponse(array("freshsdesk"=>array(0=>$freshsdesk['errors'][0]->message)),true);
@@ -526,7 +526,7 @@ class AccountController extends BaseController
             if(isset($data['password'])) {
                 $this->sendPasswordEmail($account, $password, $data);
             }
-			$isAuthorizedNet = 	\App\SiteIntegration::is_authorize_configured();
+			$isAuthorizedNet = 	\App\SiteIntegration::CheckIntegrationConfiguration(false,\App\SiteIntegration::$AuthorizeSlug);
 			if($isAuthorizedNet){
 				 $this->updateAuthorizeProfileShippingAddress($id,$companyID,$shipping);
 			}
