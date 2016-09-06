@@ -39,7 +39,7 @@ class AccountPaymentProfile extends Model{
     public static function createProfile($CompanyID, $CustomerID)
     {
         $data = Input::all();
-		$isAuthorizedNet  = 	\App\SiteIntegration::is_authorize_configured(); 
+		$isAuthorizedNet  = 	\App\SiteIntegration::CheckIntegrationConfiguration(false,\App\SiteIntegration::$AuthorizeSlug); 
 		if(!$isAuthorizedNet){
 			return Response::json(array("status" => "failed", "message" => "Payment Method Not Integrated"));
 		}

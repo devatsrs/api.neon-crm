@@ -49,7 +49,7 @@ class AmazonS3 {
              }
         }*/
 		$amazon 		= 	array();
-		$AmazonData		=	\App\SiteIntegration::is_amazon_configured(true);
+		$AmazonData		=	\App\SiteIntegration::CheckIntegrationConfiguration(true,\App\SiteIntegration::$AmazoneSlug);
 		
 		if($AmazonData){
 			$amazon 	=	 array("AWS_BUCKET"=>$AmazonData->AmazonAwsBucket,"AMAZONS3_KEY"=>$AmazonData->AmazonKey,"AMAZONS3_SECRET"=>$AmazonData->AmazonSecret,"AWS_REGION"=>$AmazonData->AmazonAwsRegion);	

@@ -45,7 +45,7 @@ function sendMail($view,$data)
     }
 	$body 	=  html_entity_decode(View::make($view,compact('data'))->render()); 
 
-	if(\App\SiteIntegration::is_EmailIntegration($companyID)){
+	if(\App\SiteIntegration::CheckCategoryConfiguration(false,\App\SiteIntegration::$EmailSlug)){
 		$status = 	 \App\SiteIntegration::SendMail($view,$data,$companyID,$body);		
 	}
 	else{
