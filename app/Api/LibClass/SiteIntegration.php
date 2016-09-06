@@ -160,12 +160,12 @@ class SiteIntegration{
 					 if($data ==true){
 						return $PaymentData;
 					 }else{
-						return 1;
+						return true;
 					 }
 				 }
 			 }
 		}
-		return 0;	
+		return false;	
 	}	
 	
 	/*
@@ -257,8 +257,8 @@ class SiteIntegration{
 	 */
 	
 	public static function is_amazon_configured($data = false){
-		
-		$Storage	 	=	Integration::where(["Slug"=>self::$AmazoneSlug])->first();	
+		$companyID		 =  User::get_companyID();
+		$Storage	 	=	Integration::where(["CompanyID" => $companyID,"Slug"=>self::$AmazoneSlug])->first();	
 	
 		if(count($Storage)>0)
 		{						
@@ -267,7 +267,7 @@ class SiteIntegration{
 			{
 				$join->on('tblIntegrationConfiguration.IntegrationID', '=', 'tblIntegration.IntegrationID');
 	
-			})->where(["tblIntegration.ParentID"=>$Storage->ParentID])->where(["tblIntegrationConfiguration.Status"=>1]);
+			})->where(["tblIntegration.CompanyID"=>$companyID])->where(["tblIntegration.ParentID"=>$Storage->ParentID])->where(["tblIntegrationConfiguration.Status"=>1]);
 			 $result = $StorageSubcategory->first();
 			 if(count($result)>0)
 			 {
@@ -290,8 +290,8 @@ class SiteIntegration{
 	 */ 	 
 	
 	public static function is_authorize_configured($data=false){ 
-		
-		$Authorize	 	 =	Integration::where(["Slug"=>SiteIntegration::$AuthorizeSlug])->first();	
+		$companyID		 =  User::get_companyID();		
+		$Authorize	 	 =	Integration::where(["CompanyID" => $companyID,"Slug"=>SiteIntegration::$AuthorizeSlug])->first();	
 	
 		if(count($Authorize)>0)
 		{						
@@ -300,7 +300,7 @@ class SiteIntegration{
 			{
 				$join->on('tblIntegrationConfiguration.IntegrationID', '=', 'tblIntegration.IntegrationID');
 	
-			})->where(["tblIntegration.ParentID"=>$Authorize->ParentID])->where(["tblIntegrationConfiguration.Status"=>1]);
+			})->where(["tblIntegration.CompanyID"=>$companyID])->where(["tblIntegration.ParentID"=>$Authorize->ParentID])->where(["tblIntegrationConfiguration.Status"=>1]);
 			 $result = $AuthorizeSubcategory->first();
 			 if(count($result)>0)
 			 {
