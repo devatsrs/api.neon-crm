@@ -30,7 +30,7 @@ class PHPMAILERIntegtration{
 		$mail->Host = $host;  // Specify main and backup SMTP servers
 		$mail->SMTPAuth = true;                               // Enable SMTP authentication
 		$mail->Username = $username;                 // SMTP username
-	
+		$mail->CharSet = 'UTF-8';
 		$mail->Password = $password;                           // SMTP password
 		$mail->SMTPSecure = $encryption;                            // Enable TLS encryption, `ssl` also accepted
 	
@@ -60,7 +60,7 @@ class PHPMAILERIntegtration{
 			
 		if(isset($data['AttachmentPaths']) && count($data['AttachmentPaths'])>0) {
         foreach($data['AttachmentPaths'] as $attachment_data) { 
-            $file = \Webpatser\Uuid\Uuid::generate()."_". basename($attachment_data['filepath']);
+            $file = \Webpatser\Uuid\Uuid::generate()."_". basename($attachment_data['filepath']); 
             $Attachmenturl = \App\AmazonS3::unSignedUrl($attachment_data['filepath']);
             file_put_contents($file,file_get_contents($Attachmenturl));
             $mail->AddAttachment($file,$attachment_data['filename']);

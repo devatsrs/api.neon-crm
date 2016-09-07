@@ -133,7 +133,7 @@ class DashboardController extends BaseController {
             return generateResponse($validator->errors(),true);
         }
 		$UserID				=	(isset($data['UsersID']) && is_array($data['UsersID']))?implode(",",array_filter($data['UsersID'])):$data['UsersID'];
-		$CurrencyID			=	(isset($data['CurrencyID']) && !empty($data['CurrencyID']))?$data['CurrencyID']:0;
+		$CurrencyID			=	(isset($data['CurrencyID']) && !empty($data['CurrencyID']))?$data['CurrencyID']:0; 
 		$array_return 		= 	array();
 		$array_return1 		= 	array();
 		$array_date			=	array();
@@ -146,7 +146,7 @@ class DashboardController extends BaseController {
 		$Closingdate		=	explode(' - ',$data['Closingdate']);
 		$StartDate			=   $Closingdate[0]." 00:00:00";
 		$EndDate			=	$Closingdate[1]." 23:59:59";		
-		$statusarray		=	(isset($data['Status']))?implode(",",$data['Status']):'';
+		$statusarray		=	(isset($data['Status']) && !empty($data['Status']))?implode(",",$data['Status']):'';
 		$query  			= 	"call prc_GetCrmDashboardSales (".$companyID.",'".$UserID."', '".$statusarray."','".$CurrencyID."','".$StartDate."','".$EndDate."')"; 
 		$result 			= 	DB::select($query);
 		$TotalWorth			=	0;

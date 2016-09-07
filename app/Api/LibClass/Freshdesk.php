@@ -61,7 +61,7 @@ protected $Agent;
 		if(!empty($concat_url)){
 			$concat_url = "?".$concat_url;
 		}
-		$this->url  	= 	$this->url."/api/v2/tickets".$concat_url;
+		$this->url  	= 	$this->url."/api/v2/tickets".$concat_url; 
 		/*if(!empty($this->per_page)){
 			$this->url  	= 	$this->url."/api/v2/tickets".$concat_url;	
 			$FullResult		=	$this->Call();
@@ -153,7 +153,7 @@ protected $Agent;
 		try {  
 				$array_return  	= 	array("StatusCode"=>00);
 				$header[] 	   	= 	"Content-type: application/json";
-				$ch 			= 	curl_init ($this->url);  
+				$ch 			= 	curl_init ($this->url);   
 				curl_setopt ($ch, CURLOPT_POST, false);
 				curl_setopt($ch, CURLOPT_USERPWD, "$this->email:$this->password");
 				curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
@@ -164,14 +164,14 @@ protected $Agent;
 				$returndata 	= 	curl_exec($ch); 
 				$httpCode 		= 	(int) curl_getinfo($ch,\CURLINFO_HTTP_CODE); 
 			    $json_data 		= 	json_decode($returndata);
-				
+		
 				if ($httpCode < 200 || $httpCode > 299)
 			 	{ 
-					$array_return  = array("StatusCode"=>$httpCode,"description"=>$json_data->description,"errors"=>$json_data->errors,"data"=>"");
+					$array_return  = array("StatusCode"=>$httpCode,"description"=>$json_data->description,"errors"=>$json_data->errors,"data"=>"","url"=>$this->url);
 					  //throw new Exception( sprintf('%s returned unexpected HTTP code (%d), repsonse: %s',$this->url,$httpCode,$returndata));                
 			    }
 				if($httpCode == 400){ 
-					$array_return  = array("StatusCode"=>$httpCode,"description"=>$json_data->description,"errors"=>$json_data->errors,"data"=>"");
+					$array_return  = array("StatusCode"=>$httpCode,"description"=>$json_data->description,"errors"=>$json_data->errors,"data"=>"","url"=>$this->url);
 					
 				}
 				if($httpCode == 200){  
@@ -188,20 +188,31 @@ protected $Agent;
 		 echo $e->getMessage();		
 	}
 	
-	function MakeResult($data =array()){
-		
+	function MakeResult($data =array()){		
 	}
 	
 	public function SetPriority($id){
-		return $this->priority[$id];
+		if($id){
+			return $this->priority[$id];
+		}else{
+			return '';
+		}
 	}
 	
 	public function SetStatus($id){
-		return $this->status[$id];
+		if($id){
+			return $this->status[$id];
+		}else{
+			return '';
+		}
 	}
 	
 	public function SetGroup($id){
+		if($id){
 			return $this->groups[$id];
+		}else{
+			return '';
+		}
 	}
 }
 ?>

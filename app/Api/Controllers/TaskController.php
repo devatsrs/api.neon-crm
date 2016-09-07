@@ -179,9 +179,6 @@ class TaskController extends BaseController {
 
     public function addTask(){
         $data = Input::all();
-        Log::info("addTask Task");
-        Log::info($data);
-
         $companyID = User::get_companyID();
         $message = '';
         $data ["CompanyID"] = $companyID;
@@ -342,12 +339,13 @@ class TaskController extends BaseController {
     public function updateTask($id)
     {
         if( $id > 0 ) {
-			$Task = $old_task_data = Task::find($id);
-            $CalendarEventID = $old_task_data->CalendarEventID;
+			$Task =  Task::find($id);
+			$old_task_data['TaggedUsers']  	=	$Task->TaggedUsers;
+			$old_task_data['CreatedBy']  	=	$Task->CreatedBy;
+			$old_task_data['UsersIDs']  	=	$Task->UsersIDs;			
+            $CalendarEventID = $Task->CalendarEventID;
 			$required_data = 0;
             $data = Input::all();
-            Log::info("Update Task");
-            Log::info($data);
             $companyID = User::get_companyID();
 			$TaskBoardUrl=	'';
             $data["CompanyID"] = $companyID;
