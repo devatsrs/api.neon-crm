@@ -1,6 +1,8 @@
 <?php
 namespace Api\Controllers;
 
+use Api\Model\Company;
+use App\CalendarAPI;
 use Dingo\Api\Http\Request;
 use Api\Model\DataTableSql;
 use Api\Model\Task;
@@ -177,7 +179,6 @@ class TaskController extends BaseController {
 
     public function addTask(){
         $data = Input::all();
-       
         $companyID = User::get_companyID();
         $message = '';
         $data ["CompanyID"] = $companyID;
@@ -243,6 +244,33 @@ class TaskController extends BaseController {
             $result  				=   Task::create($data);
 			$data['TaskBoardUrl']	=	$TaskBoardUrl;
 			SendTaskMail($data); //send task email to assign user
+
+            if(isset($data['DueDate']) && !empty($data['DueDate'])) {
+                /**
+                 * Creating Calendar Event Data
+                 */
+                $attendees = Task::get_all_attendees_email($result);
+                $timezone = Company::getCompanyField($companyID, "TimeZone");
+                $StartDate = date("Y-m-d H:i:s",strtotime($data['DueDate']));
+                $options = [
+                    "timezone" => $timezone,
+                    "start_date" => $StartDate,
+                    "due_date" => $data['DueDate'],
+                    "description" => nl2br($data["Description"]),
+                    "attendees" => $attendees,
+                    "subject" => $data['Subject'],
+                ];
+
+                $response = $this->add_edit_calendar_event($options);
+
+                //Update Event ID on DB to update.
+                if (isset($response["event_id"]) && isset($response["change_key"]) && !empty($response["event_id"]) && !empty($response["change_key"])) {
+
+                    $result->update(["CalendarEventID" => json_encode($response)]);
+                }
+            }
+
+
           if(isset($data['Task_type']) && $data['Task_type']!=0)
             {
                 $new_date =  date("Y-m-d H:i:s", time() + 1);
@@ -311,7 +339,11 @@ class TaskController extends BaseController {
     public function updateTask($id)
     {
         if( $id > 0 ) {
-			$old_task_data = Task::find($id);
+			$Task =  Task::find($id);
+			$old_task_data['TaggedUsers']  	=	$Task->TaggedUsers;
+			$old_task_data['CreatedBy']  	=	$Task->CreatedBy;
+			$old_task_data['UsersIDs']  	=	$Task->UsersIDs;			
+            $CalendarEventID = $Task->CalendarEventID;
 			$required_data = 0;
             $data = Input::all();
             $companyID = User::get_companyID();
@@ -347,8 +379,10 @@ class TaskController extends BaseController {
                     $data['taskClosed'] = Task::Open;
                 }
                 $data['BoardColumnID'] = $data["TaskStatus"];
-               // $data['DueDate'] = isset($data['StartTime']) && !empty($data['StartTime'])?$data['DueDate'].' '.$data['StartTime']:$data['DueDate'];
-			   $duedate   = '0000-00-00'; $Starttime = '00:00:00'; 
+
+                // $data['DueDate'] = isset($data['StartTime']) && !empty($data['StartTime'])?$data['DueDate'].' '.$data['StartTime']:$data['DueDate'];
+
+			    $duedate   = '0000-00-00'; $Starttime = '00:00:00';
 			   if(isset($data['DueDate']) && !empty($data['DueDate'])){
 			 		$duedate = $data['DueDate'];
 			   }			   
@@ -377,9 +411,48 @@ class TaskController extends BaseController {
 				}
 				
 				$data = cleanarray($data,['TaskStatus','TaskID','StartTime','TaskBoardUrl','required_data']);
-                Task::where(['TaskID' => $id])->update($data);
+                $Task->update($data);
 				$data['TaskBoardUrl']	=	$TaskBoardUrl;				
-				SendTaskMailUpdate($data,$old_task_data,'Task'); //send task email to assign user
+				$status = SendTaskMailUpdate($data,$old_task_data,'Task'); //send task email to assign user
+
+
+                if(isset($data['DueDate']) && !empty($data['DueDate'])) {
+
+                    /**
+                     * Creating Calendar Event Data
+                     */
+                    $attendees = Task::get_all_attendees_email($Task);
+                    $timezone = Company::getCompanyField($companyID, "TimeZone");
+                    $StartDate = date("Y-m-d H:i:s",strtotime($data['DueDate']));
+                    $options = [
+                        "timezone" => $timezone,
+                        "start_date" => $StartDate,
+                        "due_date" => $data['DueDate'],
+                        "description" => nl2br($data["Description"]),
+                        "attendees" => $attendees,
+                        "subject" => $data['Subject'],
+                    ];
+
+                    if (!empty($CalendarEventID)) {
+
+                        $CalendarEventIDJson = json_decode($CalendarEventID, true);
+                        if (isset($CalendarEventIDJson["event_id"]) && isset($CalendarEventIDJson["change_key"]) && !empty($CalendarEventIDJson["event_id"]) && !empty($CalendarEventIDJson["change_key"])) {
+
+                            $options["event_id"] = $CalendarEventIDJson["event_id"];
+                            $options["change_key"] = $CalendarEventIDJson["change_key"];
+
+                        }
+                    }
+
+                    $response = $this->add_edit_calendar_event($options);
+
+                    //Update Event ID on DB to update.
+                    if (isset($response["event_id"]) && isset($response["change_key"]) && !empty($response["event_id"]) && !empty($response["change_key"])) {
+
+                        $Task->update(["CalendarEventID" => json_encode($response)]);
+                    }
+                }
+
             } catch (\Exception $ex){
                 Log::info($ex);
                 return $this->response->errorInternal($ex->getMessage());
@@ -407,7 +480,22 @@ class TaskController extends BaseController {
         }
 
         try{
+
+            $CalendarEventID = Task::where(['TaskID'=>$data['TaskID']])->pluck("CalendarEventID");
+            if (!empty($CalendarEventID)) {
+
+                $CalendarEventIDJson = json_decode($CalendarEventID, true);
+                if (isset($CalendarEventIDJson["event_id"]) && isset($CalendarEventIDJson["change_key"]) && !empty($CalendarEventIDJson["event_id"]) && !empty($CalendarEventIDJson["change_key"])) {
+
+                    $options["event_id"] = $CalendarEventIDJson["event_id"];
+                    $options["change_key"] = $CalendarEventIDJson["change_key"];
+
+                    $response = $this->delete_calendar_event($options);
+                }
+            }
+
             Task::where(['TaskID'=>$data['TaskID']])->delete();
+
         }catch (\Exception $ex){
             Log::info($ex);
             return $this->response->errorInternal($ex->getMessage());
@@ -471,4 +559,59 @@ class TaskController extends BaseController {
         }
     }
 
+    /**
+     * Create update Calendar Event for Task
+     */
+    public function add_edit_calendar_event( $options = array() ){
+
+        Log::info("Calendar Event Options");
+        Log::info($options);
+
+        $calendar_request = new CalendarAPI();
+
+        if(isset($options["event_id"]) && isset($options["change_key"]) && !empty($options["event_id"]) && !empty($options["change_key"]) ) {
+
+            $response = $calendar_request->update_event($options);
+        } else {
+
+            $response = $calendar_request->create_event($options);
+        }
+
+        if(isset($response["event_id"]) && isset($response["change_key"]) && !empty($response["event_id"]) && !empty($response["change_key"]) ) {
+
+            Log::info("Calendar Response");
+            Log::info(print_r($response,true));
+        }
+
+        return $response;
+    }
+
+    /** Delete calendar event.
+     * @param array $options
+     * @return array|bool
+     */
+    public function delete_calendar_event( $options = array() ){
+
+        Log::info("Calendar Event Options");
+        Log::info($options);
+
+        $calendar_request = new CalendarAPI();
+
+        if(isset($options["event_id"]) && isset($options["change_key"]) && !empty($options["event_id"]) && !empty($options["change_key"]) ) {
+
+            $response = $calendar_request->delete_event($options);
+        } else {
+
+            Log::info("No calendar event id found");
+         }
+
+        if(isset($response["event_id"]) && isset($response["change_key"]) && !empty($response["event_id"]) && !empty($response["change_key"]) ) {
+
+            Log::info("Calendar Response");
+            Log::info(print_r($response,true));
+        }
+
+        return $response;
+
+    }
 }

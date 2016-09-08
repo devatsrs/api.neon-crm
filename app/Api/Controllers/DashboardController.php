@@ -93,7 +93,7 @@ class DashboardController extends BaseController {
 		$array_worth		=	array();
 		$TotalOpportunites  =   0;
 		$TotalWorth			=	0;
-		$query  			= 	"call prc_GetCrmDashboardPipeLine (".$companyID.",'".$UserID."','".$CurrencyID."')";  Log::info($query);
+		$query  			= 	"call prc_GetCrmDashboardPipeLine (".$companyID.",'".$UserID."','".$CurrencyID."')";  
 		$result 			= 	DB::select($query);
 		
 		foreach($result as $result_data){
@@ -133,7 +133,7 @@ class DashboardController extends BaseController {
             return generateResponse($validator->errors(),true);
         }
 		$UserID				=	(isset($data['UsersID']) && is_array($data['UsersID']))?implode(",",array_filter($data['UsersID'])):$data['UsersID'];
-		$CurrencyID			=	(isset($data['CurrencyID']) && !empty($data['CurrencyID']))?$data['CurrencyID']:0;
+		$CurrencyID			=	(isset($data['CurrencyID']) && !empty($data['CurrencyID']))?$data['CurrencyID']:0; 
 		$array_return 		= 	array();
 		$array_return1 		= 	array();
 		$array_date			=	array();
@@ -146,8 +146,8 @@ class DashboardController extends BaseController {
 		$Closingdate		=	explode(' - ',$data['Closingdate']);
 		$StartDate			=   $Closingdate[0]." 00:00:00";
 		$EndDate			=	$Closingdate[1]." 23:59:59";		
-		$statusarray		=	(isset($data['Status']))?implode(",",$data['Status']):'';
-		$query  			= 	"call prc_GetCrmDashboardSales (".$companyID.",'".$UserID."', '".$statusarray."','".$CurrencyID."','".$StartDate."','".$EndDate."')";  Log::info($query);
+		$statusarray		=	(isset($data['Status']) && !empty($data['Status']))?implode(",",$data['Status']):'';
+		$query  			= 	"call prc_GetCrmDashboardSales (".$companyID.",'".$UserID."', '".$statusarray."','".$CurrencyID."','".$StartDate."','".$EndDate."')"; 
 		$result 			= 	DB::select($query);
 		$TotalWorth			=	0;
 		
@@ -222,43 +222,69 @@ class DashboardController extends BaseController {
 		$array_dates		=	array();	
 		$array_users		=	array();
 		$array_worth		=	array();				
+		$array_users_id		=	array();
 		$total_opp			=	0;
 		$array_final 		= 	array("count"=>0,"status"=>"success");
 		$Duedate			=	explode(' - ',$data['Duedate']);
 		$StartDate			=   $Duedate[0]." 00:00:00";
 		$EndDate			=	$Duedate[1]." 23:59:59";		
-		$query  			= 	"CALL `prc_GetCrmDashboardSalesManager`(".$companyID.",'".$UserID."','".$CurrencyID."','".$StartDate."','".$EndDate."') ";  	
+		$query  			= 	"CALL `prc_GetCrmDashboardSalesManager`(".$companyID.",'".$UserID."','".$CurrencyID."','".$data['ListType']."','".$StartDate."','".$EndDate."') ";  	 
 		
 		$result 			= 	DB::select($query);
 		$TotalWorth			=	0;
 		
-				foreach($result as $result_data){
+		foreach($result as $result_data){
 			if(!in_array($result_data->AssignedUserText,$array_users)){			
 				$array_users[]   = $result_data->AssignedUserText;
+				$array_users_id[$result_data->AssignedUserText] = $result_data->AssignedUserID;
 			}
 			$array_worth[] = $result_data->Revenue;
 		}
 		
-		foreach($result as $result_data){			
-			if(!in_array($result_data->MonthName,$array_dates)){			
-				$array_dates[]   = $result_data->MonthName;
+		
+		if($data['ListType']=='Monthly'){
+			
+			foreach($result as $result_data){			
+				if(!in_array($result_data->MonthName,$array_dates)){			
+					$array_dates[]   = $result_data->MonthName;
+				}
+			}
+			
+			foreach($result as $result_data){
+				if(isset($array_date[$result_data->MonthName][$result_data->AssignedUserText])){
+					$current_data = $array_date[$result_data->MonthName][$result_data->AssignedUserText];	
+					$array_date[$result_data->MonthName][$result_data->AssignedUserText] 	 = 	$result_dataRevenue+$current_data;
+				}else{
+					$array_date[$result_data->MonthName][$result_data->AssignedUserText] 	 = 	$result_data->Revenue;
+				}			
+				$worth = $worth+$result_data->Revenue;
 			}
 		}
 		
-		foreach($result as $result_data){
-			if(isset($array_date[$result_data->MonthName][$result_data->AssignedUserText])){
-				$current_data = $array_date[$result_data->MonthName][$result_data->AssignedUserText];	
-				$array_date[$result_data->MonthName][$result_data->AssignedUserText] 	 = 	$result_dataRevenue+$current_data;
-			}else{
-				$array_date[$result_data->MonthName][$result_data->AssignedUserText] 	 = 	$result_data->Revenue;
-			}			
-			$worth = $worth+$result_data->Revenue;
+		if($data['ListType']=='Weekly'){
+			foreach($result as $result_data){			
+				if(!in_array($result_data->Week,$array_dates)){			
+					$array_dates[]   = $result_data->Week;
+				}
+			}
+			
+			foreach($result as $result_data){
+				if(isset($array_date[$result_data->Week][$result_data->AssignedUserText])){
+					$current_data = $array_date[$result_data->Week][$result_data->AssignedUserText];	
+					$array_date[$result_data->Week][$result_data->AssignedUserText] 	 = 	$result_dataRevenue+$current_data;
+				}else{
+					$array_date[$result_data->Week][$result_data->AssignedUserText] 	 = 	$result_data->Revenue;
+				}			
+				$worth = $worth+$result_data->Revenue;
+			}
+		
 		}
+		
 		
 		$array_data = array();
 		
-		foreach($array_users as $array_users_data){
-			foreach($array_dates as $array_dates_data){
+		foreach($array_users as $key => $array_users_data){  
+			foreach($array_dates as $array_dates_data){ 
 				if(isset($array_date[$array_dates_data][$array_users_data])){
 					$array_data[$array_users_data][] = $array_date[$array_dates_data][$array_users_data];
 				}else{
@@ -266,16 +292,39 @@ class DashboardController extends BaseController {
 				}
 			}
 		}
-		
 		foreach($array_data as $key => $array_data_loop){
-			$array_return1[] = array("user"=>$key,"worth"=>implode(",",$array_data_loop));			
+			$array_return1[] = array("user"=>$key,"worth"=>implode(",",$array_data_loop),"id"=>$array_users_id[$key]);			
 		}
 		
 		if(count($array_users)>0){
 			$worth = number_format($worth,$result_data->round_number);
-			$array_final = array("data"=>$array_return1,"dates"=>implode(",",$array_dates),'TotalWorth'=>$worth,"count"=>count($array_users),"CurrencyCode"=>$result_data->v_CurrencyCode_,"worth"=>implode(",",$array_worth),"users"=>implode(",",$array_users),"status"=>"success");
+			$array_final = array("data"=>$array_return1,"dates"=>implode(",",$array_dates),'TotalWorth'=>$worth,"count"=>count($array_users),"CurrencyCode"=>$result_data->v_CurrencyCode_,"worth"=>implode(",",$array_worth),"status"=>"success");
 		}
 		return generateResponse('',false,false,json_encode($array_final));
+	}
+	
+	function CrmDashboardUserRevenue(){
+		$companyID 			= 	User::get_companyID();
+        $data 				= 	Input::all();
+		$Duedate			=	explode(' - ',$data['duedate']);
+		$StartDate			=   $Duedate[0]." 00:00:00";
+		$EndDate			=	$Duedate[1]." 23:59:59";
+		$split				=	$data['ListType']=='Weekly'?'-':'/';
+		$date_range			=	explode($split,$data['date_range']);
+		$WeekOrMonth		=	$date_range[0];
+		$Year				=	$date_range[1];
+		$CurrencyID			=	(isset($data['CurrencyID']) && !empty($data['CurrencyID']))?$data['CurrencyID']:0;
+		$array_return		=	array();
+		
+			$query  			= 	"CALL `prc_GetCrmDashboardSalesUser`(".$companyID.",'".$data['userid']."','".$CurrencyID."','".$data['ListType']."','".$StartDate."','".$EndDate."','".$WeekOrMonth."','".$Year."') ";
+			$result = DB::select($query); 
+			
+			foreach($result as $result_data){ 
+			$array_return[] = array("Account"=>$result_data->AssignedUserText,"Revenue"=>$result_data->Revenue,'round_number'=>$result_data->round_number,'CurrencyCode'=>$result_data->CurrencyCode,"User"=>$data['name_user'],"date_range"=>$data['date_range'],"ListType"=>$data['ListType']);			
+		}
+			 	 
+			return generateResponse('',false,false,json_encode($array_return));
+	
 	}
 	
 	
@@ -305,7 +354,7 @@ class DashboardController extends BaseController {
 		$StartDate			=   $Closingdate[0]." 00:00:00";
 		$EndDate			=	$Closingdate[1]." 23:59:59";		
 		$statusarray		=	Opportunity::Open;
-		$query  			= 	"call prc_GetCrmDashboardForecast (".$companyID.",'".$UserID."', '".$statusarray."','".$CurrencyID."','".$StartDate."','".$EndDate."')";   Log::info($query);
+		$query  			= 	"call prc_GetCrmDashboardForecast (".$companyID.",'".$UserID."', '".$statusarray."','".$CurrencyID."','".$StartDate."','".$EndDate."')";   
 		$result 			= 	DB::select($query);
 		$TotalWorth			=	0;
 		

@@ -36,9 +36,9 @@ class AmazonS3 {
     /** Get Amazon Settings from Company Config table
      * @return array|mixed
      */
-    private static function getAmazonSettings(){
+    public static function getAmazonSettings(){
 
-        $cache = CompanyConfiguration::getConfiguration();
+      /*  $cache = CompanyConfiguration::getConfiguration();
         $amazon = array();
         if(isset($cache['Amazon'])) {
 
@@ -47,12 +47,18 @@ class AmazonS3 {
             if (!empty($amazoneJson)) {
                 $amazon = json_decode($amazoneJson, true);
              }
-        }
-
+        }*/
+		$amazon 		= 	array();
+		$AmazonData		=	\App\SiteIntegration::CheckIntegrationConfiguration(true,\App\SiteIntegration::$AmazoneSlug);
+		
+		if($AmazonData){
+			$amazon 	=	 array("AWS_BUCKET"=>$AmazonData->AmazonAwsBucket,"AMAZONS3_KEY"=>$AmazonData->AmazonKey,"AMAZONS3_SECRET"=>$AmazonData->AmazonSecret,"AWS_REGION"=>$AmazonData->AmazonAwsRegion);	
+		}
+		
         return $amazon;
     }
 
-    private static function getBucket(){
+    public static function getBucket(){
 
         $amazon = self::getAmazonSettings();
         if(isset($amazon['AWS_BUCKET'])){
@@ -134,20 +140,18 @@ class AmazonS3 {
     }
 
     static function unSignedUrl($key=''){
-
         $s3 = self::getS3Client();
 
         //When no amazon ;
         if($s3 == 'NoAmazon'){
             return  self::preSignedUrl($key);
         }
-
         $bucket = self::getBucket();
         $unsignedUrl = '';
         if(!empty($key)){
 
             $unsignedUrl = $s3->getObjectUrl($bucket, $key);
-        }
+        } 
         return $unsignedUrl;
 
     }

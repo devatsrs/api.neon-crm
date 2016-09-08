@@ -3,7 +3,10 @@ namespace Api\Model;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Api\Model\CompanySetting;
+use Api\Model\Integration;
+use Api\Model\IntegrationConfiguration;
 
 class Account extends Model
 {
@@ -12,6 +15,8 @@ class Account extends Model
     protected $table = 'tblAccount';
 
     protected $primaryKey = "AccountID";
+	
+	public static $SupportSlug	=	'support';
 
     const  NOT_VERIFIED = 0;
     const  PENDING_VERIFICATION = 1;
@@ -271,4 +276,35 @@ class Account extends Model
         }
         return $reponse_return;
     }
+	
+		public static function GetActiveTicketCategory(){
+		$TicketsShow	 =	0;
+        $companyID  	 = User::get_companyID();
+
+		$Support	 	 =	Integration::where(["CompanyID" => $companyID,"Slug"=>Account::$SupportSlug])->first();	
+	
+		if(count($Support)>0)
+		{
+						
+			$SupportSubcategory = Integration::select("*");
+			$SupportSubcategory->join('tblIntegrationConfiguration', function($join)
+			{
+				$join->on('tblIntegrationConfiguration.IntegrationID', '=', 'tblIntegration.IntegrationID');
+	
+			})->where(["tblIntegration.CompanyID"=>$companyID])->where(["tblIntegration.ParentID"=>$Support->IntegrationID])->where(["tblIntegrationConfiguration.Status"=>1]);
+			 $result = $SupportSubcategory->first();
+			 if(count($result)>0)
+			 {
+				 return array("Settings"=>json_decode($result->Settings),"Slug"=>$result->Slug);
+			 }
+			 else
+			 {
+				return 0;
+			 }
+		}
+		else
+		{
+			return 0;	
+		}
+	}
 }

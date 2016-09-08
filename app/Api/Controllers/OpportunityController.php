@@ -295,7 +295,10 @@ class OpportunityController extends BaseController {
     {
         if( $id > 0 ) {
             $data = Input::all();
-			$old_Opportunity_data = Opportunity::find($id);
+			$old_Opportunity = Opportunity::find($id);
+			$old_Opportunity_data['TaggedUsers']  	=	$old_Opportunity->TaggedUsers;
+			$old_Opportunity_data['CreatedBy']  	=	$old_Opportunity->CreatedBy;
+			$old_Opportunity_data['UsersIDs']  		=	$old_Opportunity->UsersIDs;			
             $companyID = User::get_companyID();
             $data["CompanyID"] = $companyID;
             $data['Worth']    = !empty($data['Worth'])?$data['Worth']:0;
@@ -323,7 +326,7 @@ class OpportunityController extends BaseController {
 
             $validator = Validator::make($data, $rules, $messages);
 			
-            if ($validator->fails()) {  Log::info($validator->errors());
+            if ($validator->fails()) {  
              	return   generateResponse($validator->errors(),true);
 				
             }

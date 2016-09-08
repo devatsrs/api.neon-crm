@@ -34,9 +34,26 @@ function rename_win($oldfile,$newfile) {
 }
 
 
-function sendMail($view,$data){
+function sendMail($view,$data)
+{
+		
+	if(empty($data['companyID']))
+    {
+        $companyID = \Api\Model\User::get_companyID();
+    }else{
+        $companyID = $data['companyID'];
+    }
+	$body 	=  html_entity_decode(View::make($view,compact('data'))->render()); 
 
-    $status = array('status' => 0, 'message' => 'Something wrong with sending mail.');
+	if(\App\SiteIntegration::CheckCategoryConfiguration(false,\App\SiteIntegration::$EmailSlug)){
+		$status = 	 \App\SiteIntegration::SendMail($view,$data,$companyID,$body);		
+	}
+	else{
+		$config = \Api\Model\Company::select('SMTPServer','SMTPUsername','CompanyName','SMTPPassword','Port','IsSSL','EmailFrom')->where("CompanyID", '=', $companyID)->first();
+		$status = 	 \App\PHPMAILERIntegtration::SendMail($view,$data,$config,$companyID,$body);
+	}
+
+   /* $status = array('status' => 0, 'message' => 'Something wrong with sending mail.');
     if(empty($data['companyID']))
     {
         $companyID = \Api\Model\User::get_companyID();
@@ -88,9 +105,10 @@ function sendMail($view,$data){
         $status['status'] = 1;
         $status['message'] = 'Email has been sent';
         $status['body'] = $body;
-    }
+    }*/
     return $status;
 }
+/*
 function setMailConfig($CompanyID,$mandrill,$data=array()){
 
 
@@ -149,7 +167,7 @@ function setMailConfig($CompanyID,$mandrill,$data=array()){
     }
     return $mail;
 }
-
+*/
 function add_email_address($mail,$data,$type='EmailTo') //type add,bcc,cc
 {
     if(isset($data[$type]))
@@ -527,4 +545,7 @@ function remove_front_slash($str = ""){
         return ltrim($str, '/')  ;
 
     }
+}
+function get_currenttime(){
+    return date('Y-m-d H:i:s');
 }
