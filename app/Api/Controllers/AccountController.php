@@ -289,10 +289,23 @@ class AccountController extends BaseController
 	function FreshSDeskGetTickets($AccountID,$GUID){ 
 		//date_default_timezone_set("Europe/London");
 		Ticket::where(['AccountID'=>$AccountID,"GUID"=>$GUID])->delete(); //delete old tickets
-	    $companyID 		=	User::get_companyID(); 		
-		$AccountEmails  =	Account::where("AccountID",$AccountID)->select(['Email','BillingEmail'])->first();
-		$AccountEmails  = 	json_decode(json_encode($AccountEmails),true);
-		$emails			=	array_unique($AccountEmails);
+	    $companyID 		=	User::get_companyID();
+        /*$AccountEmails  =	Account::where("AccountID",$AccountID)->select(['Email','BillingEmail'])->first();
+        $AccountEmails  = 	json_decode(json_encode($AccountEmails),true);
+        $emails			=	array_unique($AccountEmails);*/
+        $email_array = array();
+        $billingemail_array = array();
+        $allemail = array();
+        $AccountEmails  =	Account::where("AccountID",$AccountID)->select(['Email'])->first();
+        if(count($AccountEmails)>0){
+            $email_array = explode(',',$AccountEmails['Email']);
+        }
+        $AccountEmails1  =	Account::where("AccountID",$AccountID)->select(['BillingEmail'])->first();
+        if(count($AccountEmails1)>0) {
+            $billingemail_array = explode(',', $AccountEmails1['BillingEmail']);
+        }
+        $allemail = array_merge($email_array,$billingemail_array);
+        $emails			=	array_filter(array_unique($allemail));
 		$TicketsIDs		=	array();  
 		
 		$FreshDeskObj 	=  new \App\SiteIntegration();
