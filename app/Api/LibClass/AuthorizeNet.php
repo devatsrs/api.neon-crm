@@ -21,9 +21,8 @@ class AuthorizeNet {
     function __Construct(){
 		
 		//////
-		$AuthorizeDbData 						= 	\App\SiteIntegration::is_authorize_configured(true);;
-		if(count($AuthorizeDbData)>0){					
-			$AuthorizeData					=	json_decode($AuthorizeDbData->Settings);
+		$AuthorizeData 						= 	\App\SiteIntegration::CheckIntegrationConfiguration(true,\App\SiteIntegration::$AuthorizeSlug);
+		if(count($AuthorizeData)>0){					
 			$AUTHORIZENET_API_LOGIN_ID  	= 	isset($AuthorizeData->AuthorizeLoginID)?$AuthorizeData->AuthorizeLoginID:'';		
 			$AUTHORIZENET_TRANSACTION_KEY  	= 	isset($AuthorizeData->AuthorizeTransactionKey)?$AuthorizeData->AuthorizeTransactionKey:'';
 			$isSandbox						=	isset($AuthorizeDbData->AuthorizeTestAccount)?$AuthorizeDbData->AuthorizeTestAccount:'';

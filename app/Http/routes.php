@@ -41,7 +41,6 @@ $api->version('v1', function ($api) {
 			$api->post('dashboard/GetSalesdata', 'DashboardController@GetSalesdata');
 			$api->post('dashboard/GetForecastData', 'DashboardController@GetForecastData');			
 			$api->post('dashboard/get_opportunities_grid','DashboardController@getOpportunitiesGrid');			
-			$api->post('dashboard/get_opportunities_grid','DashboardController@getOpportunitiesGrid');			
 			$api->post('dashboard/CrmDashboardSalesRevenue','DashboardController@CrmDashboardSalesRevenue');
 			$api->post('dashboard/CrmDashboardUserRevenue','DashboardController@CrmDashboardUserRevenue');
 			
@@ -120,11 +119,6 @@ $api->version('v1', function ($api) {
 
             $api->post('task/{id}/getattachment/{attachmentid}', 'TaskController@getAttachment');
 
-
-			//freshdesk
-			$api->post('freshdesk/GetContacts', 'FreshDeskController@GetContacts');
-			$api->post('freshdesk/GetTickets', 'FreshDeskController@GetTickets');			
-			
             //Allowed extensions
             $api->get('get_allowed_extensions', 'TaskController@get_allowed_extensions');
 

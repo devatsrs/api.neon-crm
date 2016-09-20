@@ -45,7 +45,7 @@ function sendMail($view,$data)
     }
 	$body 	=  html_entity_decode(View::make($view,compact('data'))->render()); 
 
-	if(\App\SiteIntegration::is_EmailIntegration($companyID)){
+	if(\App\SiteIntegration::CheckCategoryConfiguration(false,\App\SiteIntegration::$EmailSlug)){
 		$status = 	 \App\SiteIntegration::SendMail($view,$data,$companyID,$body);		
 	}
 	else{
@@ -108,6 +108,7 @@ function sendMail($view,$data)
     }*/
     return $status;
 }
+/*
 function setMailConfig($CompanyID,$mandrill,$data=array()){
 
 
@@ -166,7 +167,7 @@ function setMailConfig($CompanyID,$mandrill,$data=array()){
     }
     return $mail;
 }
-
+*/
 function add_email_address($mail,$data,$type='EmailTo') //type add,bcc,cc
 {
     if(isset($data[$type]))
