@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Config;
 use Api\Model\Company;
 use Api\Model\User;
+use \App\SiteIntegration;
 
 class PHPMAILERIntegtration{ 
 
@@ -13,7 +14,7 @@ class PHPMAILERIntegtration{
 	 } 
 
 
-	public static function SetEmailConfiguration($config,$companyID)
+	public static function SetEmailConfiguration($config,$companyID,$data)
 	{
 		Config::set('mail.host',$config->SMTPServer);
 		Config::set('mail.port',$config->Port);
@@ -35,6 +36,11 @@ class PHPMAILERIntegtration{
 		$mail->SMTPSecure = $encryption;                            // Enable TLS encryption, `ssl` also accepted
 	
 		$mail->Port = $port;                                    // TCP port to connect to
+		
+		if(isset($data['In-Reply-To']))
+		{
+			$mail->addCustomHeader('In-Reply-To', $data['In-Reply-To']); 
+		}
 	
 		$mail->From = $from['address'];
 		$mail->FromName = $from['name'];
@@ -48,7 +54,7 @@ class PHPMAILERIntegtration{
 			 $companyID = User::get_companyID();
 		}
 		
-		 $mail 		=   self::SetEmailConfiguration($config,$companyID);
+		 $mail 		=   self::SetEmailConfiguration($config,$companyID,$data);
 		 $status 	= 	array('status' => 0, 'message' => 'Something wrong with sending mail.');
 	
 		if(getenv('APP_ENV') != 'Production'){
@@ -57,7 +63,18 @@ class PHPMAILERIntegtration{
 		$mail =  self::add_email_address($mail,$data,'EmailTo');
 		$mail =  self::add_email_address($mail,$data,'cc');
 		$mail =  self::add_email_address($mail,$data,'bcc');
+		
+		if(SiteIntegration::CheckIntegrationConfiguration(false,SiteIntegration::$imapSlug))
+		{
+			$ImapData =  SiteIntegration::CheckIntegrationConfiguration(true,SiteIntegration::$imapSlug);
 			
+			$mail->AddReplyTo($ImapData->EmailTrackingEmail, $ImapData->EmailTrackingName);
+		}
+		
+		$message_id		  =  "<".md5(time().$config->EmailFrom) . '@'.$_SERVER['SERVER_NAME'].">";
+        $mail->MessageID  =  $message_id;
+		
+		 
 		if(isset($data['AttachmentPaths']) && count($data['AttachmentPaths'])>0) {
         foreach($data['AttachmentPaths'] as $attachment_data) { 
             $file = \Webpatser\Uuid\Uuid::generate()."_". basename($attachment_data['filepath']); 
@@ -118,6 +135,7 @@ class PHPMAILERIntegtration{
 					$status['status'] = 1;
 					$status['message'] = 'Email has been sent';
 					$status['body'] = $body;
+					$status['message_id']	=	$mail->getLastMessageID();
 				}
 			}
 		} 

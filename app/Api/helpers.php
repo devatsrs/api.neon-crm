@@ -283,6 +283,10 @@ function email_log_data($data,$view = ''){
     {
         $body = $data['Message'];
     }
+	if(!isset($data['message_id']))
+	{
+		$data['message_id'] = '';
+	}
 
     $logData = ['EmailFrom'=>\Api\Model\User::get_user_email(),
         'EmailTo'=>$data['EmailTo'],
@@ -294,7 +298,10 @@ function email_log_data($data,$view = ''){
         'CreatedBy'=>\Api\Model\User::get_user_full_name(),
         'Cc'=>$data['cc'],
         'Bcc'=>$data['bcc'],
-        "AttachmentPaths"=>$data['AttachmentPaths']
+        "AttachmentPaths"=>$data['AttachmentPaths'],
+		"MessageID"=>$data['message_id'],
+		"EmailParent"=>isset($data['EmailParent'])?$data['EmailParent']:0,
+		"EmailCall"=>"Send",
     ];
 
     $data =  \Api\Model\AccountEmailLog::Create($logData);

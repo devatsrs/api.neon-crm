@@ -52,6 +52,11 @@ class AccountActivityController extends BaseController {
         if (isset($data['file']) && !empty($data['file'])) {
             $data['AttachmentPaths'] = json_decode($data['file'],true);
         }
+		
+		if(isset($data['EmailParent'])){
+			$ParentEmail 		   =  AccountEmailLog::find($data['EmailParent']);
+			$data['In-Reply-To']   =  $ParentEmail->MessageID;
+		}
 
         $JobLoggedUser = User::find(User::get_userID());
         $Signature = '';
@@ -61,7 +66,6 @@ class AccountActivityController extends BaseController {
                 $Signature = $JobLoggedUser->EmailFooter;
             }
         }
-
         $extra = ['{{FirstName}}','{{LastName}}','{{Email}}','{{Address1}}','{{Address2}}','{{Address3}}','{{City}}','{{State}}','{{PostCode}}','{{Country}}','{{Signature}}'];
         $replace = [$account->FirstName,$account->LastName,$account->Email,$account->Address1,$account->Address2,$account->Address3,$account->City,$account->State,$account->PostCode,$account->Country,$Signature];
 
@@ -83,6 +87,7 @@ class AccountActivityController extends BaseController {
 				 return generateResponse($status['message'],true,true);
 			}
 			
+			$data['message_id'] 	=  isset($status['message_id'])?$status['message_id']:"";			
             $result 				= 	email_log_data($data,'emails.account.AccountEmailSend');
            	$result['message'] 		= 	'Email Sent Successfully';
 			$multiple_addresses		= 	strpos($data['EmailTo'],',');
