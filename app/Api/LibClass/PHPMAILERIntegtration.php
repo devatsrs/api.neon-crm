@@ -34,7 +34,6 @@ class PHPMAILERIntegtration{
 		$mail->CharSet = 'UTF-8';
 		$mail->Password = $password;                           // SMTP password
 		$mail->SMTPSecure = $encryption;                            // Enable TLS encryption, `ssl` also accepted
-	
 		$mail->Port = $port;                                    // TCP port to connect to
 		
 		if(isset($data['In-Reply-To']))
@@ -120,6 +119,7 @@ class PHPMAILERIntegtration{
 						$status['status'] = 1;
 						$status['message'] = 'Email has been sent';
 						$status['body'] = $body;
+						$status['message_id']	=	$mail->getLastMessageID(); 
 					}
 				}
 			}
@@ -135,7 +135,7 @@ class PHPMAILERIntegtration{
 					$status['status'] = 1;
 					$status['message'] = 'Email has been sent';
 					$status['body'] = $body;
-					$status['message_id']	=	$mail->getLastMessageID();
+					$status['message_id']	=	$mail->getLastMessageID(); 
 				}
 			}
 		} 
