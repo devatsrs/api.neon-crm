@@ -268,7 +268,7 @@ class BillingClassController extends BaseController
                 $error_message = 'Low Balance Reminder Interval is required.';
             }
             if(empty($post_data['LowBalanceReminder']['Time'])) {
-                $error_message = 'Low Balance Reminder Time is required .';
+                $error_message = 'Low Balance Reminder Time is required.';
             }
             if(empty($post_data['LowBalanceReminder']['TemplateID'])) {
                 $error_message = 'Low Balance Reminder Template is required.';
@@ -279,7 +279,7 @@ class BillingClassController extends BaseController
                 $error_message = 'Account Payment Reminder Interval is required.';
             }
             if(empty($post_data['PaymentReminder']['Time'])) {
-                $error_message = 'Account Payment Reminder Time is required .';
+                $error_message = 'Account Payment Reminder Time is required.';
             }
             if(empty($post_data['PaymentReminder']['TemplateID'])) {
                 $error_message = 'Account Payment Reminder Template is required.';
