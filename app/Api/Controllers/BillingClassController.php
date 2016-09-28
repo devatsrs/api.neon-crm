@@ -264,25 +264,25 @@ class BillingClassController extends BaseController
             }
         }
         if(isset($post_data['LowBalanceReminderStatus'])){
-            if(empty($post_data['LowBalanceReminder']['TemplateID'])) {
-                $error_message = 'Low Balance Reminder Template is required.';
+            if(empty($post_data['LowBalanceReminder']['Interval'])) {
+                $error_message = 'Low Balance Reminder Interval is required.';
             }
             if(empty($post_data['LowBalanceReminder']['Time'])) {
                 $error_message = 'Low Balance Reminder Time is required .';
             }
-            if(empty($post_data['LowBalanceReminder']['Interval'])) {
-                $error_message = 'Low Balance Reminder Interval is required.';
+            if(empty($post_data['LowBalanceReminder']['TemplateID'])) {
+                $error_message = 'Low Balance Reminder Template is required.';
             }
         }
         if(isset($post_data['PaymentReminderStatus'])){
-            if(empty($post_data['PaymentReminder']['TemplateID'])) {
-                $error_message = 'Account Payment Reminder Template is required.';
+            if(empty($post_data['PaymentReminder']['Interval'])) {
+                $error_message = 'Account Payment Reminder Interval is required.';
             }
             if(empty($post_data['PaymentReminder']['Time'])) {
                 $error_message = 'Account Payment Reminder Time is required .';
             }
-            if(empty($post_data['PaymentReminder']['Interval'])) {
-                $error_message = 'Account Payment Reminder Interval is required.';
+            if(empty($post_data['PaymentReminder']['TemplateID'])) {
+                $error_message = 'Account Payment Reminder Template is required.';
             }
         }
 
