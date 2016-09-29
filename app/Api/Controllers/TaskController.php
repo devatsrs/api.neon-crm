@@ -289,26 +289,18 @@ class TaskController extends BaseController {
                     $Email      = $Email[0];
                     $account    = Account::find($data['AccountIDs']);
                     $JobLoggedUser = User::find(User::get_userID());
-                    $Signature = '';
-                    if(!empty($JobLoggedUser)){
-                        if(isset($JobLoggedUser->EmailFooter) && trim($JobLoggedUser->EmailFooter) != '')
-                        {
-                            $Signature = $JobLoggedUser->EmailFooter;
-                        }
-                    }
 
-                    $extra      = ['{{FirstName}}','{{LastName}}','{{Email}}','{{Address1}}','{{Address2}}','{{Address3}}','{{City}}','{{State}}','{{PostCode}}','{{Country}}','{{Signature}}'];
-                    $replace    = [$account->FirstName,$account->LastName,$account->Email,$account->Address1,$account->Address2,$account->Address3,$account->City,$account->State,$account->PostCode,$account->Country,$Signature];
+                    $replace_array = Account::create_replace_array($account,array(),$JobLoggedUser);
+                    $Email['Message'] = template_var_replace($Email['Message'],$replace_array);
 
-                    $Email['extra'] 			= 	$extra;
-                    $Email['replace'] 			= 	$replace;
+
                     $Email['AttachmentPaths'] 	= 	unserialize($Email['AttachmentPaths']);
                     $Email['cc'] 				= 	$Email['Cc'];
                     $Email['bcc'] 				= 	$Email['Bcc'];
                     $Email['address']   		=   $Email['Emailfrom'];
                     $Email['name']   			=  	$Email['CreatedBy'];
 
-                    $status = sendMail('emails.account.AccountEmailSend', $Email);
+                    $status = sendMail('emails.template', $Email);
                 }
             }
 		   $sql 				= 	"CALL `prc_GetTasksSingle`(".$result['TaskID'].")";

@@ -549,3 +549,35 @@ function remove_front_slash($str = ""){
 function get_currenttime(){
     return date('Y-m-d H:i:s');
 }
+function template_var_replace($EmailMessage,$replace_array){
+    $extra = [
+        '{{FirstName}}',
+        '{{LastName}}',
+        '{{Email}}',
+        '{{Address1}}',
+        '{{Address2}}',
+        '{{Address3}}',
+        '{{City}}',
+        '{{State}}',
+        '{{PostCode}}',
+        '{{Country}}',
+        '{{InvoiceNumber}}',
+        '{{GrandTotal}}',
+        '{{OutStanding}}',
+        '{{TotalOutStanding}}',
+        '{{Signature}}',
+        '{{BalanceAmount}}',
+        '{{BalanceThreshold}}',
+        '{{Currency}}',
+        '{{CurrencySymbol}}',
+        '{{CompanyName}}'
+    ];
+
+    foreach($extra as $item){
+        $item_name = str_replace(array('{','}'),array('',''),$item);
+        if(array_key_exists($item_name,$replace_array)) {
+            $EmailMessage = str_replace($item,$replace_array[$item_name],$EmailMessage);
+        }
+    }
+    return $EmailMessage;
+}
