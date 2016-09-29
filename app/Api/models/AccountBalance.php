@@ -110,4 +110,10 @@ class AccountBalance extends Model
         AccountBalanceHistory::addHistory($historydata);
 
     }
+    public static function getBalanceAmount($AccountID){
+        return AccountBalance::where(['AccountID'=>$AccountID])->pluck('BalanceAmount');
+    }
+    public static function getBalanceThreshold($AccountID){
+        return str_replace('p', '%',AccountBalance::where(['AccountID'=>$AccountID])->pluck('BalanceThreshold'));
+    }
 }
