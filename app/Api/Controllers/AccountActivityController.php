@@ -54,19 +54,8 @@ class AccountActivityController extends BaseController {
         }
 
         $JobLoggedUser = User::find(User::get_userID());
-        $Signature = '';
-        if(!empty($JobLoggedUser)){
-            if(isset($JobLoggedUser->EmailFooter) && trim($JobLoggedUser->EmailFooter) != '')
-            {
-                $Signature = $JobLoggedUser->EmailFooter;
-            }
-        }
-
-        $extra = ['{{FirstName}}','{{LastName}}','{{Email}}','{{Address1}}','{{Address2}}','{{Address3}}','{{City}}','{{State}}','{{PostCode}}','{{Country}}','{{Signature}}'];
-        $replace = [$account->FirstName,$account->LastName,$account->Email,$account->Address1,$account->Address2,$account->Address3,$account->City,$account->State,$account->PostCode,$account->Country,$Signature];
-
-        $data['extra'] = $extra;
-        $data['replace'] = $replace;
+        $replace_array = Account::create_replace_array($account,array(),$JobLoggedUser);
+        $data['Message'] = template_var_replace($data['Message'],$replace_array);
 		// image upload end
 		
 			
@@ -77,13 +66,13 @@ class AccountActivityController extends BaseController {
         try{
             if(isset($data['email_send'])&& $data['email_send']==1) {
 				
-                $status = sendMail('emails.account.AccountEmailSend', $data);
+                $status = sendMail('emails.template', $data);
             }
 			if($status['status']==0){
 				 return generateResponse($status['message'],true,true);
 			}
 			
-            $result 				= 	email_log_data($data,'emails.account.AccountEmailSend');
+            $result 				= 	email_log_data($data,'emails.template');
            	$result['message'] 		= 	'Email Sent Successfully';
 			$multiple_addresses		= 	strpos($data['EmailTo'],',');
 
