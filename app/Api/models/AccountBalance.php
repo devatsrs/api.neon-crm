@@ -118,7 +118,7 @@ class AccountBalance extends Model
         return str_replace('p', '%',AccountBalance::where(['AccountID'=>$AccountID])->pluck('BalanceThreshold'));
     }
     public static function getOutstandingAmount($CompanyID,$AccountID){
-        DB::connection('sqlsrv2')->statement('CALL prc_updateSOAOffSet(?,?)',array($CompanyID,$AccountID));
+        DB::connection('billing_db')->statement('CALL prc_updateSOAOffSet(?,?)',array($CompanyID,$AccountID));
         return AccountBalance::where(['AccountID'=>$AccountID])->pluck('SOAOffset');
     }
 }
