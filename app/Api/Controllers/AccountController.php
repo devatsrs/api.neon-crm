@@ -269,13 +269,12 @@ class AccountController extends BaseController
 			
         try { 
 			if($data['iDisplayStart']==0) {
-				/*if(\App\SiteIntegration::CheckIntegrationConfiguration(false,\App\SiteIntegration::$freshdeskSlug)){
+				if(\App\SiteIntegration::CheckIntegrationConfiguration(false,\App\SiteIntegration::$freshdeskSlug)){
 				 $freshsdesk = 	$this->FreshSDeskGetTickets($data['AccountID'],$data['GUID']); 
 					if($freshsdesk){
 						return generateResponse(array("freshsdesk"=>array(0=>$freshsdesk['errors'][0]->message)),true);
 					}
-				}*/
-				//read emails
+				}
 			}
             $columns =  ['Timeline_type','ActivityTitle','ActivityDescription','ActivityDate','ActivityType','ActivityID','Emailfrom','EmailTo','EmailSubject','EmailMessage','AccountEmailLogID','NoteID','Note','CreatedBy','created_at','updated_at'];
             $query = "call prc_getAccountTimeLine(" . $data['AccountID'] . "," . $companyID . ",'".$data['GUID']."'," . $data['iDisplayStart'] . "," . $data['iDisplayLength'] . ")";  
