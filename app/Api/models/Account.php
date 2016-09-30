@@ -319,12 +319,12 @@ class Account extends Model
         $replace_array['State'] = $Account->State;
         $replace_array['PostCode'] = $Account->PostCode;
         $replace_array['Country'] = $Account->Country;
-        $replace_array['BalanceAmount'] = AccountBalance::getBalanceAmount($Account->AccountID);
+        $replace_array['OutStandingIncludeUnbilledAmount'] = AccountBalance::getBalanceAmount($Account->AccountID);
         $replace_array['BalanceThreshold'] = AccountBalance::getBalanceThreshold($Account->AccountID);
         $replace_array['Currency'] = Currency::getCurrencyCode($Account->AccountID);
         $replace_array['CurrencySymbol'] = Currency::getCurrencySymbol($Account->AccountID);
         $replace_array['CompanyName'] = Company::getName($Account->CompanyId);
-        $replace_array['TotalOutStanding'] = AccountBalance::getOutstandingAmount($Account->CompanyId,$Account->AccountID);
+        $replace_array['OutStandingExcludeUnbilledAmount'] = AccountBalance::getOutstandingAmount($Account->CompanyId,$Account->AccountID);
         $Signature = '';
         if(!empty($JobLoggedUser)){
             $emaildata['EmailFrom'] = $JobLoggedUser->EmailAddress;
@@ -338,7 +338,7 @@ class Account extends Model
         $extra_var = array(
             'InvoiceNumber' => '',
             'GrandTotal' => '',
-            'OutStanding' => '',
+            'InvoiceOutStanding' => '',
         );
         $replace_array = $replace_array + array_intersect_key($extra_settings, $extra_var);
 
