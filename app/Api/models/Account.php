@@ -321,8 +321,8 @@ class Account extends Model
         $replace_array['Country'] = $Account->Country;
         $replace_array['OutStandingIncludeUnbilledAmount'] = AccountBalance::getBalanceAmount($Account->AccountID);
         $replace_array['BalanceThreshold'] = AccountBalance::getBalanceThreshold($Account->AccountID);
-        $replace_array['Currency'] = Currency::getCurrencyCode($Account->AccountID);
-        $replace_array['CurrencySymbol'] = Currency::getCurrencySymbol($Account->AccountID);
+        $replace_array['Currency'] = Currency::getCurrencyCode($Account->CurrencyId);
+        $replace_array['CurrencySymbol'] = Currency::getCurrencySymbol($Account->CurrencyId);
         $replace_array['CompanyName'] = Company::getName($Account->CompanyId);
         $replace_array['OutStandingExcludeUnbilledAmount'] = AccountBalance::getOutstandingAmount($Account->CompanyId,$Account->AccountID);
         $Signature = '';
