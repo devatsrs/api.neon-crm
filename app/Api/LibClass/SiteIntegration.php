@@ -22,6 +22,7 @@ class SiteIntegration{
  static    $mandrillSlug		=	'mandrill';
  static    $emailtrackingSlug   =   'emailtracking';
  static    $imapSlug      		=   'imap';
+ static    $outlookcalenarSlug	=	'outlook';
 
  	public function __construct(){
 	
