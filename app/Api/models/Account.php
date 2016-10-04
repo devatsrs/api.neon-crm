@@ -307,4 +307,41 @@ class Account extends Model
 			return 0;	
 		}
 	}
+    public static function create_replace_array($Account,$extra_settings,$JobLoggedUser=array()){
+        $replace_array = array();
+        $replace_array['FirstName'] = $Account->FirstName;
+        $replace_array['LastName'] = $Account->LastName;
+        $replace_array['Email'] = $Account->Email;
+        $replace_array['Address1'] = $Account->Address1;
+        $replace_array['Address2'] = $Account->Address2;
+        $replace_array['Address3'] = $Account->Address3;
+        $replace_array['City'] = $Account->City;
+        $replace_array['State'] = $Account->State;
+        $replace_array['PostCode'] = $Account->PostCode;
+        $replace_array['Country'] = $Account->Country;
+        $replace_array['OutStandingIncludeUnbilledAmount'] = AccountBalance::getBalanceAmount($Account->AccountID);
+        $replace_array['BalanceThreshold'] = AccountBalance::getBalanceThreshold($Account->AccountID);
+        $replace_array['Currency'] = Currency::getCurrencyCode($Account->CurrencyId);
+        $replace_array['CurrencySymbol'] = Currency::getCurrencySymbol($Account->CurrencyId);
+        $replace_array['CompanyName'] = Company::getName($Account->CompanyId);
+        $replace_array['OutStandingExcludeUnbilledAmount'] = AccountBalance::getOutstandingAmount($Account->CompanyId,$Account->AccountID);
+        $Signature = '';
+        if(!empty($JobLoggedUser)){
+            $emaildata['EmailFrom'] = $JobLoggedUser->EmailAddress;
+            $emaildata['EmailFromName'] = $JobLoggedUser->FirstName.' '.$JobLoggedUser->LastName;
+            if(isset($JobLoggedUser->EmailFooter) && trim($JobLoggedUser->EmailFooter) != '')
+            {
+                $Signature = $JobLoggedUser->EmailFooter;
+            }
+        }
+        $replace_array['Signature']= $Signature;
+        $extra_var = array(
+            'InvoiceNumber' => '',
+            'GrandTotal' => '',
+            'InvoiceOutStanding' => '',
+        );
+        $replace_array = $replace_array + array_intersect_key($extra_settings, $extra_var);
+
+        return $replace_array;
+    }
 }

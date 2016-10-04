@@ -158,6 +158,13 @@ $api->version('v1', function ($api) {
             $api->put('discount/update/{DiscountPlanID}', 'DiscountController@Update');
             $api->delete('discount/delete/{DiscountPlanID}', 'DiscountController@Delete');
 
+            // Billing Class
+            $api->get('billing_class/datagrid', 'BillingClassController@DataGrid');
+            $api->get('billing_class/get/{BillingClassID}', 'BillingClassController@get');
+            $api->post('billing_class/store', 'BillingClassController@Store');
+            $api->put('billing_class/update/{BillingClassID}', 'BillingClassController@Update');
+            $api->delete('billing_class/delete/{BillingClassID}', 'BillingClassController@Delete');
+
 
 		});
 
