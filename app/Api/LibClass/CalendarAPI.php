@@ -78,11 +78,9 @@ class CalendarAPI
         $is_outlook = CompanyConfiguration::get($outlook_key);*/
 		
 		$OutlookData		=	SiteIntegration::CheckIntegrationConfiguration(true,SiteIntegration::$outlookcalenarSlug);
-	
-        Log::info("OUTLOOKCALENDAR_API " . print_r($OutlookData,true));
 
         if( !empty($OutlookData) ) {
-
+			Log::info("OUTLOOKCALENDAR_API " . print_r($OutlookData,true));
             $this->server 		= 	$OutlookData->OutlookCalendarServer;
             $this->email  		= 	$OutlookData->OutlookCalendarEmail;
             $this->password 	= 	$OutlookData->OutlookCalendarPassword;

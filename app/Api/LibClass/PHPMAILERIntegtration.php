@@ -116,7 +116,7 @@ class PHPMAILERIntegtration{
 			}
 			if (!$mail->send()) {
 					$status['status'] = 0;
-					$status['message'] .= $mail->ErrorInfo . ' ( Email Address: ' . $email_address . ')';
+					$status['message'] .= $mail->ErrorInfo . ' ( Email Addresses: ' . implode(",",$data['EmailTo']) . ')';
 			} else {
 					$status['status'] = 1;
 					$status['message'] = 'Email has been sent';
