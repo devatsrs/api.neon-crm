@@ -52,6 +52,11 @@ class AccountActivityController extends BaseController {
         if (isset($data['file']) && !empty($data['file'])) {
             $data['AttachmentPaths'] = json_decode($data['file'],true);
         }
+		
+		if(isset($data['EmailParent'])){
+			$ParentEmail 		   =  AccountEmailLog::find($data['EmailParent']);
+			$data['In-Reply-To']   =  $ParentEmail->MessageID;
+		}
 
         $JobLoggedUser = User::find(User::get_userID());
         $replace_array = Account::create_replace_array($account,array(),$JobLoggedUser);
@@ -72,7 +77,8 @@ class AccountActivityController extends BaseController {
 				 return generateResponse($status['message'],true,true);
 			}
 			
-            $result 				= 	email_log_data($data,'emails.template');
+			$data['message_id'] 	=  isset($status['message_id'])?$status['message_id']:"";			
+            $result 				= 	email_log_data($data,'emails.account.AccountEmailSend');
            	$result['message'] 		= 	'Email Sent Successfully';
 			$multiple_addresses		= 	strpos($data['EmailTo'],',');
 

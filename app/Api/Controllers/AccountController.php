@@ -14,6 +14,7 @@ use Api\Model\Ticket;
 use Api\Model\Company;
 use Api\Model\CompanySetting;
 use Api\Model\CompanyConfiguration;
+use Api\Model\AccountEmailLog;
 use App\Http\Requests;
 use Dingo\Api\Facade\API;
 use Illuminate\Support\Facades\DB;
@@ -25,6 +26,7 @@ use Api\Model\Tags;
 use Api\Model\PaymentGateway;
 use Api\Model\AccountPaymentProfile;
 use App\Freshdesk;
+use App\Imap;
 
 class AccountController extends BaseController
 {
@@ -284,7 +286,6 @@ class AccountController extends BaseController
             return $this->response->errorInternal($ex->getMessage());
         }
     }
-
 	
 	function FreshSDeskGetTickets($AccountID,$GUID){ 
 		//date_default_timezone_set("Europe/London");
@@ -293,23 +294,30 @@ class AccountController extends BaseController
         /*$AccountEmails  =	Account::where("AccountID",$AccountID)->select(['Email','BillingEmail'])->first();
         $AccountEmails  = 	json_decode(json_encode($AccountEmails),true);
         $emails			=	array_unique($AccountEmails);*/
-        $email_array = array();
-        $billingemail_array = array();
-        $allemail = array();
-        $AccountEmails  =	Account::where("AccountID",$AccountID)->select(['Email'])->first();
-        if(count($AccountEmails)>0){
+		
+        $email_array			 = 	array();
+        $billingemail_array 	 = 	array();
+        $allemail 				 =  array();
+        $AccountEmails  		 =	Account::where("AccountID",$AccountID)->select(['Email'])->first();
+		
+        if(count($AccountEmails)>0)
+		{
             $email_array = explode(',',$AccountEmails['Email']);
         }
-        $AccountEmails1  =	Account::where("AccountID",$AccountID)->select(['BillingEmail'])->first();
-        if(count($AccountEmails1)>0) {
+		
+        $AccountEmails1  		=	Account::where("AccountID",$AccountID)->select(['BillingEmail'])->first();
+		
+        if(count($AccountEmails1)>0)
+		{
             $billingemail_array = explode(',', $AccountEmails1['BillingEmail']);
         }
-        $allemail = array_merge($email_array,$billingemail_array);
-        $emails			=	array_filter(array_unique($allemail));
-		$TicketsIDs		=	array();  
 		
-		$FreshDeskObj 	=  new \App\SiteIntegration();
-		$FreshDeskObj->SetSupportSettings();		
+        $allemail 				= 	array_merge($email_array,$billingemail_array);
+        $emails					=	array_filter(array_unique($allemail));
+		$TicketsIDs				=	array();  		
+		$FreshDeskObj 			=  	new \App\SiteIntegration();
+		$FreshDeskObj->SetSupportSettings();	
+			
 		if(count($emails)>0)
 		{ 
 			foreach($emails as $UsersEmails)
@@ -347,7 +355,8 @@ class AccountController extends BaseController
 						$result 						= 	Ticket::create($TicketData);		
 						unset($TicketData);
 					}	
-				}else
+				}
+				else
 				{
 					//return $GetTickets;	
 					if($GetTickets['StatusCode']!='200' && $GetTickets['StatusCode']!='400'){
@@ -358,6 +367,35 @@ class AccountController extends BaseController
 			}		
 		}
 	}
+	
+	function GetConversations(){
+		$data           	=   	Input::all();  
+	
+		if(isset($data['conversations_type'])){
+			if($data['conversations_type']='mail')
+			{
+				return $this->GetMailConversations();	
+			}
+			else if($data['conversations_type']=='ticket')
+			{
+			    return 	$this->GetTicketConversations();
+			}
+		}
+	}
+	
+	function GetMailConversations(){
+		$companyID 			=	 	User::get_companyID();
+		$data           	=   	Input::all();  		
+		$Emails				= 		AccountEmailLog::where(['EmailParent'=>$data['id'],'CompanyID'=>$companyID])->get();
+		if($Emails)
+		{
+			return generateResponse('',false,false,$Emails);
+		}else
+		{
+			return generateResponse('No Record Found.',false,false);
+		}		
+	}
+	
 	
 	function GetTicketConversations(){
 		$companyID 			=	 	User::get_companyID();
@@ -583,7 +621,7 @@ class AccountController extends BaseController
             return generateResponse($validator->errors(),true);
         }
         try {
-            $AccountBalance = AccountBalance::where('AccountID', $post_data['AccountID'])->first(['AccountID', 'PermanentCredit', 'UnbilledAmount','EmailToCustomer', 'TemporaryCredit', 'TemporaryCreditDateTime', 'BalanceThreshold','BalanceAmount']);
+            $AccountBalance = AccountBalance::where('AccountID', $post_data['AccountID'])->first(['AccountID', 'PermanentCredit', 'UnbilledAmount','EmailToCustomer', 'TemporaryCredit', 'TemporaryCreditDateTime', 'BalanceThreshold','BalanceAmount','VendorUnbilledAmount']);
         }catch (\Exception $ex){
             Log::info($ex);
             return $this->response->errorInternal($ex->getMessage());
