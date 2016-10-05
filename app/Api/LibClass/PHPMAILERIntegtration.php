@@ -53,6 +53,14 @@ class PHPMAILERIntegtration{
 			 $companyID = User::get_companyID();
 		}
 		
+		if(isset($data['CompanyName']) && !empty($data['CompanyName']))
+		{ 
+			$FromName 		= $data['CompanyName'];
+		}else{ 
+			$FromName		= $config->CompanyName;
+		}		
+		 $config->CompanyName = $FromName;
+		 
 		 $mail 		=   self::SetEmailConfiguration($config,$companyID,$data);
 		 $status 	= 	array('status' => 0, 'message' => 'Something wrong with sending mail.');
 	
@@ -67,7 +75,7 @@ class PHPMAILERIntegtration{
 		{
 			$ImapData =  SiteIntegration::CheckIntegrationConfiguration(true,SiteIntegration::$imapSlug);
 			
-			$mail->AddReplyTo($ImapData->EmailTrackingEmail, $ImapData->EmailTrackingName);
+			$mail->AddReplyTo($ImapData->EmailTrackingEmail, $FromName);
 		}
 		
 		$message_id		  =  "<".md5(time().$config->EmailFrom) . '@'.$_SERVER['SERVER_NAME'].">";
