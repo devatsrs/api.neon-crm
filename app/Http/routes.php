@@ -62,7 +62,7 @@ $api->version('v1', function ($api) {
             $api->get('account/get_note','AccountController@GetNote');
             $api->post('account/delete_note','AccountController@DeleteNote');
 			$api->post('account/update_note','AccountController@UpdateNote');
-			$api->post('account/GetTicketConversations','AccountController@GetTicketConversations');
+			$api->post('account/GetConversations','AccountController@GetConversations');
 
             $api->get('account/GetTimeLine', 'AccountController@GetTimeLine');
             $api->post('accounts/sendemail', 'AccountActivityController@sendMail');
