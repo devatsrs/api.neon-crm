@@ -94,6 +94,7 @@ class TaskCommentsController extends BaseController {
                     $emailData['CompanyID'] = $data ["CompanyID"];
                     $status = sendMail('emails.crm.AccountUserEmailSend',$emailData);
                     $emailData['Message'] = $status['body'];
+					$emailData['message_id'] 	=  isset($status['message_id'])?$status['message_id']:"";
                     $status = email_log($emailData);
                     if($status['status']==0){
                         return generateResponse($status['message'],true,true);
