@@ -42,10 +42,12 @@ class Task extends \Eloquent {
         }
 
         $TaggedUsers = $Task->TaggedUsers;
-        Log::info("tagged user " .  $TaggedUsers);
+        
+		//Log::info("tagged user " .  $TaggedUsers);
+		
         if(!empty($TaggedUsers)){
 
-            Log::info("tagged user " .  $TaggedUsers);
+            //Log::info("tagged user " .  $TaggedUsers);
 
             $UserIDs = explode(",",$TaggedUsers);
 
@@ -54,7 +56,7 @@ class Task extends \Eloquent {
                 foreach ($UserIDs as $UserID) {
                     $attendees[] = User::find($UserID)->pluck("EmailAddress");
 
-                    Log::info(" tagged user "  . $UserID . " - " .  print_r($attendees,true) );
+                    //Log::info(" tagged user "  . $UserID . " - " .  print_r($attendees,true) );
 
                 }
             }

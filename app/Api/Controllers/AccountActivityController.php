@@ -34,8 +34,7 @@ class AccountActivityController extends BaseController {
 	 */
 
     public function sendMail(){
-		
-        $data = Input::all();
+		$data = Input::all();  				
         $rules = array(
 			"email-to" =>'required',
             'Subject'=>'required',
@@ -53,31 +52,34 @@ class AccountActivityController extends BaseController {
         if (isset($data['file']) && !empty($data['file'])) {
             $data['AttachmentPaths'] = json_decode($data['file'],true);
         }
+		
+		if(isset($data['EmailParent'])){
+			$ParentEmail 		   =  AccountEmailLog::find($data['EmailParent']);
+			$data['In-Reply-To']   =  $ParentEmail->MessageID;
+		}
 
         $JobLoggedUser = User::find(User::get_userID());
-        $Signature = '';
-        if(!empty($JobLoggedUser)){
-            if(isset($JobLoggedUser->EmailFooter) && trim($JobLoggedUser->EmailFooter) != '')
-            {
-                $Signature = $JobLoggedUser->EmailFooter;
-            }
-        }
-
-        $extra = ['{{FirstName}}','{{LastName}}','{{Email}}','{{Address1}}','{{Address2}}','{{Address3}}','{{City}}','{{State}}','{{PostCode}}','{{Country}}','{{Signature}}'];
-        $replace = [$account->FirstName,$account->LastName,$account->Email,$account->Address1,$account->Address2,$account->Address3,$account->City,$account->State,$account->PostCode,$account->Country,$Signature];
-
-        $data['extra'] = $extra;
-        $data['replace'] = $replace;
+        $replace_array = Account::create_replace_array($account,array(),$JobLoggedUser);
+        $data['Message'] = template_var_replace($data['Message'],$replace_array);
 		// image upload end
-
+		
+			
+		
         $data['mandrill'] = 0;
-		$data = cleanarray($data,[]);
+		$data = cleanarray($data,[]);	
+		$data['CompanyName'] = $account->AccountName;
+		
         try{
             if(isset($data['email_send'])&& $data['email_send']==1) {
-                $status = sendMail('emails.account.AccountEmailSend', $data);
+				
+                $status = sendMail('emails.template', $data);
             }
-
-            $result 				= 	email_log_data($data,'emails.account.AccountEmailSend');
+			if($status['status']==0){
+				 return generateResponse($status['message'],true,true);
+			}
+			
+			$data['message_id'] 	=  isset($status['message_id'])?$status['message_id']:"";			
+            $result 				= 	email_log_data($data,'emails.template');
            	$result['message'] 		= 	'Email Sent Successfully';
 			$multiple_addresses		= 	strpos($data['EmailTo'],',');
 

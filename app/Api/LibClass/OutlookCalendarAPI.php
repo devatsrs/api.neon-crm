@@ -17,6 +17,8 @@ use PhpEws\DataType\CalendarItemCreateOrDeleteOperationType;
 use PhpEws\DataType\CalendarItemType;
 use PhpEws\DataType\CalendarItemUpdateOperationType;
 use PhpEws\DataType\CreateItemType;
+use PhpEws\DataType\DeleteItemType;
+use PhpEws\DataType\DisposalType;
 use PhpEws\DataType\EmailAddressType;
 use PhpEws\DataType\GetServerTimeZonesType;
 use PhpEws\DataType\ImportanceChoicesType;
@@ -25,6 +27,7 @@ use PhpEws\DataType\ItemClassType;
 use PhpEws\DataType\ItemIdType;
 use PhpEws\DataType\NonEmptyArrayOfAllItemsType;
 use PhpEws\DataType\NonEmptyArrayOfAttendeesType;
+use PhpEws\DataType\NonEmptyArrayOfBaseItemIdsType;
 use PhpEws\DataType\NonEmptyArrayOfPeriodsType;
 use PhpEws\DataType\PathToUnindexedFieldType;
 use PhpEws\DataType\SensitivityChoicesType;
@@ -36,6 +39,7 @@ use PhpEws\EwsConnection;
 class OutlookCalendarAPI
 {
     protected  $ews;
+    const REMINDER_MIN = 15;
 
     public function  __construct($server,$username,$password){
 
@@ -105,10 +109,10 @@ class OutlookCalendarAPI
         $request->Items->CalendarItem->StartTimeZone->Periods = new NonEmptyArrayOfPeriodsType();
 
 // Set no reminders
-        $request->Items->CalendarItem->ReminderIsSet = false;
+        $request->Items->CalendarItem->ReminderIsSet = true;
 
 // Or use this to specify when reminder is displayed (if this is not set, the default is 15 minutes)
-        $request->Items->CalendarItem->ReminderMinutesBeforeStart = 15;
+        $request->Items->CalendarItem->ReminderMinutesBeforeStart = self::REMINDER_MIN;
 
 // Build the body.
         $request->Items->CalendarItem->Body = new BodyType();
@@ -182,6 +186,8 @@ class OutlookCalendarAPI
         date_default_timezone_set($timezone);
 
         $start_date = new \DateTime($start_date);
+        $start_date->modify('-30 minute');
+
         $request->Items->CalendarItem->Start = $start_date->format('c');
 
         Log::info($start_date->format('c'));
@@ -193,9 +199,9 @@ class OutlookCalendarAPI
         Log::info(print_r($due_date,true));
 
 // Set no reminders
-        $request->Items->CalendarItem->ReminderIsSet = false;
+        $request->Items->CalendarItem->ReminderIsSet = true;
 // Or use this to specify when reminder is displayed (if this is not set, the default is 15 minutes)
-        $request->Items->CalendarItem->ReminderMinutesBeforeStart = 15;
+        $request->Items->CalendarItem->ReminderMinutesBeforeStart = self::REMINDER_MIN;
 
 // Build the body.
         $request->Items->CalendarItem->Body = new BodyType();
@@ -269,6 +275,21 @@ class OutlookCalendarAPI
             $field->CalendarItem->Subject = $subject;
             $change->Updates->SetItemField[] = $field;
 
+
+
+
+            $start_date = new \DateTime($start_date);
+            $start_date->modify('-30 minute');
+
+            // Update Start Property
+            $field = new SetItemFieldType();
+            $field->FieldURI = new PathToUnindexedFieldType();
+            $field->FieldURI->FieldURI = 'calendar:Start';
+            $field->CalendarItem = new CalendarItemType();
+            $field->CalendarItem->Start = $start_date->format('c');
+            $change->Updates->SetItemField[] = $field;
+
+
             $due_date = new \DateTime($due_date);
 
             // Update End Property
@@ -305,6 +326,44 @@ class OutlookCalendarAPI
 
             Log::info("Updating event");
             $response = $this->ews->UpdateItem($request);
+
+            return $this->parse_response($response);
+
+        }
+
+    }
+
+
+    /** Delete event
+     * @param array $options
+     */
+    public function delete_event($options = array()) {
+
+
+        if(isset($options["event_id"]) && isset($options["change_key"]) && !empty($options["event_id"]) && !empty($options["change_key"]) ) {
+
+
+            Log::info("Deleting event - " . $options["event_id"]);
+
+            $request = new DeleteItemType();
+
+            // Send to trash can, or use EWSType_DisposalType::HARD_DELETE instead to bypass the bin directly
+            $request->DeleteType = DisposalType::HARD_DELETE;
+            // Inform no one who shares the item that it has been deleted
+            $request->SendMeetingCancellations = CalendarItemCreateOrDeleteOperationType::SEND_ONLY_TO_ALL;
+
+            // Set the item to be deleted
+            $item = new ItemIdType();
+            $item->Id = $options["event_id"];
+            $item->ChangeKey = $options["change_key"];
+
+            // We can use this to mass delete but in this case it's just one item
+            $items = new NonEmptyArrayOfBaseItemIdsType();
+            $items->ItemId = $item;
+            $request->ItemIds = $items;
+
+            // Send the request
+            $response = $this->ews->DeleteItem($request);
 
             return $this->parse_response($response);
 
@@ -365,6 +424,11 @@ class OutlookCalendarAPI
                 $output['event_id'] = $response->ResponseMessages->UpdateItemResponseMessage->Items->CalendarItem->ItemId->Id;
                 $output['change_key'] = $response->ResponseMessages->UpdateItemResponseMessage->Items->CalendarItem->ItemId->ChangeKey;
                 $output['message'] = "Event Updated Successfully.";
+            }else if(isset($response->ResponseMessages->DeleteItemResponseMessage->ResponseClass) &&
+                $response->ResponseMessages->DeleteItemResponseMessage->ResponseClass == 'Success'
+            ){
+
+                $output['message'] = "Event Deleted Successfully.";
             }
         }
 

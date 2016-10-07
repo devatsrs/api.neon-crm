@@ -34,9 +34,26 @@ function rename_win($oldfile,$newfile) {
 }
 
 
-function sendMail($view,$data){
+function sendMail($view,$data)
+{
+		
+	if(empty($data['companyID']))
+    {
+        $companyID = \Api\Model\User::get_companyID();
+    }else{
+        $companyID = $data['companyID'];
+    }
+	$body 	=  html_entity_decode(View::make($view,compact('data'))->render()); 
 
-    $status = array('status' => 0, 'message' => 'Something wrong with sending mail.');
+	if(\App\SiteIntegration::CheckCategoryConfiguration(false,\App\SiteIntegration::$EmailSlug)){
+		$status = 	 \App\SiteIntegration::SendMail($view,$data,$companyID,$body);		
+	}
+	else{
+		$config = \Api\Model\Company::select('SMTPServer','SMTPUsername','CompanyName','SMTPPassword','Port','IsSSL','EmailFrom')->where("CompanyID", '=', $companyID)->first();
+		$status = 	 \App\PHPMAILERIntegtration::SendMail($view,$data,$config,$companyID,$body);
+	}
+
+   /* $status = array('status' => 0, 'message' => 'Something wrong with sending mail.');
     if(empty($data['companyID']))
     {
         $companyID = \Api\Model\User::get_companyID();
@@ -88,9 +105,10 @@ function sendMail($view,$data){
         $status['status'] = 1;
         $status['message'] = 'Email has been sent';
         $status['body'] = $body;
-    }
+    }*/
     return $status;
 }
+/*
 function setMailConfig($CompanyID,$mandrill,$data=array()){
 
 
@@ -149,7 +167,7 @@ function setMailConfig($CompanyID,$mandrill,$data=array()){
     }
     return $mail;
 }
-
+*/
 function add_email_address($mail,$data,$type='EmailTo') //type add,bcc,cc
 {
     if(isset($data[$type]))
@@ -199,6 +217,10 @@ function email_log($data){
     if(is_array($data['EmailTo'])){
         $data['EmailTo'] = implode(',',$data['EmailTo']);
     }
+	
+	if(!isset($data['message_id'])){
+		$data['message_id'] = '';
+	}
 
     $logData = ['EmailFrom'=>\Api\Model\User::get_user_email(),
         'EmailTo'=>$data['EmailTo'],
@@ -207,7 +229,8 @@ function email_log($data){
         'AccountID'=>$data['AccountID'],
         'CompanyID'=>\Api\Model\User::get_companyID(),
         'UserID'=>\Api\Model\User::get_userID(),
-        'CreatedBy'=>\Api\Model\User::get_user_full_name()];
+        'CreatedBy'=>\Api\Model\User::get_user_full_name(),
+		"MessageID"=>$data['message_id']];
     if(\Api\Model\AccountEmailLog::Create($logData)){
         $status['status'] = 1;
     }
@@ -265,6 +288,10 @@ function email_log_data($data,$view = ''){
     {
         $body = $data['Message'];
     }
+	if(!isset($data['message_id']))
+	{
+		$data['message_id'] = '';
+	}
 
     $logData = ['EmailFrom'=>\Api\Model\User::get_user_email(),
         'EmailTo'=>$data['EmailTo'],
@@ -276,7 +303,10 @@ function email_log_data($data,$view = ''){
         'CreatedBy'=>\Api\Model\User::get_user_full_name(),
         'Cc'=>$data['cc'],
         'Bcc'=>$data['bcc'],
-        "AttachmentPaths"=>$data['AttachmentPaths']
+        "AttachmentPaths"=>$data['AttachmentPaths'],
+		"MessageID"=>$data['message_id'],
+		"EmailParent"=>isset($data['EmailParent'])?$data['EmailParent']:0,
+		"EmailCall"=>\Api\Model\Messages::Sent,
     ];
 
     $data =  \Api\Model\AccountEmailLog::Create($logData);
@@ -527,4 +557,39 @@ function remove_front_slash($str = ""){
         return ltrim($str, '/')  ;
 
     }
+}
+function get_currenttime(){
+    return date('Y-m-d H:i:s');
+}
+function template_var_replace($EmailMessage,$replace_array){
+    $extra = [
+        '{{FirstName}}',
+        '{{LastName}}',
+        '{{Email}}',
+        '{{Address1}}',
+        '{{Address2}}',
+        '{{Address3}}',
+        '{{City}}',
+        '{{State}}',
+        '{{PostCode}}',
+        '{{Country}}',
+        '{{InvoiceNumber}}',
+        '{{GrandTotal}}',
+        '{{InvoiceOutStanding}}',
+        '{{OutStandingExcludeUnbilledAmount}}',
+        '{{Signature}}',
+        '{{OutStandingIncludeUnbilledAmount}}',
+        '{{BalanceThreshold}}',
+        '{{Currency}}',
+        '{{CurrencySymbol}}',
+        '{{CompanyName}}'
+    ];
+
+    foreach($extra as $item){
+        $item_name = str_replace(array('{','}'),array('',''),$item);
+        if(array_key_exists($item_name,$replace_array)) {
+            $EmailMessage = str_replace($item,$replace_array[$item_name],$EmailMessage);
+        }
+    }
+    return $EmailMessage;
 }
