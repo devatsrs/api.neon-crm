@@ -53,12 +53,28 @@ class PHPMAILERIntegtration{
 			 $companyID = User::get_companyID();
 		}
 		
+		if(isset($data['CompanyName']) && !empty($data['CompanyName']))
+		{ 
+			$FromName 		= $data['CompanyName'];
+		}else{ 
+			$FromName		= $config->CompanyName;
+		}		
+		 $config->CompanyName = $FromName;
+		 
 		 $mail 		=   self::SetEmailConfiguration($config,$companyID,$data);
 		 $status 	= 	array('status' => 0, 'message' => 'Something wrong with sending mail.');
 	
 		if(getenv('APP_ENV') != 'Production'){
 			$data['Subject'] = 'Test Mail '.$data['Subject'];
 		}
+		
+		$mail->Body = $body;
+		$mail->Subject = $data['Subject'];
+		if(!is_array($data['EmailTo']) && strpos($data['EmailTo'],',') !== false){
+			$data['EmailTo']  = explode(',',$data['EmailTo']);
+		}
+		$mail->clearAllRecipients();
+		
 		$mail =  self::add_email_address($mail,$data,'EmailTo');
 		$mail =  self::add_email_address($mail,$data,'cc');
 		$mail =  self::add_email_address($mail,$data,'bcc');
@@ -67,7 +83,7 @@ class PHPMAILERIntegtration{
 		{
 			$ImapData =  SiteIntegration::CheckIntegrationConfiguration(true,SiteIntegration::$imapSlug);
 			
-			$mail->AddReplyTo($ImapData->EmailTrackingEmail, $ImapData->EmailTrackingName);
+			$mail->AddReplyTo($ImapData->EmailTrackingEmail, $FromName);
 		}
 		
 		$message_id		  =  "<".md5(time().$config->EmailFrom) . '@'.$_SERVER['SERVER_NAME'].">";
@@ -82,63 +98,19 @@ class PHPMAILERIntegtration{
             $mail->AddAttachment($file,$attachment_data['filename']);
         }
     } 
-		$mail->Body = $body;
-		$mail->Subject = $data['Subject'];
-		if(!is_array($data['EmailTo']) && strpos($data['EmailTo'],',') !== false){
-			$data['EmailTo']  = explode(',',$data['EmailTo']);
-		}
-	
-		if(isset($data['cc'])) {
-			if (is_array($data['cc'])) {
-				foreach ($data['cc'] as $cc_address) {
-					$user_data = User::where(["EmailAddress" => $cc_address])->get();
-					$mail->AddCC($cc_address, $user_data[0]['FirstName'] . ' ' . $user_data[0]['LastName']);
-				}
-			}
-		}
-	
-		if(isset($data['cc'])) {
-			if (is_array($data['bcc'])) {
-				foreach ($data['bcc'] as $bcc_address) {
-					$user_data = User::where(["EmailAddress" => $bcc_address])->get();
-	
-					$mail->AddBCC($bcc_address, $user_data[0]['FirstName'] . ' ' . $user_data[0]['LastName']);
-				}
-			}
-		}
-		if(is_array($data['EmailTo'])){
-			foreach((array)$data['EmailTo'] as $email_address){
-				if(!empty($email_address)) {
-					$email_address = trim($email_address);
-					//$mail->clearAllRecipients();
-					$mail->addAddress($email_address); //trim Added by Abubakar					
-				}
-			}
-			if (!$mail->send()) {
+		
+		$emailto = is_array($data['EmailTo'])?implode(",",$data['EmailTo']):$data['EmailTo'];
+		if (!$mail->send()) {
 					$status['status'] = 0;
-					$status['message'] .= $mail->ErrorInfo . ' ( Email Addresses: ' . implode(",",$data['EmailTo']) . ')';
-			} else {
+					$status['message'] .= $mail->ErrorInfo . ' ( Email Address: ' . $emailto . ')';
+		} else {
+					$mail->clearAllRecipients();
 					$status['status'] = 1;
 					$status['message'] = 'Email has been sent';
 					$status['body'] = $body;
 					$status['message_id']	=	$mail->getLastMessageID(); 
-			}
-		}else{
-			if(!empty($data['EmailTo'])) {
-				$email_address = trim($data['EmailTo']);
-				$mail->clearAllRecipients();
-				$mail->addAddress($email_address); //trim Added by Abubakar
-				if (!$mail->send()) {
-					$status['status'] = 0;
-					$status['message'] .= $mail->ErrorInfo . ' ( Email Address: ' . $data['EmailTo'] . ')';
-				} else {
-					$status['status'] = 1;
-					$status['message'] = 'Email has been sent';
-					$status['body'] = $body;
-					$status['message_id']	=	$mail->getLastMessageID(); 
-				}
-			}
-		} 
+		}
+	
 		return $status;
 	}
 	

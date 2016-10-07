@@ -217,6 +217,10 @@ function email_log($data){
     if(is_array($data['EmailTo'])){
         $data['EmailTo'] = implode(',',$data['EmailTo']);
     }
+	
+	if(!isset($data['message_id'])){
+		$data['message_id'] = '';
+	}
 
     $logData = ['EmailFrom'=>\Api\Model\User::get_user_email(),
         'EmailTo'=>$data['EmailTo'],
@@ -225,7 +229,8 @@ function email_log($data){
         'AccountID'=>$data['AccountID'],
         'CompanyID'=>\Api\Model\User::get_companyID(),
         'UserID'=>\Api\Model\User::get_userID(),
-        'CreatedBy'=>\Api\Model\User::get_user_full_name()];
+        'CreatedBy'=>\Api\Model\User::get_user_full_name(),
+		"MessageID"=>$data['message_id']];
     if(\Api\Model\AccountEmailLog::Create($logData)){
         $status['status'] = 1;
     }

@@ -64,9 +64,10 @@ class AccountActivityController extends BaseController {
 		// image upload end
 		
 			
-
+		
         $data['mandrill'] = 0;
 		$data = cleanarray($data,[]);	
+		$data['CompanyName'] = $account->AccountName;
 		
         try{
             if(isset($data['email_send'])&& $data['email_send']==1) {
@@ -78,7 +79,7 @@ class AccountActivityController extends BaseController {
 			}
 			
 			$data['message_id'] 	=  isset($status['message_id'])?$status['message_id']:"";			
-            $result 				= 	email_log_data($data,'emails.account.AccountEmailSend');
+            $result 				= 	email_log_data($data,'emails.template');
            	$result['message'] 		= 	'Email Sent Successfully';
 			$multiple_addresses		= 	strpos($data['EmailTo'],',');
 
