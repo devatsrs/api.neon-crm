@@ -98,6 +98,7 @@ class OpportunityCommentsController extends BaseController {
                     $emailData['CompanyID'] = $data ["CompanyID"];
 
                     $status = sendMail('emails.crm.AccountUserEmailSend',$emailData);
+					$emailData['message_id'] 	=  isset($status['message_id'])?$status['message_id']:"";
                     $emailData['Message'] = $status['body'];
                     $status = email_log($emailData);
                     if($status['status']==0){
