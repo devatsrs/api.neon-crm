@@ -292,6 +292,12 @@ function email_log_data($data,$view = ''){
 	{
 		$data['message_id'] = '';
 	}
+	if(!isset($data['EmailCall']))
+	{
+		$data['EmailCall'] = \Api\Model\Messages::Sent;
+	}
+	
+	
 
     $logData = ['EmailFrom'=>\Api\Model\User::get_user_email(),
         'EmailTo'=>$data['EmailTo'],
@@ -306,9 +312,9 @@ function email_log_data($data,$view = ''){
         "AttachmentPaths"=>$data['AttachmentPaths'],
 		"MessageID"=>$data['message_id'],
 		"EmailParent"=>isset($data['EmailParent'])?$data['EmailParent']:0,
-		"EmailCall"=>\Api\Model\Messages::Sent,
+		"EmailCall"=>$data['EmailCall'],
     ];
-
+	
     $data =  \Api\Model\AccountEmailLog::Create($logData);
     return $data;
 }
