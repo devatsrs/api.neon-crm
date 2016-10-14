@@ -41,7 +41,7 @@ class AccountActivityController extends BaseController {
             'Message'=>'required'			
         );
 
-        $account    = Account::find($data['AccountID']);
+        $account    		= 	Account::find($data['AccountID']);
  	    $data['EmailTo']	= 	$data['email-to'];
 
         $validator = Validator::make($data,$rules);
@@ -67,7 +67,8 @@ class AccountActivityController extends BaseController {
 		
         $data['mandrill'] = 0;
 		$data = cleanarray($data,[]);	
-		$data['CompanyName'] = $account->AccountName;
+		//$data['CompanyName'] = $account->AccountName;
+		$data['CompanyName'] = User::get_user_full_name();
 		
         try{
             if(isset($data['email_send'])&& $data['email_send']==1) {

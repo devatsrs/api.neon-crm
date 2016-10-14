@@ -43,6 +43,14 @@ class SiteIntegration{
 		}		
 	}
 	
+	public function CheckSupportSettings(){
+		 if($this->support){
+            return $this->support->CheckConnection();
+        }
+        return false;		
+				
+	}
+	
 	/*
 	 * Get support contacts from active support
 	 */
