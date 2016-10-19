@@ -68,7 +68,7 @@ class AccountActivityController extends BaseController {
         $data['mandrill'] = 0;
 		$data = cleanarray($data,[]);	
 		//$data['CompanyName'] = $account->AccountName;
-		$data['CompanyName'] = User::get_user_full_name();
+		$data['CompanyName'] = User::get_user_full_name(); //logined user's name as from name
 		
         try{
             if(isset($data['email_send'])&& $data['email_send']==1) {
