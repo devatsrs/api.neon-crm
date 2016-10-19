@@ -580,14 +580,13 @@ function template_var_replace($EmailMessage,$replace_array){
         '{{PostCode}}',
         '{{Country}}',
         '{{InvoiceNumber}}',
-        '{{GrandTotal}}',
-        '{{InvoiceOutStanding}}',
-        '{{OutStandingExcludeUnbilledAmount}}',
+        '{{InvoiceGrandTotal}}',
+        '{{InvoiceOutstanding}}',
+        '{{OutstandingExcludeUnbilledAmount}}',
         '{{Signature}}',
-        '{{OutStandingIncludeUnbilledAmount}}',
+        '{{OutstandingIncludeUnbilledAmount}}',
         '{{BalanceThreshold}}',
         '{{Currency}}',
-        '{{CurrencySymbol}}',
         '{{CompanyName}}'
     ];
 
