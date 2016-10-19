@@ -164,7 +164,10 @@ $api->version('v1', function ($api) {
             $api->post('billing_class/store', 'BillingClassController@Store');
             $api->put('billing_class/update/{BillingClassID}', 'BillingClassController@Update');
             $api->delete('billing_class/delete/{BillingClassID}', 'BillingClassController@Delete');
-
+			
+			
+ 			// Mailbox Class
+            $api->post('email/sendemail', 'MailboxController@sendMail');
 
 		});
 
