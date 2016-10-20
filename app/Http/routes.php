@@ -164,9 +164,15 @@ $api->version('v1', function ($api) {
             $api->post('billing_class/store', 'BillingClassController@Store');
             $api->put('billing_class/update/{BillingClassID}', 'BillingClassController@Update');
             $api->delete('billing_class/delete/{BillingClassID}', 'BillingClassController@Delete');
-			
-			
- 			// Mailbox Class
+
+            // Alerts
+            $api->get('qos_alert/datagrid', 'AlertController@DataGrid');
+            //$api->get('qos_alert/get/{AlertID}', 'BillingClassController@get');
+            $api->post('qos_alert/store', 'AlertController@Store');
+            $api->put('qos_alert/update/{AlertID}', 'AlertController@Update');
+            $api->delete('qos_alert/delete/{AlertID}', 'AlertController@Delete');
+
+            // Mailbox Class
             $api->post('email/sendemail', 'MailboxController@sendMail');
 
 		});
