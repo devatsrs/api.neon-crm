@@ -172,6 +172,8 @@ $api->version('v1', function ($api) {
             $api->put('qos_alert/update/{AlertID}', 'AlertController@Update');
             $api->delete('qos_alert/delete/{AlertID}', 'AlertController@Delete');
 
+            // Mailbox Class
+            $api->post('email/sendemail', 'MailboxController@sendMail');
 
 		});
 

@@ -90,7 +90,7 @@ class PHPMAILERIntegtration{
         $mail->MessageID  =  $message_id;
 		
 		 
-		if(isset($data['AttachmentPaths']) && count($data['AttachmentPaths'])>0) {
+	if(isset($data['AttachmentPaths']) && count($data['AttachmentPaths'])>0) {
         foreach($data['AttachmentPaths'] as $attachment_data) { 
             $file = \Webpatser\Uuid\Uuid::generate()."_". basename($attachment_data['filepath']); 
             $Attachmenturl = \App\AmazonS3::unSignedUrl($attachment_data['filepath']);
