@@ -211,13 +211,12 @@ class AlertController extends BaseController
     public function convert_data($post_data,$Alert=array()){
         $class_data = array();
         $class_data['Status'] = isset($post_data['Status'])?1:0;
-        $class_data['LowValue'] = floatval($post_data['LowValue']);
-        $class_data['HighValue'] = floatval($post_data['HighValue']);
-
         if(!empty($Alert)){
             $Settings = json_decode($Alert->Settings);
         }
         if($post_data['AlertGroup'] == Alert::GROUP_QOS){
+            $class_data['LowValue'] = floatval($post_data['LowValue']);
+            $class_data['HighValue'] = floatval($post_data['HighValue']);
             if(isset($Settings->LastRunTime)){
                 $post_data['QosAlert']['LastRunTime'] = $Settings->LastRunTime;
             }
@@ -238,7 +237,8 @@ class AlertController extends BaseController
         return $class_data;
     }
 
-    public function data_validate($post_data){
+    public function data_validate($post_data)
+    {
         $error_message = '';
 
         if ($post_data['AlertGroup'] == Alert::GROUP_QOS) {
@@ -248,15 +248,37 @@ class AlertController extends BaseController
             if (empty($post_data['QosAlert']['Time'])) {
                 $error_message = 'Qos Alert Time is required.';
             }
-        }else if ($post_data['AlertGroup'] == Alert::GROUP_CALL) {
-            if (empty($post_data['CallAlert']['Interval'])) {
-                $error_message = 'Call Monitor Alert Interval is required.';
-            }
-            if (empty($post_data['CallAlert']['Time'])) {
-                $error_message = 'Call Monitor Alert Time is required.';
-            }
-        }
+        } else if ($post_data['AlertGroup'] == Alert::GROUP_CALL) {
 
+            if ($post_data['AlertType'] == 'block_destination' && empty($post_data['CallAlert']['BlacklistDestination'])) {
+                $error_message = 'At least one blacklist destination is required.';
+            } else if ($post_data['AlertType'] == 'call_duration' || $post_data['AlertType'] == 'call_cost' || $post_data['AlertType'] == 'call_after_office') {
+                if (empty($post_data['CallAlert']['AccountID'])) {
+                    $error_message = 'Account is required.';
+                }
+                $tag = '"AccountID":"' . $post_data['CallAlert']['AccountID'] . '"';
+                if (!empty($post_data['AlertID'])) {
+                    if (Alert::where('Settings', 'LIKE', '%' . $tag . '%')->where('AlertType', $post_data['AlertType'])->where('AlertID', '<>', $post_data['AlertID'])->count() > 0) {
+                        $error_message = 'Account is already taken.';
+                    }
+                }else{
+                    if (Alert::where('Settings', 'LIKE', '%' . $tag . '%')->where('AlertType', $post_data['AlertType'])->count() > 0) {
+                        $error_message = 'Account is already taken.';
+                    }
+                }
+                if ($post_data['AlertType'] == 'call_duration' && empty($post_data['CallAlert']['Duration'])) {
+                    $error_message = 'Duration is required.';
+                } else if ($post_data['AlertType'] == 'call_cost' && empty($post_data['CallAlert']['Cost'])) {
+                    $error_message = 'Cost is required.';
+                } else if ($post_data['AlertType'] == 'call_after_office' && empty($post_data['CallAlert']['OpenTime'])) {
+                    $error_message = 'Open Time is required.';
+                } else if ($post_data['AlertType'] == 'call_after_office' && empty($post_data['CallAlert']['CloseTime'])) {
+                    $error_message = 'Close Time is required.';
+                }
+
+            }
+
+        }
         return $error_message;
     }
 
