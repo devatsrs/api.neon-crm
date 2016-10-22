@@ -250,8 +250,13 @@ class AlertController extends BaseController
             }
         } else if ($post_data['AlertGroup'] == Alert::GROUP_CALL) {
 
-            if ($post_data['AlertType'] == 'block_destination' && empty($post_data['CallAlert']['BlacklistDestination'])) {
-                $error_message = 'At least one blacklist destination is required.';
+            if ($post_data['AlertType'] == 'block_destination') {
+                if(empty($post_data['CallAlert']['BlacklistDestination'])) {
+                    $error_message = 'At least one blacklist destination is required.';
+                }
+                if(empty($post_data['CallAlert']['ReminderEmail'])){
+                    $error_message = 'Email Address is required.';
+                }
             } else if ($post_data['AlertType'] == 'call_duration' || $post_data['AlertType'] == 'call_cost' || $post_data['AlertType'] == 'call_after_office') {
                 if (empty($post_data['CallAlert']['AccountID'])) {
                     $error_message = 'Account is required.';
