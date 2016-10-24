@@ -272,7 +272,7 @@ class AccountController extends BaseController
 				if(\App\SiteIntegration::CheckIntegrationConfiguration(false,\App\SiteIntegration::$freshdeskSlug)){
 				 $freshsdesk = 	$this->FreshSDeskGetTickets($data['AccountID'],$data['GUID']); 
 					if($freshsdesk){
-						return generateResponse(array("freshsdesk"=>array(0=>$freshsdesk['errors'][0]->message)),true);
+						//return generateResponse(array("freshsdesk"=>array(0=>$freshsdesk['errors'][0]->message)),true);
 					}
 				}
 			}
@@ -318,13 +318,13 @@ class AccountController extends BaseController
 		$FreshDeskObj 			=  	new \App\SiteIntegration();
 		$FreshDeskObj->SetSupportSettings();	
 			
-		if(count($emails)>0)
+		if(count($emails)>0 && $FreshDeskObj->CheckSupportSettings())
 		{ 
 			foreach($emails as $UsersEmails)
 			{				
 				$GetTickets 	= 		$FreshDeskObj->GetSupportTickets(array("email"=>trim($UsersEmails),"include"=>"requester"));				
 				
-				if($GetTickets['StatusCode'] == 200 && count($GetTickets['data'])>0)
+				if(isset($GetTickets['StatusCode']) && $GetTickets['StatusCode'] == 200 && count($GetTickets['data'])>0)
 				{   
 					foreach($GetTickets['data'] as $GetTickets_data)
 					{   
@@ -359,7 +359,7 @@ class AccountController extends BaseController
 				else
 				{
 					//return $GetTickets;	
-					if($GetTickets['StatusCode']!='200' && $GetTickets['StatusCode']!='400'){
+					if(isset($GetTickets['StatusCode']) && $GetTickets['StatusCode']!='200' && $GetTickets['StatusCode']!='400'){
 						Log::info("freshdesk StatusCode ".print_r($GetTickets,true));
 						return $GetTickets;							
 					}
@@ -372,7 +372,7 @@ class AccountController extends BaseController
 		$data           	=   	Input::all();  
 	
 		if(isset($data['conversations_type'])){
-			if($data['conversations_type']='mail')
+			if($data['conversations_type']=='mail')
 			{
 				return $this->GetMailConversations();	
 			}

@@ -27,8 +27,11 @@ protected $Agent;
 			 $this->$key = $value;
 		 }		 		 
 		 set_exception_handler(array($this, 'handleException'));	
+		 
 		 $this->MakeUrl();
-		 $this->GetFields();
+		 if($this->CheckConnection()){
+			 $this->GetFields();
+		 }
 	 }
 	 
 	 protected function MakeUrl(){
@@ -37,6 +40,18 @@ protected $Agent;
 		 }
 	 	$this->url = 'https://'.$this->domain.'.freshdesk.com';
 	 }
+	 
+	public function CheckConnection(){
+		$this->MakeUrl();
+		$this->url = $this->url."/api/v2/groups";
+		$result =  $this->Call(); 
+		if(isset($result['StatusCode']) && $result['StatusCode']==200){
+			return true;
+		}else{
+			return false;
+		}
+		
+	}
 	 
 	 public function GetContacts($filter = array()){
 		$this->MakeUrl();
@@ -75,7 +90,7 @@ protected $Agent;
 					
 		return $this->MakeResult(array("total"=>count($FullResult),"result"=>$result));*/
 		$result =  $this->Call();
-		if($result['StatusCode'] == 200 && count($result['data'])>0)
+		if(isset($result['StatusCode']) && $result['StatusCode'] == 200 && count($result['data'])>0)
 		{
 			$FreshDeskDbData =  IntegrationConfiguration::GetIntegrationDataBySlug('freshdesk'); //db settings
 			$FreshdeskData   = 	isset($FreshDeskDbData->Settings)?json_decode($FreshDeskDbData->Settings):"";
@@ -115,8 +130,8 @@ protected $Agent;
 	 public function GetFields(){
 		$this->MakeUrl();
 		$this->url  	= 	$this->url."/api/v2/ticket_fields/";		
-		$data			=	$this->Call();
-		if($data['StatusCode']==200 && count($data['data'])>0){
+		$data			=	$this->Call(); 
+		if(isset($data['StatusCode']) && $data['StatusCode']==200 && count($data['data'])>0){
 			foreach($data['data'] as $FieldsData){ 
 			$array = json_decode(json_encode($FieldsData), True);
 				if($FieldsData->description == 'Ticket status'){				
@@ -161,27 +176,22 @@ protected $Agent;
 				curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
 				curl_setopt ($ch, CURLOPT_SSL_VERIFYHOST, 0);
 				curl_setopt ($ch, CURLOPT_SSL_VERIFYPEER, 0);
+				curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+				curl_setopt($ch, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_1);
 				$returndata 	= 	curl_exec($ch); 
 				$httpCode 		= 	(int) curl_getinfo($ch,\CURLINFO_HTTP_CODE); 
 			    $json_data 		= 	json_decode($returndata);
-		
-				if ($httpCode < 200 || $httpCode > 299)
-			 	{ 
-					$array_return  = array("StatusCode"=>$httpCode,"description"=>$json_data->description,"errors"=>$json_data->errors,"data"=>"","url"=>$this->url);
+				
+				if($httpCode == 200){  
+					return 	$array_return	=	array("StatusCode"=>$httpCode,"data"=>$json_data,"description"=>"","errors"=>"","url"=>$this->url);
+				}else{
+					return $array_return  = array("StatusCode"=>$httpCode,"description"=>isset($json_data->description)?$json_data->description:'',"errors"=>isset($json_data->errors)?$json_data->errors:'',"data"=>"","url"=>$this->url);
 					  //throw new Exception( sprintf('%s returned unexpected HTTP code (%d), repsonse: %s',$this->url,$httpCode,$returndata));                
 			    }
-				if($httpCode == 400){ 
-					$array_return  = array("StatusCode"=>$httpCode,"description"=>$json_data->description,"errors"=>$json_data->errors,"data"=>"","url"=>$this->url);
-					
-				}
-				if($httpCode == 200){  
-					$array_return	=	array("StatusCode"=>$httpCode,"data"=>$json_data,"description"=>"","errors"=>"");
-				}
-				
 		} catch (Exception $e) {
   			return $e->getMessage(); 
 		}
-        return $array_return;
+        
 	 }
 	 
 	 function handleException(RuntimeException $e){
