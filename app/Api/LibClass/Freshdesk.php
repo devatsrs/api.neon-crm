@@ -43,7 +43,8 @@ protected $Agent;
 	 
 	public function CheckConnection(){
 		$this->MakeUrl();
-		$result =  $this->Call();
+		$this->url = $this->url."/api/v2/groups";
+		$result =  $this->Call(); 
 		if(isset($result['StatusCode']) && $result['StatusCode']==200){
 			return true;
 		}else{
@@ -175,6 +176,8 @@ protected $Agent;
 				curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
 				curl_setopt ($ch, CURLOPT_SSL_VERIFYHOST, 0);
 				curl_setopt ($ch, CURLOPT_SSL_VERIFYPEER, 0);
+				curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+				curl_setopt($ch, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_1);
 				$returndata 	= 	curl_exec($ch); 
 				$httpCode 		= 	(int) curl_getinfo($ch,\CURLINFO_HTTP_CODE); 
 			    $json_data 		= 	json_decode($returndata);
@@ -182,7 +185,7 @@ protected $Agent;
 				if($httpCode == 200){  
 					return 	$array_return	=	array("StatusCode"=>$httpCode,"data"=>$json_data,"description"=>"","errors"=>"","url"=>$this->url);
 				}else{
-					return $array_return  = array("StatusCode"=>$httpCode,"description"=>$json_data->description,"errors"=>$json_data->errors,"data"=>"","url"=>$this->url);
+					return $array_return  = array("StatusCode"=>$httpCode,"description"=>isset($json_data->description)?$json_data->description:'',"errors"=>isset($json_data->errors)?$json_data->errors:'',"data"=>"","url"=>$this->url);
 					  //throw new Exception( sprintf('%s returned unexpected HTTP code (%d), repsonse: %s',$this->url,$httpCode,$returndata));                
 			    }
 		} catch (Exception $e) {

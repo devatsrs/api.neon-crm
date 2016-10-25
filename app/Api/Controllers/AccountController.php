@@ -372,7 +372,7 @@ class AccountController extends BaseController
 		$data           	=   	Input::all();  
 	
 		if(isset($data['conversations_type'])){
-			if($data['conversations_type']='mail')
+			if($data['conversations_type']=='mail')
 			{
 				return $this->GetMailConversations();	
 			}
