@@ -6,6 +6,7 @@ use Api\Model\DataTableSql;
 use Api\Model\User;
 use App\Http\Requests;
 use App\Lib\Alert;
+use App\Lib\AlertLog;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
@@ -113,7 +114,7 @@ class AlertController extends BaseController
                 if (!Alert::checkForeignKeyById($AlertID)) {
                     try {
                         DB::beginTransaction();
-
+                        AlertLog::where('AlertID',$AlertID)->delete();
                         $result = Alert::find($AlertID)->delete();
                         DB::commit();
                         if ($result) {
@@ -303,6 +304,54 @@ class AlertController extends BaseController
 
         }
         return $error_message;
+    }
+    /**
+     * Show Alert History
+     *
+     * Get a JSON representation of all
+     *
+     * @History('/')
+     */
+    public function History()
+    {
+        $post_data = Input::all();
+        try {
+            $CompanyID = User::get_companyID();
+            $rules['iDisplayStart'] = 'required|Min:1';
+            $rules['iDisplayLength'] = 'required';
+            $rules['iDisplayLength'] = 'required';
+            $rules['sSortDir_0'] = 'required';
+            $validator = Validator::make($post_data, $rules);
+            if ($validator->fails()) {
+                return generateResponse($validator->errors(),true);
+            }
+            $post_data['iDisplayStart'] += 1;
+            $columns = ['Name', 'CreatedBy', 'created_at'];
+            $AlertType = $AlertID = '0';
+            if (isset($post_data['AlertID'])) {
+                $AlertID = $post_data['AlertID'];
+            }
+            if (isset($post_data['AlertType'])) {
+                $AlertType = $post_data['AlertType'];
+            }
+            $post_data['StartDate'] = !empty($post_data['StartTime'])?$post_data['StartDate'].' '.$post_data['StartTime']:$post_data['StartDate'];
+            $post_data['EndDate'] = !empty($post_data['EndTime'])?$post_data['EndDate'].' '.$post_data['EndTime']:$post_data['EndDate'];
+            $post_data['Search'] = !empty($post_data['Search'])?$post_data['Search']:'';
+
+            $sort_column = $columns[$post_data['iSortCol_0']];
+            $query = "call prc_getAlertHistory(" . $CompanyID . ",'" . intval($AlertID) . "','" . $AlertType . "','".$post_data['StartDate']."','".$post_data['EndDate']."','".$post_data['Search']."'," . (ceil($post_data['iDisplayStart'] / $post_data['iDisplayLength'])) . " ," . $post_data['iDisplayLength'] . ",'" . $sort_column . "','" . $post_data['sSortDir_0'] . "'";
+            if (isset($post_data['Export']) && $post_data['Export'] == 1) {
+                $result = DB::select($query . ',1)');
+            } else {
+                $query .= ',0)';
+                Log::info($query);
+                $result = DataTableSql::of($query)->make();
+            }
+            return generateResponse('',false,false,$result);
+        } catch (\Exception $e) {
+            Log::info($e);
+            return $this->response->errorInternal('Internal Server');
+        }
     }
 
 }
