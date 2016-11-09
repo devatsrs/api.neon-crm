@@ -230,6 +230,8 @@ class BillingClassController extends BaseController
         }
         if (isset($post_data['TaxRateID'])) {
             $class_data['TaxRateID'] = implode(',', array_unique($post_data['TaxRateID']));
+        }else{
+            $class_data['TaxRateID'] = '';
         }
         if (isset($post_data['InvoiceReminder'])) {
             $class_data['InvoiceReminderSettings'] = json_encode($post_data['InvoiceReminder']);
