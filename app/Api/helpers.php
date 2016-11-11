@@ -598,3 +598,54 @@ function template_var_replace($EmailMessage,$replace_array){
     }
     return $EmailMessage;
 }
+function next_run_time($data){
+
+    $Interval = $data['Interval'];
+    if(isset($data['StartTime'])) {
+        $StartTime = $data['StartTime'];
+    }
+    if(isset($data['LastRunTime'])){
+        $LastRunTime = $data['LastRunTime'];
+    }else{
+        $LastRunTime = date('Y-m-d H:i:00');
+    }
+    switch($data['Time']) {
+        case 'HOUR':
+            if($LastRunTime == ''){
+                $strtotime = strtotime('+'.$Interval.' hour');
+            }else{
+                $strtotime = strtotime($LastRunTime)+$Interval*60*60;
+            }
+            return date('Y-m-d H:i:00',$strtotime);
+        case 'MINUTE':
+            if($LastRunTime == ''){
+                $strtotime = strtotime('+'.$Interval.' minute');
+            }else{
+                $strtotime = strtotime($LastRunTime)+$Interval*60;
+            }
+            return date('Y-m-d H:i:00',$strtotime);
+        case 'DAILY':
+            if($LastRunTime == ''){
+                $strtotime = strtotime('+'.$Interval.' day');
+            }else{
+                $strtotime = strtotime($LastRunTime)+$Interval*60*60*24;
+            }
+            if(isset($StartTime)){
+                return date('Y-m-d',$strtotime).' '.date("H:i:00", strtotime("$StartTime"));
+            }
+            return date('Y-m-d H:i:00',$strtotime);
+        case 'MONTHLY':
+            if($LastRunTime == ''){
+                $strtotime = strtotime('+'.$Interval.' month');
+            }else{
+                $strtotime = strtotime("+$Interval month", strtotime($LastRunTime));
+            }
+            if(isset($StartTime)){
+                return date('Y-m-d',$strtotime).' '.date("H:i:00", strtotime("$StartTime"));
+            }
+            return date('Y-m-d H:i:00',$strtotime);
+        default:
+            return '';
+
+    }
+}
