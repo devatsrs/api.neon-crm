@@ -9,7 +9,7 @@
 namespace App;
 use Api\Model\CompanyConfiguration;
 use Illuminate\Support\Facades\Log;
-
+use \App\SiteIntegration;
 /** Base Calendar API class
  * Class CalendarAPI
  * @package App
@@ -74,16 +74,16 @@ class CalendarAPI
 
     public function is_outlook() {
 
-        $outlook_key = "OUTLOOKCALENDAR_API";
-        $is_outlook = CompanyConfiguration::get($outlook_key);
+       /* $outlook_key = "OUTLOOKCALENDAR_API";
+        $is_outlook = CompanyConfiguration::get($outlook_key);*/
+		
+		$OutlookData		=	SiteIntegration::CheckIntegrationConfiguration(true,SiteIntegration::$outlookcalenarSlug);
 
-        Log::info("OUTLOOKCALENDAR_API " . $is_outlook);
-
-        if( !empty($is_outlook) ) {
-
-            $this->server = CompanyConfiguration::getJsonKey($outlook_key,"server");
-            $this->email  = CompanyConfiguration::getJsonKey($outlook_key,"email");
-            $this->password = CompanyConfiguration::getJsonKey($outlook_key,"password");
+        if( !empty($OutlookData) ) {
+			Log::info("OUTLOOKCALENDAR_API " . print_r($OutlookData,true));
+            $this->server 		= 	$OutlookData->OutlookCalendarServer;
+            $this->email  		= 	$OutlookData->OutlookCalendarEmail;
+            $this->password 	= 	$OutlookData->OutlookCalendarPassword;
 
             if(!empty($this->server) && !empty($this->email) && !empty($this->password) ) {
 

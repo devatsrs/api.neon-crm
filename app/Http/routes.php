@@ -62,7 +62,7 @@ $api->version('v1', function ($api) {
             $api->get('account/get_note','AccountController@GetNote');
             $api->post('account/delete_note','AccountController@DeleteNote');
 			$api->post('account/update_note','AccountController@UpdateNote');
-			$api->post('account/GetTicketConversations','AccountController@GetTicketConversations');
+			$api->post('account/GetConversations','AccountController@GetConversations');
 
             $api->get('account/GetTimeLine', 'AccountController@GetTimeLine');
             $api->post('accounts/sendemail', 'AccountActivityController@sendMail');
@@ -158,6 +158,23 @@ $api->version('v1', function ($api) {
             $api->put('discount/update/{DiscountPlanID}', 'DiscountController@Update');
             $api->delete('discount/delete/{DiscountPlanID}', 'DiscountController@Delete');
 
+            // Billing Class
+            $api->get('billing_class/datagrid', 'BillingClassController@DataGrid');
+            $api->get('billing_class/get/{BillingClassID}', 'BillingClassController@get');
+            $api->post('billing_class/store', 'BillingClassController@Store');
+            $api->put('billing_class/update/{BillingClassID}', 'BillingClassController@Update');
+            $api->delete('billing_class/delete/{BillingClassID}', 'BillingClassController@Delete');
+
+            // Alerts
+            $api->get('qos_alert/datagrid', 'AlertController@DataGrid');
+            //$api->get('qos_alert/get/{AlertID}', 'BillingClassController@get');
+            $api->post('qos_alert/store', 'AlertController@Store');
+            $api->put('qos_alert/update/{AlertID}', 'AlertController@Update');
+            $api->delete('qos_alert/delete/{AlertID}', 'AlertController@Delete');
+            $api->get('alert/history', 'AlertController@History');
+
+            // Mailbox Class
+            $api->post('email/sendemail', 'MailboxController@sendMail');
 
 		});
 

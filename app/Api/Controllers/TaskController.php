@@ -44,7 +44,7 @@ class TaskController extends BaseController {
         if(!isset($data['fetchType'])){
             $data['fetchType'] = 'Grid';
         }
-        $data['AccountOwner'] = isset($data['AccountOwner'])?empty($data['AccountOwner'])?0:$data['AccountOwner']:'';
+        $data['AccountOwner'] = isset($data['AccountOwner'])?empty($data['AccountOwner'])?0:$data['AccountOwner']:0;
         $data['AccountIDs'] = isset($data['AccountIDs'])?empty($data['AccountIDs'])?0:$data['AccountIDs']:0;
         $data['Priority'] = isset($data['Priority'])?empty($data['Priority']) || $data['Priority']=='false'?0:$data['Priority']:0;
         $data['TaskStatus'] = isset($data['TaskStatus'])?empty($data['TaskStatus'])?0:$data['TaskStatus']:0;
@@ -261,13 +261,13 @@ class TaskController extends BaseController {
                     "subject" => $data['Subject'],
                 ];
 
-                $response = $this->add_edit_calendar_event($options);
+               /* $response = $this->add_edit_calendar_event($options);
 
                 //Update Event ID on DB to update.
                 if (isset($response["event_id"]) && isset($response["change_key"]) && !empty($response["event_id"]) && !empty($response["change_key"])) {
 
                     $result->update(["CalendarEventID" => json_encode($response)]);
-                }
+                }*/
             }
 
 
@@ -275,40 +275,29 @@ class TaskController extends BaseController {
             {
                 $new_date =  date("Y-m-d H:i:s", time() + 1);
                 if($data['Task_type']==Task::Note){ //notes
-                    //$sql = "update tblNote set created_at = '".$new_date."' , updated_at ='".$new_date."'  where NoteID ='".$data['ParentID']."'";
 					Note::find($data['ParentID'])->update(['created_at'=>$new_date,'updated_at'=>$new_date]);
-                    //db::statement($sql);
                 }
+				
                 if($data['Task_type']==Task::Mail) //email
                 {
-
-                   // $sql = "update AccountEmailLog set created_at = '".$new_date."', updated_at ='".$new_date."'  where AccountEmailLogID ='".$data['ParentID']."'";				
-					AccountEmailLog::find($data['ParentID'])->update(["created_at"=>$new_date,"updated_at"=>$new_date]);
-                    //db::statement($sql);
                     $Email      = AccountEmailLog::where(['AccountEmailLogID'=>$data['ParentID']])->get();
                     $Email      = $Email[0];
                     $account    = Account::find($data['AccountIDs']);
                     $JobLoggedUser = User::find(User::get_userID());
-                    $Signature = '';
-                    if(!empty($JobLoggedUser)){
-                        if(isset($JobLoggedUser->EmailFooter) && trim($JobLoggedUser->EmailFooter) != '')
-                        {
-                            $Signature = $JobLoggedUser->EmailFooter;
-                        }
-                    }
 
-                    $extra      = ['{{FirstName}}','{{LastName}}','{{Email}}','{{Address1}}','{{Address2}}','{{Address3}}','{{City}}','{{State}}','{{PostCode}}','{{Country}}','{{Signature}}'];
-                    $replace    = [$account->FirstName,$account->LastName,$account->Email,$account->Address1,$account->Address2,$account->Address3,$account->City,$account->State,$account->PostCode,$account->Country,$Signature];
+                    $replace_array = Account::create_replace_array($account,array(),$JobLoggedUser);
+                    $Email['Message'] = template_var_replace($Email['Message'],$replace_array);
 
-                    $Email['extra'] 			= 	$extra;
-                    $Email['replace'] 			= 	$replace;
+
                     $Email['AttachmentPaths'] 	= 	unserialize($Email['AttachmentPaths']);
                     $Email['cc'] 				= 	$Email['Cc'];
                     $Email['bcc'] 				= 	$Email['Bcc'];
                     $Email['address']   		=   $Email['Emailfrom'];
                     $Email['name']   			=  	$Email['CreatedBy'];
 
-                    $status = sendMail('emails.account.AccountEmailSend', $Email);
+                    $status 					= 	sendMail('emails.template', $Email);
+					$message_id 				=   isset($status['message_id'])?$status['message_id']:"";
+					AccountEmailLog::find($data['ParentID'])->update(["created_at"=>$new_date,"updated_at"=>$new_date,"MessageID"=>$message_id]);
                 }
             }
 		   $sql 				= 	"CALL `prc_GetTasksSingle`(".$result['TaskID'].")";

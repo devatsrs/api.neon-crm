@@ -3,6 +3,7 @@
 namespace Api\Model;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class AccountBalance extends Model
 {
@@ -109,5 +110,15 @@ class AccountBalance extends Model
         $historydata['BalanceThreshold'] = $BalanceThreshold;
         AccountBalanceHistory::addHistory($historydata);
 
+    }
+    public static function getBalanceAmount($AccountID){
+        return AccountBalance::where(['AccountID'=>$AccountID])->pluck('BalanceAmount');
+    }
+    public static function getBalanceThreshold($AccountID){
+        return str_replace('p', '%',AccountBalance::where(['AccountID'=>$AccountID])->pluck('BalanceThreshold'));
+    }
+    public static function getOutstandingAmount($CompanyID,$AccountID){
+        DB::connection('billing_db')->statement('CALL prc_updateSOAOffSet(?,?)',array($CompanyID,$AccountID));
+        return AccountBalance::where(['AccountID'=>$AccountID])->pluck('SOAOffset');
     }
 }

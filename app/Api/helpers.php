@@ -217,6 +217,10 @@ function email_log($data){
     if(is_array($data['EmailTo'])){
         $data['EmailTo'] = implode(',',$data['EmailTo']);
     }
+	
+	if(!isset($data['message_id'])){
+		$data['message_id'] = '';
+	}
 
     $logData = ['EmailFrom'=>\Api\Model\User::get_user_email(),
         'EmailTo'=>$data['EmailTo'],
@@ -225,7 +229,8 @@ function email_log($data){
         'AccountID'=>$data['AccountID'],
         'CompanyID'=>\Api\Model\User::get_companyID(),
         'UserID'=>\Api\Model\User::get_userID(),
-        'CreatedBy'=>\Api\Model\User::get_user_full_name()];
+        'CreatedBy'=>\Api\Model\User::get_user_full_name(),
+		"MessageID"=>$data['message_id']];
     if(\Api\Model\AccountEmailLog::Create($logData)){
         $status['status'] = 1;
     }
@@ -283,6 +288,16 @@ function email_log_data($data,$view = ''){
     {
         $body = $data['Message'];
     }
+	if(!isset($data['message_id']))
+	{
+		$data['message_id'] = '';
+	}
+	if(!isset($data['EmailCall']))
+	{
+		$data['EmailCall'] = \Api\Model\Messages::Sent;
+	}
+	
+	
 
     $logData = ['EmailFrom'=>\Api\Model\User::get_user_email(),
         'EmailTo'=>$data['EmailTo'],
@@ -294,9 +309,12 @@ function email_log_data($data,$view = ''){
         'CreatedBy'=>\Api\Model\User::get_user_full_name(),
         'Cc'=>$data['cc'],
         'Bcc'=>$data['bcc'],
-        "AttachmentPaths"=>$data['AttachmentPaths']
+        "AttachmentPaths"=>$data['AttachmentPaths'],
+		"MessageID"=>$data['message_id'],
+		"EmailParent"=>isset($data['EmailParent'])?$data['EmailParent']:0,
+		"EmailCall"=>$data['EmailCall'],
     ];
-
+	
     $data =  \Api\Model\AccountEmailLog::Create($logData);
     return $data;
 }
@@ -548,4 +566,86 @@ function remove_front_slash($str = ""){
 }
 function get_currenttime(){
     return date('Y-m-d H:i:s');
+}
+function template_var_replace($EmailMessage,$replace_array){
+    $extra = [
+        '{{FirstName}}',
+        '{{LastName}}',
+        '{{Email}}',
+        '{{Address1}}',
+        '{{Address2}}',
+        '{{Address3}}',
+        '{{City}}',
+        '{{State}}',
+        '{{PostCode}}',
+        '{{Country}}',
+        '{{InvoiceNumber}}',
+        '{{InvoiceGrandTotal}}',
+        '{{InvoiceOutstanding}}',
+        '{{OutstandingExcludeUnbilledAmount}}',
+        '{{Signature}}',
+        '{{OutstandingIncludeUnbilledAmount}}',
+        '{{BalanceThreshold}}',
+        '{{Currency}}',
+        '{{CompanyName}}'
+    ];
+
+    foreach($extra as $item){
+        $item_name = str_replace(array('{','}'),array('',''),$item);
+        if(array_key_exists($item_name,$replace_array)) {
+            $EmailMessage = str_replace($item,$replace_array[$item_name],$EmailMessage);
+        }
+    }
+    return $EmailMessage;
+}
+function next_run_time($data){
+
+    $Interval = $data['Interval'];
+    if(isset($data['StartTime'])) {
+        $StartTime = $data['StartTime'];
+    }
+    if(isset($data['LastRunTime'])){
+        $LastRunTime = $data['LastRunTime'];
+    }else{
+        $LastRunTime = date('Y-m-d H:i:00');
+    }
+    switch($data['Time']) {
+        case 'HOUR':
+            if($LastRunTime == ''){
+                $strtotime = strtotime('+'.$Interval.' hour');
+            }else{
+                $strtotime = strtotime($LastRunTime)+$Interval*60*60;
+            }
+            return date('Y-m-d H:i:00',$strtotime);
+        case 'MINUTE':
+            if($LastRunTime == ''){
+                $strtotime = strtotime('+'.$Interval.' minute');
+            }else{
+                $strtotime = strtotime($LastRunTime)+$Interval*60;
+            }
+            return date('Y-m-d H:i:00',$strtotime);
+        case 'DAILY':
+            if($LastRunTime == ''){
+                $strtotime = strtotime('+'.$Interval.' day');
+            }else{
+                $strtotime = strtotime($LastRunTime)+$Interval*60*60*24;
+            }
+            if(isset($StartTime)){
+                return date('Y-m-d',$strtotime).' '.date("H:i:00", strtotime("$StartTime"));
+            }
+            return date('Y-m-d H:i:00',$strtotime);
+        case 'MONTHLY':
+            if($LastRunTime == ''){
+                $strtotime = strtotime('+'.$Interval.' month');
+            }else{
+                $strtotime = strtotime("+$Interval month", strtotime($LastRunTime));
+            }
+            if(isset($StartTime)){
+                return date('Y-m-d',$strtotime).' '.date("H:i:00", strtotime("$StartTime"));
+            }
+            return date('Y-m-d H:i:00',$strtotime);
+        default:
+            return '';
+
+    }
 }

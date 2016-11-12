@@ -20,6 +20,9 @@ class SiteIntegration{
  static    $GatewaySlug			=	'billinggateway';
  static    $freshdeskSlug		=	'freshdesk';
  static    $mandrillSlug		=	'mandrill';
+ static    $emailtrackingSlug   =   'emailtracking';
+ static    $imapSlug      		=   'imap';
+ static    $outlookcalenarSlug	=	'outlook';
 
  	public function __construct(){
 	
@@ -38,6 +41,14 @@ class SiteIntegration{
 			
 			$this->support = new Freshdesk($data);
 		}		
+	}
+	
+	public function CheckSupportSettings(){
+		 if($this->support){
+            return $this->support->CheckConnection();
+        }
+        return false;		
+				
 	}
 	
 	/*
@@ -159,7 +170,7 @@ class SiteIntegration{
 	public static function  CheckCategoryConfiguration($data=false,$slug){	
 		
 		$companyID		 =	User::get_companyID();
-		$Integration	 =	Integration::where(["CompanyID" => $companyID,"Slug"=>$slug])->first();	
+		$Integration	 =	Integration::where(["CompanyId" => $companyID,"Slug"=>$slug])->first();	
 	
 		if(count($Integration)>0)
 		{						
