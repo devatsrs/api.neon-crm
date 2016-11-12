@@ -44,7 +44,7 @@ class TaskController extends BaseController {
         if(!isset($data['fetchType'])){
             $data['fetchType'] = 'Grid';
         }
-        $data['AccountOwner'] = isset($data['AccountOwner'])?empty($data['AccountOwner'])?0:$data['AccountOwner']:'';
+        $data['AccountOwner'] = isset($data['AccountOwner'])?empty($data['AccountOwner'])?0:$data['AccountOwner']:0;
         $data['AccountIDs'] = isset($data['AccountIDs'])?empty($data['AccountIDs'])?0:$data['AccountIDs']:0;
         $data['Priority'] = isset($data['Priority'])?empty($data['Priority']) || $data['Priority']=='false'?0:$data['Priority']:0;
         $data['TaskStatus'] = isset($data['TaskStatus'])?empty($data['TaskStatus'])?0:$data['TaskStatus']:0;
