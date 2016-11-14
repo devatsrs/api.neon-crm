@@ -294,6 +294,7 @@ class AccountController extends BaseController
         /*$AccountEmails  =	Account::where("AccountID",$AccountID)->select(['Email','BillingEmail'])->first();
         $AccountEmails  = 	json_decode(json_encode($AccountEmails),true);
         $emails			=	array_unique($AccountEmails);*/
+ 
 		
         $email_array			 = 	array();
         $billingemail_array 	 = 	array();
