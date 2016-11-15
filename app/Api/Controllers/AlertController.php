@@ -277,7 +277,7 @@ class AlertController extends BaseController
                 if(empty($post_data['CallAlert']['ReminderEmail'])){
                     $error_message = 'Email Address is required.';
                 }
-            } else if ($post_data['AlertType'] == 'call_duration' || $post_data['AlertType'] == 'call_cost' || $post_data['AlertType'] == 'call_after_office') {
+            } else if ($post_data['AlertType'] == 'call_duration' || $post_data['AlertType'] == 'call_cost') {
                 if (empty($post_data['CallAlert']['AccountIDs'])) {
                     $error_message = 'Account is required.';
                 }else{
