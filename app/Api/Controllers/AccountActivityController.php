@@ -74,7 +74,7 @@ class AccountActivityController extends BaseController {
             if(isset($data['email_send'])&& $data['email_send']==1) {
 				
                 $status = sendMail('emails.template', $data);
-            }
+            }else{$status = array("status"=>1);}
 			if($status['status']==0){
 				 return generateResponse($status['message'],true,true);
 			}
