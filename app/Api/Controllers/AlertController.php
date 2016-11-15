@@ -235,7 +235,7 @@ class AlertController extends BaseController
             $class_data['Settings'] = json_encode($post_data['QosAlert']);
         }else if ($post_data['AlertGroup'] == Alert::GROUP_CALL) {
             $post_data['CallAlert']['EmailToAccount'] = isset($post_data['CallAlert']['EmailToAccount'])?1:0;
-            if($Alert->Status == 0 && $class_data['Status'] == 1){
+            if(!empty($Alert) && $Alert->Status == 0 && $class_data['Status'] == 1){
                 DB::connection('billing_db')->table('tblTempUsageDownloadLog')->where('created_at','<',date("Y-m-d"))->update(array('PostProcessStatus'=>1));
             }
             $class_data['Settings'] = json_encode($post_data['CallAlert']);
@@ -261,6 +261,9 @@ class AlertController extends BaseController
             if (empty($post_data['LowValue']) && empty($post_data['HighValue'])) {
                 $error_message = 'High or Low value is required.';
             }
+            if(empty($post_data['QosAlert']['NoOfCall'])){
+                $error_message = 'Number of Calls is required.';
+            }
             if(empty($post_data['QosAlert']['ReminderEmail'])){
                 $error_message = 'Email Address is required.';
             }
@@ -274,16 +277,16 @@ class AlertController extends BaseController
                 if(empty($post_data['CallAlert']['ReminderEmail'])){
                     $error_message = 'Email Address is required.';
                 }
-            } else if ($post_data['AlertType'] == 'call_duration' || $post_data['AlertType'] == 'call_cost' || $post_data['AlertType'] == 'call_after_office') {
-                if (empty($post_data['CallAlert']['AccountID'])) {
+            } else if ($post_data['AlertType'] == 'call_duration' || $post_data['AlertType'] == 'call_cost') {
+                if (empty($post_data['CallAlert']['AccountIDs'])) {
                     $error_message = 'Account is required.';
                 }else{
-                    $tag = '"AccountID":"' . $post_data['CallAlert']['AccountID'] . '"';
+                    $tag = '"AccountIDs":"' . $post_data['CallAlert']['AccountIDs'] . '"';
                     if (!empty($post_data['AlertID'])) {
                         if (Alert::where('Settings', 'LIKE', '%' . $tag . '%')->where('AlertType', $post_data['AlertType'])->where('AlertID', '<>', $post_data['AlertID'])->count() > 0) {
                             $error_message = 'Account is already taken.';
                         }
-                    }else{
+                    } else {
                         if (Alert::where('Settings', 'LIKE', '%' . $tag . '%')->where('AlertType', $post_data['AlertType'])->count() > 0) {
                             $error_message = 'Account is already taken.';
                         }
@@ -294,9 +297,26 @@ class AlertController extends BaseController
                     $error_message = 'Duration is required.';
                 } else if ($post_data['AlertType'] == 'call_cost' && empty($post_data['CallAlert']['Cost'])) {
                     $error_message = 'Cost is required.';
-                } else if ($post_data['AlertType'] == 'call_after_office' && empty($post_data['CallAlert']['OpenTime'])) {
+                }
+
+            }else if ($post_data['AlertType'] == 'call_after_office') {
+                if (empty($post_data['CallAlert']['AccountID'])) {
+                    $error_message = 'Account is required.';
+                }else{
+                    $tag = '"AccountID":"' . $post_data['CallAlert']['AccountID'] . '"';
+                    if (!empty($post_data['AlertID'])) {
+                        if (Alert::where('Settings', 'LIKE', '%' . $tag . '%')->where('AlertType', $post_data['AlertType'])->where('AlertID', '<>', $post_data['AlertID'])->count() > 0) {
+                            $error_message = 'Account is already taken.';
+                        }
+                    } else {
+                        if (Alert::where('Settings', 'LIKE', '%' . $tag . '%')->where('AlertType', $post_data['AlertType'])->count() > 0) {
+                            $error_message = 'Account is already taken.';
+                        }
+                    }
+                }
+                if (empty($post_data['CallAlert']['OpenTime'])) {
                     $error_message = 'Open Time is required.';
-                } else if ($post_data['AlertType'] == 'call_after_office' && empty($post_data['CallAlert']['CloseTime'])) {
+                } else if (empty($post_data['CallAlert']['CloseTime'])) {
                     $error_message = 'Close Time is required.';
                 }
 
