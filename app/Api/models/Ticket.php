@@ -8,7 +8,7 @@ class Ticket extends Model
 {
     protected $guarded = array("ID");
 
-    protected $table = 'tblTickets';
+    protected $table = 'tblHelpDeskTickets';
 
     protected $primaryKey = "ID";
 }
