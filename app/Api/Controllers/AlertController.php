@@ -283,11 +283,11 @@ class AlertController extends BaseController
                 }else{
                     $tag = '"AccountIDs":"' . $post_data['CallAlert']['AccountIDs'] . '"';
                     if (!empty($post_data['AlertID'])) {
-                        if (Alert::where('Settings', 'LIKE', '%' . $tag . '%')->where('AlertType', $post_data['AlertType'])->where('AlertID', '<>', $post_data['AlertID'])->count() > 0) {
+                        if (Alert::where('Settings', 'LIKE', '%' . $tag . '%')->where(['AlertType'=>$post_data['AlertType'],'CreatedByCustomer'=>0])->where('AlertID', '<>', $post_data['AlertID'])->count() > 0) {
                             $error_message = 'Account is already taken.';
                         }
                     } else {
-                        if (Alert::where('Settings', 'LIKE', '%' . $tag . '%')->where('AlertType', $post_data['AlertType'])->count() > 0) {
+                        if (Alert::where('Settings', 'LIKE', '%' . $tag . '%')->where(['AlertType'=>$post_data['AlertType'],'CreatedByCustomer'=>0])->count() > 0) {
                             $error_message = 'Account is already taken.';
                         }
                     }
@@ -305,11 +305,11 @@ class AlertController extends BaseController
                 }else{
                     $tag = '"AccountID":"' . $post_data['CallAlert']['AccountID'] . '"';
                     if (!empty($post_data['AlertID'])) {
-                        if (Alert::where('Settings', 'LIKE', '%' . $tag . '%')->where('AlertType', $post_data['AlertType'])->where('AlertID', '<>', $post_data['AlertID'])->count() > 0) {
+                        if (Alert::where('Settings', 'LIKE', '%' . $tag . '%')->where(['AlertType'=>$post_data['AlertType'],'CreatedByCustomer'=>0])->where('AlertID', '<>', $post_data['AlertID'])->count() > 0) {
                             $error_message = 'Account is already taken.';
                         }
                     } else {
-                        if (Alert::where('Settings', 'LIKE', '%' . $tag . '%')->where('AlertType', $post_data['AlertType'])->count() > 0) {
+                        if (Alert::where('Settings', 'LIKE', '%' . $tag . '%')->where(['AlertType'=>$post_data['AlertType'],'CreatedByCustomer'=>0])->count() > 0) {
                             $error_message = 'Account is already taken.';
                         }
                     }
