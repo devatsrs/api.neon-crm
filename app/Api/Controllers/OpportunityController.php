@@ -203,9 +203,11 @@ class OpportunityController extends BaseController {
             'Email'=>'required',
             //'Phone'=>'required',
             'BoardID'=>'required',
+            'AccountID'=>'not_in:0'
         );
         $messages = array(
-            'BoardID.required' => 'Opportunity Board field is required.'
+            'BoardID.required' => 'Opportunity Board field is required.',
+            'AccountID.not_in' => 'Please select '.$data['leadOrAccount']
         );
 
         if($data['leadcheck']=='No') {
