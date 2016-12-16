@@ -202,12 +202,10 @@ class OpportunityController extends BaseController {
             'LastName'=>'required',
             'Email'=>'required',
             //'Phone'=>'required',
-            'BoardID'=>'required',
-            'AccountID'=>'not_in:0'
+            'BoardID'=>'required'
         );
         $messages = array(
             'BoardID.required' => 'Opportunity Board field is required.',
-            'AccountID.not_in' => 'Please select '.$data['leadOrAccount']
         );
 
         if($data['leadcheck']=='No') {
@@ -215,6 +213,9 @@ class OpportunityController extends BaseController {
                 $rules['Title']='required';
             }
             $rules['Company'] = 'required|unique:tblAccount,AccountName,NULL,CompanyID,CompanyID,' . $companyID . '';
+        }elseif($data['leadcheck']=='Yes') {
+            $rules['AccountID']='not_in:0,""';
+            $messages['AccountID.not_in'] = 'Please select '.$data['leadOrAccount'];
         }
         $validator = Validator::make($data, $rules, $messages);
         if ($validator->fails()) {
