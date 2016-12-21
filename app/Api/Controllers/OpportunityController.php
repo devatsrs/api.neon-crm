@@ -213,9 +213,10 @@ class OpportunityController extends BaseController {
                 $rules['Title']='required';
             }
             $rules['Company'] = 'required|unique:tblAccount,AccountName,NULL,CompanyID,CompanyID,' . $companyID . '';
-        }elseif($data['leadcheck']=='Yes') {
-            $rules['AccountID']='not_in:0,""';
+        }else{
+            $rules['AccountID']='required|not_in:0';
             $messages['AccountID.not_in'] = 'Please select '.$data['leadOrAccount'];
+            $messages['AccountID.required'] = 'Please select '.$data['leadOrAccount'];
         }
         $validator = Validator::make($data, $rules, $messages);
         if ($validator->fails()) {
@@ -275,7 +276,6 @@ class OpportunityController extends BaseController {
             $data['Status'] = isset($data['Status']) && !empty($data['Status'])?$data['Status']:Opportunity::Open;
 
 			$data = cleanarray($data,['OppertunityID','leadcheck','leadOrAccount','StartTime']);
-
             Opportunity::create($data);
         }
         catch (\Exception $ex){
