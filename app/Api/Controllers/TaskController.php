@@ -524,7 +524,7 @@ class TaskController extends BaseController {
         return generateResponse('',false,false,$Priorities);
     }
 
-    public function get_allowed_extensions(){
+    public function get_allowed_extensions(){ 
         $allowed     =  getenv("CRM_ALLOWED_FILE_UPLOAD_EXTENSIONS");
         $allowedextensions   =  explode(',',$allowed);
         $allowedextensions   =  array_change_key_case($allowedextensions);

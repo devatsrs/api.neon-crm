@@ -1,4 +1,6 @@
 <?php
+//use Illuminate\Http\Request;
+
 $api = app('Dingo\Api\Routing\Router');
 
 // Version 1 of our API
@@ -12,7 +14,15 @@ $api->version('v1', function ($api) {
         $api->post('logout', 'AuthController@logout');
 		$api->post('register', 'AuthController@register');
 		$api->post('l/{id}', 'AuthController@authenticate');
+		$request =$api->getCurrentRequest();
 
+       $postdata    =  Input::all(); 
+        if(isset($postdata['LoginType']) && $postdata['LoginType']=='customer') { //set customer configuration  
+              \Config::set('jwt.user' , "Api\Model\Customer");
+              \Config::set('auth.table', 'tblAccount');
+              \Config::set('auth.model', Api\Model\Customer::class);
+        }
+		
 		// Dogs! All routes in here are protected and thus need a valid token
 		//$api->group( [ 'protected' => true, 'middleware' => 'jwt.refresh' ], function ($api) {
 		$api->group( [ 'middleware' => 'jwt.refresh' ], function ($api) {
@@ -175,7 +185,20 @@ $api->version('v1', function ($api) {
 
             // Mailbox Class
             $api->post('email/sendemail', 'MailboxController@sendMail');
-
+			
+			$api->post('ticketgroups/get_groups', 'TicketsGroupController@getGroups');
+			$api->post('ticketgroups/store', 'TicketsGroupController@Store');
+			$api->post('ticketgroups/get/{id}', 'TicketsGroupController@get');
+			
+			$api->post('ticketgroups/get_group_agents/{id}', 'TicketsGroupController@get_group_agents');
+			$api->post('ticketgroups/get_group_agents_ids/{id}', 'TicketsGroupController@get_group_agents_ids');
+			$api->put('ticketgroups/update/{id}', 'TicketsGroupController@Update');
+            $api->delete('ticketgroups/delete/{id}', 'TicketsGroupController@Delete');			
+			$api->post('ticketgroups/send_activation_single/{id}', 'TicketsGroupController@send_activation_single');
+			
+			$api->post('ticketsfields/getfields', 'TicketsFieldsController@GetFields');
+			
+			
 		});
 
 	});

@@ -32,8 +32,7 @@ class AccountController extends BaseController
 {
 	protected $tokenClass;
 	
-    public function __construct(Request $request)
-    { 
+    public function __construct(Request $request){ 
         $this->middleware('jwt.auth');
         Parent::__Construct($request);
     }
