@@ -90,6 +90,7 @@ protected $Agent;
 					
 		return $this->MakeResult(array("total"=>count($FullResult),"result"=>$result));*/
 		$result =  $this->Call();
+		$Filter_Groups = array();
 		if(isset($result['StatusCode']) && $result['StatusCode'] == 200 && count($result['data'])>0)
 		{
 			$FreshDeskDbData =  IntegrationConfiguration::GetIntegrationDataBySlug('freshdesk'); //db settings
