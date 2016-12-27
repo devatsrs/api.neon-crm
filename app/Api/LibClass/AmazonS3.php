@@ -161,7 +161,7 @@ class AmazonS3 {
 
         //When no amazon ;
         if($s3 == 'NoAmazon'){
-            $status = RemoteSSH::downloadFile($key);
+            $status = RemoteSSH::downloadFile($key); 
             return $status['filePath'];
         }
         $bucket = self::getBucket();

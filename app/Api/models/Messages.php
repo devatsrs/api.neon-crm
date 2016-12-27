@@ -2,6 +2,8 @@
 namespace Api\Model;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
+
 class Messages extends \Eloquent {
 
     protected $fillable 	= 	['PID'];
@@ -12,4 +14,87 @@ class Messages extends \Eloquent {
 	const  Sent 			= 	0;
     const  Received			=   1;
     const  Draft 			= 	2;
+	
+	public static function GetAllSystemEmailsWithName($lead=1)
+	{
+		 $array 		 =  [];
+		
+		 if($lead==0)
+		 {
+			$AccountSearch   =  DB::table('tblAccount')->where(['AccountType'=>1])->whereRaw('Email !=""')->get(array("Email","BillingEmail","AccountName"));
+		 }
+		 else
+		 {
+			$AccountSearch   =  DB::table('tblAccount')->whereRaw('Email !=""')->get(array("Email","BillingEmail"));
+		 }
+		 
+		 $ContactSearch 	 =  DB::table('tblContact')->get(array("Email","FirstName","LastName"));	
+		
+		if(count($AccountSearch)>0){
+				foreach($AccountSearch as $AccountData){
+					//if($AccountData->Email!='' && !in_array($AccountData->Email,$array))
+					if($AccountData->Email!='')
+					{
+						if(!is_array($AccountData->Email))
+						{				  
+						  $email_addresses = explode(",",$AccountData->Email);				
+						}
+						else
+						{
+						  $email_addresses = $emails;
+						}
+						if(count($email_addresses)>0)
+						{
+							foreach($email_addresses as $email_addresses_data)
+							{
+								$txt = $AccountData->AccountName." <".$email_addresses_data.">";
+								if(!in_array($txt,$array))
+								{
+									$array[] =  $txt;	
+								}
+							}
+						}
+						
+					}			
+					
+					if($AccountData->BillingEmail!='')
+					{
+						if(!is_array($AccountData->BillingEmail))
+						{				  
+						  $email_addresses = explode(",",$AccountData->BillingEmail);				
+						}
+						else
+						{
+						  $email_addresses = $emails;
+						}
+						if(count($email_addresses)>0)
+						{
+							foreach($email_addresses as $email_addresses_data)
+							{
+								$txt = $AccountData->AccountName." <".$email_addresses_data.">";
+								if(!in_array($txt,$array))
+								{
+									//$array[] =  $email_addresses_data;	
+									$array[] =  $txt;	
+								}
+							}
+						}
+						
+					}
+				}
+		}
+		
+		if(count($ContactSearch)>0){
+				foreach($ContactSearch as $ContactData){
+					$txt =  $ContactData->FirstName.' '.$ContactData->LastName." <".$ContactData->Email.">";
+					if($ContactData->Email!=''  && !in_array($txt,$array))
+					{
+						$array[] =  $txt;
+						//$array[] =  $ContactData->Email;
+					}
+				}
+		}		
+		//return  array_filter(array_unique($array));
+		return $array;
+    }
 }

@@ -345,4 +345,78 @@ class Account extends Model
 
         return $replace_array;
     }
+	
+	public static function GetAccountAllEmails($id,$ArrayReturn=false){
+	  $array			 =  array();
+	  $accountemails	 = 	Account::where(array("AccountID"=>$id))->select(array('Email', 'BillingEmail'))->get();
+	  $acccountcontact 	 =  DB::table('tblContact')->where(array("AccountID"=>$id))->get(array("Email"));	
+	  
+	  	
+		if(count($accountemails)>0){
+				foreach($accountemails as $AccountData){
+					//if($AccountData->Email!='' && !in_array($AccountData->Email,$array))
+					if($AccountData->Email!='')
+					{
+						if(!is_array($AccountData->Email))
+						{				  
+						  $email_addresses = explode(",",$AccountData->Email);				
+						}
+						else
+						{
+						  $email_addresses = $emails;
+						}
+						if(count($email_addresses)>0)
+						{
+							foreach($email_addresses as $email_addresses_data)
+							{
+								$txt = $email_addresses_data;
+								if(!in_array($txt,$array))
+								{
+									$array[] =  $txt;	
+								}
+							}
+						}
+						
+					}			
+					
+					if($AccountData->BillingEmail!='')
+					{
+						if(!is_array($AccountData->BillingEmail))
+						{				  
+						  $email_addresses = explode(",",$AccountData->BillingEmail);				
+						}
+						else
+						{
+						  $email_addresses = $emails;
+						}
+						if(count($email_addresses)>0)
+						{
+							foreach($email_addresses as $email_addresses_data)
+							{
+								$txt = $email_addresses_data;
+								if(!in_array($txt,$array))
+								{
+									//$array[] =  $email_addresses_data;	
+									$array[] =  $txt;	
+								}
+							}
+						}
+						
+					}
+				}
+		}
+		
+		if(count($acccountcontact)>0){
+				foreach($acccountcontact as $ContactData){
+					$txt = $ContactData->Email;
+					if($ContactData->Email!=''  && !in_array($txt,$array))
+					{
+						$array[] =  $txt;
+						//$array[] =  $ContactData->Email;
+					}
+				}
+		}
+	if($ArrayReturn){return $array;}		
+	  return implode(",",$array);
+	}
 }

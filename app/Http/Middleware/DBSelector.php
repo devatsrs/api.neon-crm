@@ -32,7 +32,7 @@ class DBSelector
         $LicenceKey  = $request->only('LicenceKey','CompanyName');
 		$LoginType	=	$request->only('LoginType');
 		
-		 if(isset($LoginType) && $LoginType['LoginType']=='customer') {
+		/* if(isset($LoginType) && $LoginType['LoginType']=='customer') {
     	    Config::set('auth.model', '\Api\Model\Customer');
 	        Config::set('auth.table', 'tblAccount');
 			Config::set('jwt.identifier', 'AccountID');
@@ -40,7 +40,7 @@ class DBSelector
 			Config::set('auth.providers.users.model', \Api\Model\Customer::class);				  
 			Config::set('auth.providers.users.table', 'tblAccount');
         }
-		
+		*/
         if (!empty($LicenceKey['LicenceKey']) && !empty($LicenceKey['CompanyName'])) {
             if(!empty($credentials['LoggedEmailAddress']) || !empty($UserID['LoggedUserID'])){
                 $license = 	Company::getLicenceResponse($request);

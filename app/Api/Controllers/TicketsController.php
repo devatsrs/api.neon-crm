@@ -8,13 +8,14 @@ use Api\Model\AccountBalanceHistory;
 use Api\Model\DataTableSql;
 use Api\Model\User;
 use Api\Model\Account;
-use Api\Model\Note;
-use Api\Model\Invoice;
 use Api\Model\Ticket;
-use Api\Model\Company;
-use Api\Model\CompanySetting;
-use Api\Model\CompanyConfiguration;
-use Api\Model\AccountEmailLog;
+use Api\Model\TicketsTable;
+use Api\Model\Ticketfields;
+use Api\Model\TicketsDetails;
+use Api\Model\TicketPriority;
+use Api\Model\TicketGroups;
+use Api\Model\TicketsConversation;
+use Api\Model\Messages;
 use App\Http\Requests;
 use Dingo\Api\Facade\API;
 use Illuminate\Support\Facades\DB;
@@ -22,11 +23,6 @@ use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Facades\JWTAuth;
-use Api\Model\Tags;
-use Api\Model\PaymentGateway;
-use Api\Model\AccountPaymentProfile;
-use App\Freshdesk;
-use App\Imap;
 
 class TicketsController extends BaseController
 {
@@ -42,219 +38,41 @@ private $validlicense;
 	 protected function IsValidLicense(){
 	 	return $this->validlicense;		
 	 }
-	
-	 public function index(){
-		 
-			$this->IsValidLicense();
-			$CompanyID 		 			= 	 User::get_companyID(); 
-			$data 			 			= 	 array();	
-			$status			 			=    TicketsTable::getTicketStatus();
-			$Priority		 			=	 TicketPriority::getTicketPriority();
-			$Groups			 			=	 TicketGroups::getTicketGroups(); 
-			$Agents			 			= 	 User::getUserIDListAll(0);
-			$Agents			 			= 	 array("0"=> "Select")+$Agents;
-			$Type			 			=    TicketsTable::getTicketType();
-			/////////
-			$Sortcolumns				=	 TicketsTable::$Sortcolumns;
-			$data['iSortCol_0']			=	 TicketsTable::$defaultSortField;
-			$data['sSortDir_0']			=	 TicketsTable::$defaultSortType;
-			
-			$data['iDisplayStart']  	= 	 0;
-			$data['iDisplayLength'] 	= 	 Config::get('app.pageSize');
-			$companyID 					= 	 User::get_companyID();
-			$array						= 	 $this->GetResult($data);
-			$resultdata   				= 	 $array['resultdata'];	
-			$resultpage  				= 	 $array['resultpage'];		 
-			$result 					= 	 $resultdata->data['ResultCurrentPage'];
-			$totalResults 				= 	 $resultdata->data['TotalResults'][0]->totalcount; 
-			$iTotalDisplayRecords 		= 	 $resultpage['iTotalDisplayRecords'];
-			$iDisplayLength 			= 	 $data['iDisplayLength'];
-			$data['currentpage'] 		= 	 0;
-			
-		
-		//echo "<pre>";		print_r($result);			exit;
-        return View::make('tickets.index', compact('PageResult','result','iDisplayLength','iTotalDisplayRecords','totalResults','data','EscalationTimes_json','status','Priority','Groups','Agents','Type',"Sortcolumns"));  
-			/////////
-	  }	
 	  
-	  public function ajex_result() {
-		
-	    $data 						= 	Input::all();
-		$data['currentpages']		=	$data['currentpage'];
-		if($data['clicktype']=='next'){
-			$data['iDisplayStart']  	= 	($data['currentpage']+1)*$data['per_page'];
-			$data['currentpage']++;
-		}
-		elseif($data['clicktype']=='back'){
-			$data['iDisplayStart']  	= 	($data['currentpage']-1)*$data['per_page'];
-			$data['currentpage']--;
-		}else
-		{
-			$data['iDisplayStart'] = 0;
-		}	
-		
-		$data['Search'] 			= 	 $data['formData']['Search'];
-		$data['status'] 			= 	 isset($data['formData']['status'])?$data['formData']['status']:'';		
-		$data['priority']	 		= 	 isset($data['formData']['priority'])?$data['formData']['priority']:'';
-		$data['group'] 				= 	 isset($data['formData']['group'])?$data['formData']['group']:'';		
-		$data['agent']				= 	 isset($data['formData']['agent'])?$data['formData']['agent']:'';
-		$data['iSortCol_0']			= 	 $data['sort_fld'];
-		$data['sSortDir_0']			= 	 $data['sort_type'];
-		$data['iDisplayLength'] 	= 	 $data['per_page'];
-		$companyID					= 	 User::get_companyID();
-		$array						=  	 $this->GetResult($data);
-		$resultdata   				=  	 $array['resultdata'];	
-		$resultpage  				=  	 $array['resultpage'];			
-		$result 					= 	 $resultdata->data['ResultCurrentPage'];
-		$totalResults 				=    $resultdata->data['TotalResults'][0]->totalcount; 
-		$iTotalDisplayRecords 		= 	 $resultpage['iTotalDisplayRecords'];
-		$iDisplayLength 			= 	 $data['iDisplayLength'];
-		$Sortcolumns				=	 TicketsTable::$Sortcolumns;
-		//echo "<pre>";		print_r($resultpage);			exit;
-		if(count($result)<1)
-		{
-			if(isset($data['SearchStr']) && $data['SearchStr']!='' && $data['currentpage']==0){
-				
-				return json_encode(array("result"=>"No Result found for ".$data['SearchStr']));
-			}else{			
-				return '';
-			}
-		} 
-       return   View::make('tickets.ajaxresults', compact('PageResult','result','iDisplayLength','iTotalDisplayRecords','totalResults','data','boxtype','TotalDraft','TotalUnreads','Sortcolumns'));     
-	   
-	   //return array('currentpage'=>$data['currentpage'],"Body"=>$body,"result"=>count($result));
-    
-	}
-	  
-	  
-	  function GetResult($data){
-		
-		   $CompanyID 				= 	User::get_companyID();
+	  function GetResult(){ 
+		   $data 					= 	Input::all();  
+		   $CompanyID 				= 	User::get_companyID(); 
 		   $search		 			=	isset($data['Search'])?$data['Search']:'';	   		   
 		   $status					=	isset($data['status'])?is_array($data['status'])?implode(",",$data['status']):'':'';		   
 		   $priority				=	isset($data['priority'])?is_array($data['priority'])?implode(",",$data['priority']):'':'';
-		   $Group					=	isset($data['group'])?is_array($data['group'])?implode(",",$data['group']):'':'';
-		   if(User::is_admin())	{		
-		   	$agent					=	isset($data['agent'])?is_array($data['agent'])?implode(",",$data['agent']):'':'';
-		   }else{
-			 $agent					=	user::get_userID();
-		   }
-		   $columns 	 			= 	array('TicketID','Subject','Requester','Type','Status','Priority','Group','Agent','created_at');
-		  // $data['iSortCol_0']		=	'0';
+		   $Group					=	isset($data['group'])?is_array($data['group'])?implode(",",$data['group']):'':'';		  
+		   $agent					=	isset($data['agent'])?$data['agent']:'';	
+		   $columns 	 			= 	array('TicketID','Subject','Requester','Type','Status','Priority','Group','Agent','created_at');		
 		   $sort_column 			= 	$data['iSortCol_0'];
-	
-			$query 	= 	"call prc_GetSystemTicket (".$CompanyID.",'".$search."','".$status."','".$priority."','".$Group."','".$agent."',".( ceil($data['iDisplayStart']/$data['iDisplayLength']) )." ,".$data['iDisplayLength'].",'".$sort_column."','".$data['sSortDir_0']."',0)";  
-		
-		$resultdata   	=  DataTableSql::of($query)->getProcResult(array('ResultCurrentPage','TotalResults'));	
-		$resultpage  	=  DataTableSql::of($query)->make(false);
-		//echo "<pre>";		print_r($resultdata);			exit;
-		return array("resultdata"=>$resultdata,"resultpage"=>$resultpage);
-	}
-	  
-	 /* function ajax_datagrid($type)
-	  {	
-		   $CompanyID 				= 	User::get_companyID();       
-		   $data 					= 	Input::all();
-		   $data['iDisplayStart'] 	+=	1;
-		   $search		 			=	isset($data['Search'])?$data['Search']:'';	   		   
-		   $status					=	isset($data['status'])?$data['status']:0;		   
-		   $priority				=	isset($data['priority'])?$data['priority']:0;
-		   $Group					=	isset($data['group'])?$data['group']:0;
-		   $agent					=	isset($data['agent'])?$data['agent']:0;
-		   $columns 	 			= 	array('TicketID','Subject','Requester','Type','Status','Priority','Group','Agent');		  
-		   $sort_column 			= 	$data['iSortCol_0'];
-			
-			$query 	= 	"call prc_GetSystemTicket (".$CompanyID.",'".$search."','".$status."','".$priority."','".$Group."','".$agent."',".( ceil($data['iDisplayStart']/$data['iDisplayLength']) )." ,".$data['iDisplayLength'].",'".$sort_column."','".$data['sSortDir_0']."'";  
-	
-			if(isset($data['Export']) && $data['Export'] == 1) {
-				$excel_data  = DB::select($query.',1)');
-				$excel_data = json_decode(json_encode($excel_data),true);
-	
-				if($type=='csv'){
-					$file_path = getenv('UPLOAD_PATH') .'/Tickets.csv';
-					$NeonExcel = new NeonExcelIO($file_path);
-					$NeonExcel->download_csv($excel_data);
-				}elseif($type=='xlsx'){
-					$file_path = getenv('UPLOAD_PATH') .'/Tickets.xls';
-					$NeonExcel = new NeonExcelIO($file_path);
-					$NeonExcel->download_excel($excel_data);
-				}          
-			}
-			$query .=',0)';  Log::info($query);
-	
-			return DataTableSql::of($query)->make();
-	 	}  
-	*/	
-		function add()
-		{	
-			$this->IsValidLicense();				
-			$Ticketfields	   			=	 DB::table('tblTicketfields')->orderBy('FieldOrder', 'asc')->get(); 
-			$Agents			   			= 	 User::getUserIDListAll(0);
-			$AllUsers		   			= 	 User::getUserIDListAll(0); 
-			$AllUsers[0] 	   			= 	 'None';	
-			ksort($AllUsers);			
-			$CompanyID 		   			= 	 User::get_companyID();	
-			$htmlgroupID 	   			= 	 '';
-			$htmlagentID       			= 	 '';
-			$random_token	  			=	 get_random_number();
-			$response_api_extensions 	=    Get_Api_file_extentsions();
-		   if(isset($response_api_extensions->headers)){ return	Redirect::to('/logout'); 	}	
-		    $response_extensions		=	json_encode($response_api_extensions['allowed_extensions']); 
-			$max_file_size				=	get_max_file_size();	
-			$AllEmails 					= 	implode(",",(Messages::GetAllSystemEmailsWithName(0))); 
-			
-		   $agentsAll = DB::table('tblTicketGroupAgents')
-            ->join('tblUser', 'tblUser.UserID', '=', 'tblTicketGroupAgents.UserID')->distinct()          
-            ->select('tblUser.UserID', 'tblUser.FirstName', 'tblUser.LastName')
-            ->get();
-			
-			
 		   
-			//echo "<pre>";			print_r($agentsAll);			echo "</pre>";					exit;
-			return View::make('tickets.create', compact('data','AllUsers','Agents','Ticketfields','CompanyID','agentsAll','htmlgroupID','htmlagentID','random_token','response_extensions','max_file_size','AllEmails'));  
-	  }	
-	  
-	public function edit($id)
-	{
-		$this->IsValidLicense();
+		   
+		   if($data['LoginType']=='customer'){		
+				   $agent		=	'';
+				   $emails 		=	Account::GetAccountAllEmails(User::get_userID());				 
+				   $query 		= 	"call prc_GetSystemTicketCustomer ('".$CompanyID."','".$search."','".$status."','".$priority."','".$Group."','".$agent."','".$emails."',".( ceil($data['iDisplayStart']/$data['iDisplayLength']) )." ,".$data['iDisplayLength'].",'".$sort_column."','".$data['sSortDir_0']."',0)";  
+		   }else{			 	  		   			   
+			  	  $query 		= 	"call prc_GetSystemTicket ('".$CompanyID."','".$search."','".$status."','".$priority."','".$Group."','".$agent."',".( ceil($data['iDisplayStart']/$data['iDisplayLength']) )." ,".$data['iDisplayLength'].",'".$sort_column."','".$data['sSortDir_0']."',0)";  
+			}
+		Log::info("query".$query);
+			$resultdata   	=  DataTableSql::of($query)->getProcResult(array('ResultCurrentPage','TotalResults'));	
+			$resultpage  	=  DataTableSql::of($query)->make(false);				
 		
-        if($id > 0)
-		{	$TicketID 					=	$id;
-			$ticketdata					=	 TicketsTable::find($id);
-			$ticketdetaildata			=	 TicketsDetails::where(["TicketID"=>$id])->get();								
-			$Ticketfields	   			=	 DB::table('tblTicketfields')->orderBy('FieldOrder', 'asc')->get(); 
-			$Agents			   			= 	 User::getUserIDListAll(0);
-			$AllUsers		   			= 	 User::getUserIDListAll(0); 
-			$AllUsers[0] 	   			= 	 'None';	
-			ksort($AllUsers);			
-			$CompanyID 		   			= 	 User::get_companyID();	
-			$htmlgroupID 	   			= 	 '';
-			$htmlagentID       			= 	 '';
-			$random_token	  			=	 get_random_number();
-			$response_api_extensions 	=    Get_Api_file_extentsions();
-		   if(isset($response_api_extensions->headers)){ return	Redirect::to('/logout'); 	}	
-		    $response_extensions		=	json_encode($response_api_extensions['allowed_extensions']);
-			$max_file_size				=	get_max_file_size();	
-			$AllEmails 					= 	implode(",",(Messages::GetAllSystemEmailsWithName(0))); 
+			$result = ["resultpage"=>$resultpage,"iTotalRecords"=>$resultdata->iTotalRecords,"iTotalDisplayRecords"=>$resultdata->iTotalDisplayRecords,"totalcount"=>$resultdata->data['TotalResults'][0]->totalcount,"ResultCurrentPage"=>$resultdata->data['ResultCurrentPage']];
 			
-		   $agentsAll = DB::table('tblTicketGroupAgents')
-            ->join('tblUser', 'tblUser.UserID', '=', 'tblTicketGroupAgents.UserID')->distinct()          
-            ->select('tblUser.UserID', 'tblUser.FirstName', 'tblUser.LastName')
-            ->get();
-		    $ticketSavedData = 	TicketsTable::SetUpdateValues($ticketdata,$ticketdetaildata,$Ticketfields);
-			//echo "<pre>";			print_r($agentsAll);			echo "</pre>";					exit;
-			return View::make('tickets.edit', compact('data','AllUsers','Agents','Ticketfields','CompanyID','agentsAll','htmlgroupID','htmlagentID','random_token','response_extensions','max_file_size','AllEmails','ticketSavedData','TicketID'));  
-		}
+			 return generateResponse('success', false, false,$result);
 	}
 	  
 	  function Store(){
 	    $this->IsValidLicense();
 		$data 			= 	Input::all();  
 
-				
-		if(!isset($data['Ticket']))
-		{
-			return Response::json(array("status" => "failed", "message" =>"Please submit required fields."));
+		if(!isset($data['Ticket'])){
+			return generateResponse("Please submit required fields.",true);
 		}
 		
 		//Log::info(print_r($data,true));
@@ -262,64 +80,52 @@ private $validlicense;
 		$RulesMessages      = 	TicketsTable::GetAgentSubmitRules();       
         $validator 			= 	Validator::make($data['Ticket'], $RulesMessages['rules'], $RulesMessages['messages']);
         if ($validator->fails()) {
-            return json_validator_response($validator);
+			return generateResponse($validator->errors(),true);
         }
 		
 		
-		 $files					=	'';
-		 $attachmentsinfo        =	$data['attachmentsinfo']; 
-        if(!empty($attachmentsinfo) && count($attachmentsinfo)>0){
-            $files_array = json_decode($attachmentsinfo,true);
+		 $files = '';
+		 if (isset($data['file']) && !empty($data['file'])) {
+            $files = serialize(json_decode($data['file'],true));
         }
 
-        if(!empty($files_array) && count($files_array)>0)
-		{
-            $FilesArray = array();
-			
-            foreach($files_array as $key=> $array_file_data)
-			{
-                $file_name  		= 	basename($array_file_data['filepath']); 
-                $amazonPath 		= 	AmazonS3::generate_upload_path(AmazonS3::$dir['TICKET_ATTACHMENT']);
-                $destinationPath 	= 	getenv("UPLOAD_PATH") . '/' . $amazonPath;
-
-                if (!file_exists($destinationPath))
-				{
-                    mkdir($destinationPath, 0777, true);
-                }
-                
-				copy($array_file_data['filepath'], $destinationPath . $file_name);
-				
-                if (!AmazonS3::upload($destinationPath . $file_name, $amazonPath))
-				{
-                    return Response::json(array("status" => "failed", "message" => "Failed to upload file." ));
-                }
-				
-                $FilesArray[] = array ("filename"=>$array_file_data['filename'],"filepath"=>$amazonPath . $file_name);
-                @unlink($array_file_data['filepath']);
-            }
-            $files		=	serialize($FilesArray);
-		}
-		
-			$Ticketfields      =  $data['Ticket'];
+		    $Ticketfields      =  $data['Ticket'];
 			$RequesterData 	   =  explode(" <",$Ticketfields['default_requester']);
 			$RequesterName	   =  $RequesterData[0];
 			$RequesterEmail	   =  substr($RequesterData[1],0,strlen($RequesterData[1])-1);	
 		
-			$TicketData = array(
-				"CompanyID"=>User::get_companyID(),
-				"Requester"=>$RequesterEmail,
-				"RequesterName"=>$RequesterName,
-				"Subject"=>$Ticketfields['default_subject'],
-				"Type"=>$Ticketfields['default_ticket_type'],
-				"Status"=>$Ticketfields['default_status'],
-				"Priority"=>$Ticketfields['default_priority'],
-				"Group"=>$Ticketfields['default_group'],
-				"Agent"=>$Ticketfields['default_agent'],
-				"Description"=>$Ticketfields['default_description'],	
-				"AttachmentPaths"=>$files,
-				"created_at"=>date("Y-m-d H:i:s"),
-				"created_by"=>User::get_user_full_name()
-			);
+			if($data['LoginType']=='user')
+			{
+				$TicketData = array(
+					"CompanyID"=>User::get_companyID(),
+					"Requester"=>$RequesterEmail,
+					"RequesterName"=>$RequesterName,
+					"Subject"=>$Ticketfields['default_subject'],
+					"Type"=>$Ticketfields['default_ticket_type'],
+					"Status"=>$Ticketfields['default_status'],
+					"Priority"=>$Ticketfields['default_priority'],
+					"Group"=>$Ticketfields['default_group'],
+					"Agent"=>$Ticketfields['default_agent'],
+					"Description"=>$Ticketfields['default_description'],	
+					"AttachmentPaths"=>$files,
+					"created_at"=>date("Y-m-d H:i:s"),
+					"created_by"=>User::get_user_full_name()
+				);
+			}else{
+				$TicketData = array(
+					"CompanyID"=>User::get_companyID(),
+					"Requester"=>$RequesterEmail,
+					"RequesterName"=>$RequesterName,
+					"Subject"=>$Ticketfields['default_subject'],
+					"Type"=>$Ticketfields['default_ticket_type'],
+					"Status"=>$Ticketfields['default_status'],
+					"Priority"=>$Ticketfields['default_priority'],					
+					"Description"=>$Ticketfields['default_description'],	
+					"AttachmentPaths"=>$files,
+					"created_at"=>date("Y-m-d H:i:s"),
+					"created_by"=>User::get_user_full_name()
+				);
+			}
 			
 			try{
  			    DB::beginTransaction();
@@ -334,12 +140,78 @@ private $validlicense;
 					}
 				}				
 				 DB::commit();	
-            	return Response::json(array("status" => "success", "message" => "Ticket Successfully Created",'LastID'=>$TicketID));
+				 return generateResponse('Ticket Successfully Created');
       		 }catch (Exception $ex){ 	
 			      DB::rollback();
-				 return Response::json(array("status" => "failed", "message" =>$ex->getMessage()));
+				  return generateResponse($ex->getMessage(), true, true);
        		 }    
+	  }	  
+	
+	  
+	  function GetSingleTicket($id){
+			$post_data = Input::all();
+			
+			if ($id > 0){           
+				try {
+					$ticketdata = TicketsTable::findOrFail($id);
+				} catch (\Exception $e) {
+					Log::info($e);
+					return generateResponse('Ticket not found.',true,true);
+				}
+				return generateResponse('success', false, false, $ticketdata);
+			}else{
+				return generateResponse('Provide Valid Integer Value.', true, true);
+			}
+	   }
+		
+		
+	  function GetSingleTicketDetails($id){
+			$post_data = Input::all();
+			
+			if ($id > 0){           
+				try {
+					$ticketdata =TicketsDetails::where(["TicketID"=>$id])->get();
+				} catch (\Exception $e) {
+					Log::info($e);
+					return generateResponse('Ticket not found.',true,true);
+				}
+				return generateResponse('success', false, false, $ticketdata);
+			}else{
+				return generateResponse('Provide Valid Integer Value.', true, true);
+			}
 	  }
+	  
+	public function Edit($id)
+	{
+		$this->IsValidLicense();
+	    if($id > 0)
+		{	
+			$data['TicketID'] 					=	 $id;
+			$data['ticketdata']					=	 TicketsTable::find($id);
+			$data['ticketdetaildata']			=	 TicketsDetails::where(["TicketID"=>$id])->get();								
+			$data['Ticketfields']	   			=	 DB::table('tblTicketfields')->orderBy('FieldOrder', 'asc')->get(); 
+			$data['Agents']			   			= 	 User::getUserIDListAll(0);
+			$AllUsers		   					= 	 User::getUserIDListAll(0); 
+			$AllUsers[0] 	   					= 	 'None';	
+			ksort($AllUsers);			
+			$data['AllUsers']					=	$AllUsers;
+			$data['htmlgroupID'] 	   			= 	 '';
+			$data['htmlagentID']       			= 	 '';
+			$data['AllEmails'] 					= 	implode(",",(Messages::GetAllSystemEmailsWithName(0))); 
+			
+		   $data['agentsAll'] = DB::table('tblTicketGroupAgents')
+            ->join('tblUser', 'tblUser.UserID', '=', 'tblTicketGroupAgents.UserID')->distinct()          
+            ->select('tblUser.UserID', 'tblUser.FirstName', 'tblUser.LastName')
+            ->get();
+			
+		   $data['ticketSavedData'] = 	TicketsTable::SetUpdateValues($data['ticketdata'],$data['ticketdetaildata'],$data['Ticketfields']);
+			
+			//echo "<pre>";			print_r($agentsAll);			echo "</pre>";					exit;
+			return generateResponse('success', false, false, $data);
+		}else{
+		    return generateResponse("invalid Ticket.",true);
+		}
+	}
 	  
 	  function Update($id){
 	  
@@ -350,7 +222,7 @@ private $validlicense;
 		{
 			if(!isset($data['Ticket']))
 			{
-				return Response::json(array("status" => "failed", "message" =>"Please submit required fields."));
+				return generateResponse("Please submit required fields.",true);
 			}
 			
 			//Log::info(print_r($data,true));
@@ -358,50 +230,24 @@ private $validlicense;
 			$RulesMessages      = 	TicketsTable::GetAgentSubmitRules();       
 			$validator 			= 	Validator::make($data['Ticket'], $RulesMessages['rules'], $RulesMessages['messages']);
 			if ($validator->fails()) {
-				return json_validator_response($validator);
+					return generateResponse($validator->errors(),true);
 			}
 			
 			
-			 $files					=	'';
-			 $attachmentsinfo        =	$data['attachmentsinfo']; 
-			if(!empty($attachmentsinfo) && count($attachmentsinfo)>0){
-				$files_array = json_decode($attachmentsinfo,true);
-			}
+				$files = '';
+				 if (isset($data['file']) && !empty($data['file'])) {
+					$files = serialize(json_decode($data['file'],true));
+				 }
 	
-			if(!empty($files_array) && count($files_array)>0)
-			{
-				$FilesArray = array();
-				
-				foreach($files_array as $key=> $array_file_data)
-				{
-					$file_name  		= 	basename($array_file_data['filepath']); 
-					$amazonPath 		= 	AmazonS3::generate_upload_path(AmazonS3::$dir['TICKET_ATTACHMENT']);
-					$destinationPath 	= 	getenv("UPLOAD_PATH") . '/' . $amazonPath;
-	
-					if (!file_exists($destinationPath))
-					{
-						mkdir($destinationPath, 0777, true);
-					}
-					
-					copy($array_file_data['filepath'], $destinationPath . $file_name);
-					
-					if (!AmazonS3::upload($destinationPath . $file_name, $amazonPath))
-					{
-						return Response::json(array("status" => "failed", "message" => "Failed to upload file." ));
-					}
-					
-					$FilesArray[] = array ("filename"=>$array_file_data['filename'],"filepath"=>$amazonPath . $file_name);
-					@unlink($array_file_data['filepath']);
-				}
-				$files		=	serialize($FilesArray);
-			}
-			
 				$Ticketfields 	   =  $data['Ticket'];
-				$RequesterData 	   =  explode(" <",$Ticketfields['default_requester']);
-				$RequesterName	   =  $RequesterData[0];
-				$RequesterEmail	   =  substr($RequesterData[1],0,strlen($RequesterData[1])-1);	
+				
 			
-				$TicketData = array(
+				if($data['LoginType']=='user')
+				{	
+					$RequesterData 	   =  explode(" <",$Ticketfields['default_requester']);
+					$RequesterName	   =  $RequesterData[0];
+					$RequesterEmail	   =  substr($RequesterData[1],0,strlen($RequesterData[1])-1);		
+					$TicketData = array(
 					"Requester"=>$RequesterEmail,
 					"RequesterName"=>$RequesterName,
 					"Subject"=>$Ticketfields['default_subject'],
@@ -415,6 +261,21 @@ private $validlicense;
 					"updated_at"=>date("Y-m-d H:i:s"),
 					"updated_by"=>User::get_user_full_name()
 				);
+				
+				}else{
+					
+					$TicketData = array(
+					"Subject"=>$Ticketfields['default_subject'],
+					"Type"=>$Ticketfields['default_ticket_type'],
+					"Status"=>$Ticketfields['default_status'],
+					"Priority"=>$Ticketfields['default_priority'],					
+					"Description"=>$Ticketfields['default_description'],	
+					"AttachmentPaths"=>$files,
+					"updated_at"=>date("Y-m-d H:i:s"),
+					"updated_by"=>User::get_user_full_name()
+					);
+				
+				}
 				
 				try{
 					DB::beginTransaction();
@@ -430,156 +291,148 @@ private $validlicense;
 						}
 					}				
 					 DB::commit();	
-					return Response::json(array("status" => "success", "message" => "Ticket Successfully Updated",'LastID'=>$id));
+					 return generateResponse('Ticket Successfully Updated');
 				 }catch (Exception $ex){ 	
 					  DB::rollback();
-					 return Response::json(array("status" => "failed", "message" =>$ex->getMessage()));
+					  return generateResponse($ex->getMessage(), true, true);
 				 } 
 		  }else{
-		  	return Response::json(array("status" => "failed", "message" =>"invalid Ticket."));
+		  	return generateResponse("invalid Ticket",true,true);
 		  }
 	  }
-	  
-	  function uploadFile(){
-        $data       =  Input::all();
-        $attachment    =  Input::file('emailattachment');
-        if(!empty($attachment)) {
-            try { 
-                $data['file'] = $attachment;
-                $returnArray = UploadFile::UploadFileLocal($data);
-                return Response::json(array("status" => "success", "message" => '','data'=>$returnArray));
-            } catch (Exception $ex) {
-                return Response::json(array("status" => "failed", "message" => $ex->getMessage()));
-            }
-        }
-
-    }
-
-    function deleteUploadFile(){
-        $data    =  Input::all();
-        try {
-            UploadFile::DeleteUploadFileLocal($data);
-            return Response::json(array("status" => "success", "message" => 'Attachments delete successfully'));
-        } catch (Exception $ex) {
-            return Response::json(array("status" => "failed", "message" => $ex->getMessage()));
-        }
-    }
 	
-	public function delete($id)
+	public function Delete($id)
     {
         if( $id > 0){
             try{
                 DB::beginTransaction();
                 TicketsTable::where(["TicketID"=>$id])->delete();
-                TicketsDetails::where(["TicketID"=>$id])->delete();
+              	TicketsDetails::where(["TicketID"=>$id])->delete();
 				TicketsConversation::where(array('TicketID'=>$id))->delete();
                 DB::commit();
-                return Response::json(array("status" => "success", "message" => "Ticket Successfully Deleted"));
-
+				return generateResponse("Ticket Successfully Deleted");
             }catch (Exception $e){
                 DB::rollback();
-                return Response::json(array("status" => "failed", "message" =>$e->getMessage() ));
+				return generateResponse($e->getMessage(),true,true);
             }
 
         }
     }
 	
-	function Detail($id){
-		 $this->IsValidLicense();
-		 if($id)
-		 {
-  		   $ticketdata		=	 TicketsTable::find($id);
-		   
-		   if(!User::is_admin())
-		   {
-			  if($ticketdata->Agent!=user::get_userID())
-			  {
-			 	 	App::abort(403, 'You have not access to' . Request::url());		
-			  }
-		   }
-		   
-		   $status			 			 =   TicketsTable::getTicketStatus();
-		   $Priority		 			 =	 TicketPriority::getTicketPriority();
-		   $Groups			 			 =	 TicketGroups::getTicketGroups(); 
-		   $Agents			 			 = 	 User::getUserIDListAll(0);
-		   $Agents						 = 	 array("0"=> "Select")+$Agents;		   
-		   $response_api_extensions 	 =   Get_Api_file_extentsions();
-		   $max_file_size				 =	 get_max_file_size();	
-		   
-		   if(isset($response_api_extensions->headers)){ return	Redirect::to('/logout'); 	}	
-		    $response_extensions		 =	json_encode($response_api_extensions['allowed_extensions']); 
-	   		$TicketConversation			 =	TicketsConversation::where(array('TicketID'=>$id))->get();
-			
-			if(User::is_admin())
+	function GetTicketDetailsData()
+	{	
+	   try
+	   {	   
+		   $postdata 					 = 		Input::all();   
+		   $data						 =		array();
+		   $data['status']	 			 =   	TicketsTable::getTicketStatus();
+		   $data['Priority']		 	 =	 	TicketPriority::getTicketPriority();
+		   $data['Groups']			 	 =	 	TicketGroups::getTicketGroups(); 
+		   $Agents			 			 = 	 	User::getUserIDListAll(0);
+		   $data['Agents']				 = 	 	$row =  array("0"=> "Select")+json_decode(json_encode($Agents),true);   
+		   $data['CloseStatus'] 		 =  	TicketsTable::getClosedTicketStatus();  //close status id for ticket 
+			if($postdata['id'])
 			{
-				$NextTicket 				 =	TicketsTable::find(TicketsTable::WhereRaw("TicketID > ".$id)->pluck('TicketID'));
-				$PrevTicket 				 =	TicketsTable::find(TicketsTable::WhereRaw("TicketID < ".$id)->pluck('TicketID'));
-			}else{
-				$NextTicket 				 =	TicketsTable::find(TicketsTable::WhereRaw("TicketID > ".$id)->where(array("Agent"=>user::get_userID()))->pluck('TicketID')); 
-				$PrevTicket 				 =	TicketsTable::find(TicketsTable::WhereRaw("TicketID < ".$id)->where(array("Agent"=>user::get_userID()))->pluck('TicketID')); 
+				$data['TicketConversation']	 =		TicketsConversation::where(array('TicketID'=>$postdata['id']))->get();
+				if($postdata['admin'])
+				{
+					 $data['NextTicket'] 				 =	TicketsTable::WhereRaw("TicketID > ".$postdata['id'])->pluck('TicketID');
+					 $data['PrevTicket'] 				 =	TicketsTable::WhereRaw("TicketID < ".$postdata['id'])->pluck('TicketID');
+				}
+				else
+				{
+					if($postdata['LoginType']=='customer'){	
+					 $emails 		=	Account::GetAccountAllEmails(User::get_userID());			
+					$data['NextTicket'] 				 =	TicketsTable::WhereRaw("TicketID > ".$postdata['id'])->WhereRaw("find_in_set(Requester,'".$emails."')")->pluck('TicketID'); 
+					 $data['PrevTicket'] 				 =	TicketsTable::WhereRaw("TicketID < ".$postdata['id'])->WhereRaw("find_in_set(Requester,'".$emails."')")->pluck('TicketID'); 					
+					}else{
+					 $data['NextTicket'] 				 =	TicketsTable::WhereRaw("TicketID > ".$postdata['id'])->where(array("Agent"=>user::get_userID()))->pluck('TicketID'); 
+					 $data['PrevTicket'] 				 =	TicketsTable::WhereRaw("TicketID < ".$postdata['id'])->where(array("Agent"=>user::get_userID()))->pluck('TicketID'); 
+					}
+				}
 			}
-			
-		   return View::make('tickets.detail', compact('data','ticketdata','status','Priority','Groups','Agents','response_extensions','max_file_size','TicketConversation',"NextTicket","PrevTicket"));  		  
-		 }
+			return generateResponse('success', false, false, $data);
+		}catch (Exception $e){
+				return generateResponse($e->getMessage(), true);
+        }		
 	}
 	
-	function TicketAction(){
-		
-		$data 		   		= 	  Input::all();
-		$action_type   		=     $data['action_type'];
-		$ticket_number  	=     $data['ticket_number'];
-		$ticket_type		=	  $data['ticket_type'];
-		
-		
-		if($ticket_type=='parent'){
-			$response_data      =     TicketsTable::find($ticket_number);
-			$AccountEmail 		= 	  $response_data->Requester;	
-			$parent_id			=	  0;
-		}else{
-			$response_data      =     TicketsConversation::find($ticket_number);
-			$AccountEmail 		= 	  TicketsConversation::where(array('TicketConversationID'=>$ticket_number))->pluck('TicketTo');
-			$parent_id			=	  TicketsConversation::where(array('TicketConversationID'=>$ticket_number))->pluck('TicketConversationID');
-		}
-		//$parent_id          =  	  $response_data['EmailParent'];	
-		
-		if($action_type=='forward'){ //attach current email attachments
-			$data['uploadtext']  = 	 UploadFile::DownloadFileLocal($response_data->AttachmentPaths);
-			Log::info(print_r($data,true));
-		}
-		return View::make('tickets.ticketaction', compact('data','response_data','action_type','uploadtext','AccountEmail','parent_id'));  			
+	function TicketAction()
+	{
+		try{
+			
+			$data 		   		= 	  Input::all();
+			$postdata			=	  array();
+			$action_type   		=     $data['action_type'];
+			$ticket_number  	=     $data['ticket_number'];
+			$ticket_type		=	  $data['ticket_type'];
+			
+			
+			if($ticket_type=='parent'){
+				$postdata['response_data']      =     TicketsTable::find($ticket_number);
+				$postdata['AccountEmail'] 		= 	  $postdata['response_data']->Requester;	
+				$postdata['parent_id']			=	  0;
+			}else{
+				$postdata['response_data']      =     TicketsConversation::find($ticket_number);
+				$postdata['AccountEmail'] 		= 	  TicketsConversation::where(array('TicketConversationID'=>$ticket_number))->pluck('TicketTo');
+				$postdata['parent_id']			=	  TicketsConversation::where(array('TicketConversationID'=>$ticket_number))->pluck('TicketConversationID');
+				$postdata['response_data']->Description		=	  $postdata['response_data']->TicketMessage;
+			}
+				
+				return generateResponse('success', false, false, $postdata);
+	   }catch (Exception $e){
+			   return generateResponse($e->getMessage(),true);
+       }
 		
 	}
 	
 	function UpdateTicketAttributes($id)
 	{
 		 $this->IsValidLicense();
+		 $data 	= 	Input::all();   
 		 if($id)
 		 {
 			   $ticketdata		=	 TicketsTable::find($id);
 			   if($ticketdata)
 			   {
-				   if(!User::is_admin())
+				   if(!$data['admin'])
 				   {
-					  if($ticketdata->Agent!=user::get_userID())
-					  {
-						    return Response::json(array("status" => "failed", "message" =>"You have not access to update this ticket" ));
-					  }
+					   if($data['LoginType']=='customer'){	
+						 $emails 		=	Account::GetAccountAllEmails(User::get_userID(),true);		
+						  if(!in_array($ticketdata->Requester,$emails))
+						  {
+									return generateResponse("You have not access to update this ticket",true,true);
+						  }
+					   }else{
+						  if($ticketdata->Agent!=user::get_userID())
+						  {
+								return generateResponse("You have not access to update this ticket",true,true);
+						  }
+					   }
 				   }
-				   $data 	= 	Input::all();  
-				   
-				   $TicketData = array(
-					"Status"=>$data['status'],
-					"Priority"=>$data['priority'],
-					"Group"=>$data['group'],
-					"Agent"=>$data['agent'],				
-					"updated_at"=>date("Y-m-d H:i:s"),
-					"updated_by"=>User::get_user_full_name()
-				);
+				   if($data['LoginType']=='customer'){	
+				   		 $TicketData = array(
+							"Status"=>$data['status'],
+							"Priority"=>$data['priority'],										
+							"updated_at"=>date("Y-m-d H:i:s"),
+							"updated_by"=>User::get_user_full_name()
+						);
+
+				   }else{
+						   $TicketData = array(
+							"Status"=>$data['status'],
+							"Priority"=>$data['priority'],
+							"Group"=>$data['group'],
+							"Agent"=>$data['agent'],				
+							"updated_at"=>date("Y-m-d H:i:s"),
+							"updated_by"=>User::get_user_full_name()
+						);
+				   }
 				$ticketdata->update($TicketData);	
-				return Response::json(array("status" => "success", "message" => "Ticket Successfully Updated")); 
+				return generateResponse("Ticket Successfully Updated");
 			}			
 		 }
-		return Response::json(array("status" => "failed", "message" =>"invalid Ticket." ));
+	    return generateResponse("invalid Ticket",true,true);
 	}
 	
 	function ActionSubmit($id){
@@ -606,40 +459,17 @@ private $validlicense;
 		
 					$validator = Validator::make($data, $rules,$messages);
 					if ($validator->fails()) {
-						return json_validator_response($validator);
-					}
-					$files					=	'';
-					$attachmentsinfo        =	$data['attachmentsinfo']; 
-					$FilesArray = array();
-					if(!empty($attachmentsinfo) && count($attachmentsinfo)>0){
-						$files_array = json_decode($attachmentsinfo,true);
+						return generateResponse($validator->errors(),true);
 					}
 					
+					DB::beginTransaction();
 					
-					if(!empty($files_array) && count($files_array)>0)
-					{
-						foreach($files_array as $key=> $array_file_data)
-						{
-							$file_name  		= 	basename($array_file_data['filepath']); 
-							$amazonPath 		= 	AmazonS3::generate_upload_path(AmazonS3::$dir['TICKET_ATTACHMENT']);
-							$destinationPath 	= 	getenv("UPLOAD_PATH") . '/' . $amazonPath;
-			
-							if (!file_exists($destinationPath))
-							{
-								mkdir($destinationPath, 0777, true);
-							}
-							
-							copy($array_file_data['filepath'], $destinationPath . $file_name);
-							
-							if (!AmazonS3::upload($destinationPath . $file_name, $amazonPath))
-							{
-								return Response::json(array("status" => "failed", "message" => "Failed to upload file." ));
-							}
-							
-							$FilesArray[] = array ("filename"=>$array_file_data['filename'],"filepath"=>$amazonPath . $file_name);
-							//@unlink($array_file_data['filepath']);
-						}
-						$files		=	serialize($FilesArray);
+					
+					 $files = '';
+					 $FilesArray = array();
+					 if (isset($data['file']) && !empty($data['file'])) {
+						 $FilesArray = json_decode($data['file'],true);
+						$files = serialize(json_decode($data['file'],true));
 					}
 					
 					$ticketCoversationData = array(
@@ -666,17 +496,18 @@ private $validlicense;
 							@unlink($array_file_data['filepath']);	
 							}
 						}
-							return Response::json(array("status" => "success", "message" => "Successfully Updated")); 		
+						 DB::commit();	
+						return generateResponse("Successfully Updated");
 					}else{
-						 return Response::json(array("status" => "failed", "message" => "Problem Sending Email."));
+						 return generateResponse("Problem Sending Email",true);
 					}
 				}
 				catch (Exception $e){
 					DB::rollback();
-					return Response::json(array("status" => "failed", "message" =>$e->getMessage() ));
+					return generateResponse($e->getMessage(),true);
 				}
 			}	
-			 return Response::json(array("status" => "failed", "message" =>"invalid Ticket." ));
+			 return generateResponse("invalid Ticket.",true);
 		}
 		   
 	}
@@ -722,11 +553,12 @@ private $validlicense;
 	{
 		$Ticketdata 	=   TicketsTable::find($ticketID);					
 		if($Ticketdata)
-		{
-			 $CloseStatus =  TicketsTable::getClosedTicketStatus(); 
+		{ 	 $CloseStatus =  TicketsTable::getClosedTicketStatus(); 
 			 $Ticketdata->update(array("Status"=>$CloseStatus));	
-			 return Response::json(array("status" => "success", "message" => "Ticket Successfully Closed.","close_id"=>$CloseStatus)); 	
+			// return Response::json(array("status" => "success", "message" => "Ticket Successfully Closed.","close_id"=>$CloseStatus)); 	
+			 return generateResponse('Ticket Successfully Closed');
+			 //return generateResponse("Ticket Successfully Closed");
 		}
-		return Response::json(array("status" => "failed", "message" =>"invalid Ticket." ));
+		return generateResponse("invalid Ticket",true,true);
 	}
 }

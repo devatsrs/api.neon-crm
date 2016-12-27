@@ -27,7 +27,7 @@ class TicketGroups extends \Eloquent
    static function getTicketGroups(){
 		//TicketfieldsValues::WHERE
 		   $row =  TicketGroups::orderBy('GroupID', 'asc')->lists('GroupName','GroupID'); 
-		   $row = array("0"=> "Select")+$row;
+		   $row =  array("0"=> "Select")+json_decode(json_encode($row),true);
 		   return $row;
 	}
 	

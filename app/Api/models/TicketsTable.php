@@ -1,5 +1,6 @@
 <?php
 namespace Api\Model;
+use Illuminate\Support\Facades\Log;
 
 use Illuminate\Database\Eloquent\Model;
 class TicketsTable extends \Eloquent 
@@ -41,9 +42,10 @@ class TicketsTable extends \Eloquent
 	
 	static function getTicketStatus(){
 		//TicketfieldsValues::WHERE
-		 $row =  TicketfieldsValues::join('tblTicketfields','tblTicketfields.TicketFieldsID','=','tblTicketfieldsValues.FieldsID')
-            ->where(['tblTicketfields.FieldType'=>Ticketfields::TICKET_SYSTEM_STATUS_FLD])->lists('FieldValueAgent','ValuesID');
-			$row = array("0"=> "Select")+$row;
+		 $row =  TicketfieldsValues::join('tblTicketfields','tblTicketfields.TicketFieldsID','=','tblTicketfieldsValues.FieldsID')->select(array('FieldValueAgent', 'ValuesID'))->where(['tblTicketfields.FieldType'=>Ticketfields::TICKET_SYSTEM_STATUS_FLD])->lists('FieldValueAgent','ValuesID');		
+			 if(!empty($row)){
+				$row =  array("0"=> "Select")+json_decode(json_encode($row),true);
+			}	
 			return $row;
 	}
 	
@@ -124,7 +126,7 @@ class TicketsTable extends \Eloquent
 				
 			}
 			
-			$data['AttachmentPaths']  = 	 UploadFile::DownloadFileLocal($TicketData->AttachmentPaths);	
+			$data['AttachmentPaths']  = 	 $TicketData->AttachmentPaths;	
 			//Log::info(print_r($data,true));	
 			return $data;
 	}

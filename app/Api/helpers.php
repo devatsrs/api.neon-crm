@@ -457,7 +457,6 @@ function cleanarray($data = [],$unset=[]){
     $unset[]= 'LicenceKey';
     $unset[]= 'CompanyName';
 	$unset[]= 'LoginType';
-	$unset[]= 'token';
     foreach($unset as $item){
         unset($data[$item]);
     }

@@ -12,7 +12,7 @@ class TicketPriority extends \Eloquent {
 	static function getTicketPriority(){
 		//TicketfieldsValues::WHERE
 		 $row =  TicketPriority::orderBy('PriorityID')->lists('PriorityValue', 'PriorityID');
-		 $row = array("0"=> "Select")+$row;
+		 $row =  array("0"=> "Select")+json_decode(json_encode($row),true);
 		 return $row;
 	}
 }

@@ -11,6 +11,8 @@ use Api\Model\Account;
 use Api\Model\TicketsTable;
 use Api\Model\Ticket;
 use Api\Model\Company;
+use Api\Model\Ticketfields;
+use Api\Model\TicketfieldsValues;
 use App\Http\Requests;
 use Dingo\Api\Facade\API;
 use Illuminate\Support\Facades\DB;
@@ -27,14 +29,14 @@ private $validlicense;
 	public function __construct(Request $request){ 
         $this->middleware('jwt.auth');
         Parent::__Construct($request);
-		$this->validlicense = TicketsTable::CheckTicketLicense();
+		$this->validlicense = TicketsTable::CheckTicketLicense(); 
     }
 	 
 	 protected function IsValidLicense(){
 	 	return $this->validlicense;		
 	 }
 	
-	function GetFields(){ Log::info("here");
+	function GetFields(){
 		$this->IsValidLicense();
 		try
 		{
@@ -46,22 +48,12 @@ private $validlicense;
         }		
 	}
 	
-	function iframe(){
-		$this->IsValidLicense();
-		$data 			 = 	 array();	
-		$Ticketfields	 =	 DB::table('tblTicketfields')->orderBy('FieldOrder', 'asc')->get(); 
-		$Checkboxfields  =   json_encode(Ticketfields::$Checkboxfields);
-		$final		 	 =   $this->OptimizeDbFields($Ticketfields);
-		$finaljson		 =   json_encode($final);
-		
-		//echo Ticketfields::$FIELD_HTML_DROPDOWN; exit;
-		//echo "<pre>"; print_r($final); exit;
-		return View::make('ticketsfields.iframe', compact('data','Ticketfields',"Checkboxfields","finaljson"));   
-	}
 	
-	function iframeSubmit(){
+	function iframeSubmits(){ 
+	 Log::info("iframeSubmit api"); exit;
 	 	$data 						 = 		Input::all();
-		
+		 Log::info(print_r($data,true));
+		try {
 		//echo "<pre>"; print_r(json_decode($data['jsonData'])); echo "</pre>";exit;
 		$ticket_type = 0; $else_type = 0;
 		foreach(json_decode($data['jsonData']) as $jsonData)
@@ -95,8 +87,8 @@ private $validlicense;
 					$choicesdata['FieldOrder']			 	= 		isset($choices->position)?$choices->position:0;
 					$choicesdata['created_at']       		= 		date("Y-m-d H:i:s");
 					$choicesdata['created_by']       		= 		User::get_user_full_name();		
-					 $id	=	TicketfieldsValues::insertGetId($choicesdata);				
-					 Log::info("jsonData create choices id".$id);
+					$id	=	TicketfieldsValues::insertGetId($choicesdata);				
+					Log::info("jsonData create choices id".$id);
 				}	
 			}
 			
@@ -217,7 +209,11 @@ private $validlicense;
 			}
 		}
 		
-		return	Redirect::to('/ticketsfields/iframe'); 	
+		 return generateResponse('Successfully updated.');
+		} catch (\Exception $e) {
+            Log::info($e);
+            return $this->response->errorInternal('Internal Server');
+        }
 	}
 	
 	function OptimizeDbFields($Ticketfields){

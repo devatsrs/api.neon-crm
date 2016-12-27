@@ -21,6 +21,7 @@ $api->version('v1', function ($api) {
               \Config::set('jwt.user' , "Api\Model\Customer");
               \Config::set('auth.table', 'tblAccount');
               \Config::set('auth.model', Api\Model\Customer::class);
+			  \Config::set('jwt.identifier', 'AccountID');
         }
 		
 		// Dogs! All routes in here are protected and thus need a valid token
@@ -197,7 +198,21 @@ $api->version('v1', function ($api) {
 			$api->post('ticketgroups/send_activation_single/{id}', 'TicketsGroupController@send_activation_single');
 			
 			$api->post('ticketsfields/getfields', 'TicketsFieldsController@GetFields');
+			$api->post('ticketsfields/iframeSubmits', 'TicketsFieldsController@iframeSubmits');
 			
+			$api->post('tickets/get_tickets', 'TicketsController@GetResult');			
+			$api->post('tickets/store', 'TicketsController@Store');
+			
+			$api->post('tickets/getticket/{id}', 'TicketsController@GetSingleTicket');
+			$api->post('tickets/getticketdetail/{id}', 'TicketsController@GetSingleTicketDetails');		
+			$api->post('tickets/getticketdetailsdata', 'TicketsController@GetTicketDetailsData');
+			$api->post('tickets/ticketcction', 'TicketsController@TicketAction');
+			$api->post('tickets/actionsubmit/{id}', 'TicketsController@ActionSubmit');		
+			$api->post('tickets/closeticket/{id}', 'TicketsController@CloseTicket');	
+			$api->post('tickets/delete/{id}', 'TicketsController@Delete');	
+			$api->post('tickets/edit/{id}', 'TicketsController@Edit');
+			$api->post('tickets/update/{id}', 'TicketsController@Update');
+			$api->post('tickets/updateticketattributes/{id}', 'TicketsController@UpdateTicketAttributes');									
 			
 		});
 
