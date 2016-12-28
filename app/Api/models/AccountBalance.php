@@ -3,6 +3,7 @@
 namespace Api\Model;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class AccountBalance extends Model
 {
@@ -26,6 +27,10 @@ class AccountBalance extends Model
             $credit_data['PermanentCredit'] = $AccountBalance->PermanentCredit + $credit_amount;
             AccountBalance::where('AccountID', $accountid)->update($credit_data);
         }
+        $historydata['AccountID'] = $accountid;
+        $historydata['PermanentCredit'] = $credit_amount;
+        AccountBalanceHistory::addHistory($historydata);
+
     }
 
     public static function subCredit($accountid, $credit_amount)
@@ -39,6 +44,9 @@ class AccountBalance extends Model
             $credit_data['PermanentCredit'] = $AccountBalance->PermanentCredit - $credit_amount;
             AccountBalance::where('AccountID', $accountid)->update($credit_data);
         }
+        $historydata['AccountID'] = $accountid;
+        $historydata['PermanentCredit'] = $credit_amount;
+        AccountBalanceHistory::addHistory($historydata);
 
     }
 
@@ -54,6 +62,9 @@ class AccountBalance extends Model
             $credit_data['TemporaryCreditDateTime'] = check_date_format_db($date);
             AccountBalance::where('AccountID', $accountid)->update($credit_data);
         }
+        $historydata['AccountID'] = $accountid;
+        $historydata['TemporaryCreditDateTime'] = $credit_amount;
+        AccountBalanceHistory::addHistory($historydata);
     }
 
     public static function subTempCredit($accountid, $credit_amount, $date)
@@ -67,6 +78,9 @@ class AccountBalance extends Model
             $credit_data['PermanentCredit'] = $AccountBalance->PermanentCredit - $credit_amount;
             AccountBalance::where('AccountID', $accountid)->update($credit_data);
         }
+        $historydata['AccountID'] = $accountid;
+        $historydata['TemporaryCreditDateTime'] = $credit_amount;
+        AccountBalanceHistory::addHistory($historydata);
 
     }
 
@@ -92,6 +106,19 @@ class AccountBalance extends Model
             $credit_data['BalanceThreshold'] = $BalanceThreshold;
             AccountBalance::where('AccountID', $accountid)->update($credit_data);
         }
+        $historydata['AccountID'] = $accountid;
+        $historydata['BalanceThreshold'] = $BalanceThreshold;
+        AccountBalanceHistory::addHistory($historydata);
 
+    }
+    public static function getBalanceAmount($AccountID){
+        return AccountBalance::where(['AccountID'=>$AccountID])->pluck('BalanceAmount');
+    }
+    public static function getBalanceThreshold($AccountID){
+        return str_replace('p', '%',AccountBalance::where(['AccountID'=>$AccountID])->pluck('BalanceThreshold'));
+    }
+    public static function getOutstandingAmount($CompanyID,$AccountID){
+        DB::connection('billing_db')->statement('CALL prc_updateSOAOffSet(?,?)',array($CompanyID,$AccountID));
+        return AccountBalance::where(['AccountID'=>$AccountID])->pluck('SOAOffset');
     }
 }

@@ -34,9 +34,26 @@ function rename_win($oldfile,$newfile) {
 }
 
 
-function sendMail($view,$data){
+function sendMail($view,$data)
+{
+		
+	if(empty($data['companyID']))
+    {
+        $companyID = \Api\Model\User::get_companyID();
+    }else{
+        $companyID = $data['companyID'];
+    }
+	$body 	=  html_entity_decode(View::make($view,compact('data'))->render()); 
 
-    $status = array('status' => 0, 'message' => 'Something wrong with sending mail.');
+	if(\App\SiteIntegration::CheckCategoryConfiguration(false,\App\SiteIntegration::$EmailSlug)){
+		$status = 	 \App\SiteIntegration::SendMail($view,$data,$companyID,$body);		
+	}
+	else{
+		$config = \Api\Model\Company::select('SMTPServer','SMTPUsername','CompanyName','SMTPPassword','Port','IsSSL','EmailFrom')->where("CompanyID", '=', $companyID)->first();
+		$status = 	 \App\PHPMAILERIntegtration::SendMail($view,$data,$config,$companyID,$body);
+	}
+
+   /* $status = array('status' => 0, 'message' => 'Something wrong with sending mail.');
     if(empty($data['companyID']))
     {
         $companyID = \Api\Model\User::get_companyID();
@@ -88,9 +105,10 @@ function sendMail($view,$data){
         $status['status'] = 1;
         $status['message'] = 'Email has been sent';
         $status['body'] = $body;
-    }
+    }*/
     return $status;
 }
+/*
 function setMailConfig($CompanyID,$mandrill,$data=array()){
 
 
@@ -149,7 +167,7 @@ function setMailConfig($CompanyID,$mandrill,$data=array()){
     }
     return $mail;
 }
-
+*/
 function add_email_address($mail,$data,$type='EmailTo') //type add,bcc,cc
 {
     if(isset($data[$type]))
@@ -199,6 +217,10 @@ function email_log($data){
     if(is_array($data['EmailTo'])){
         $data['EmailTo'] = implode(',',$data['EmailTo']);
     }
+	
+	if(!isset($data['message_id'])){
+		$data['message_id'] = '';
+	}
 
     $logData = ['EmailFrom'=>\Api\Model\User::get_user_email(),
         'EmailTo'=>$data['EmailTo'],
@@ -207,7 +229,8 @@ function email_log($data){
         'AccountID'=>$data['AccountID'],
         'CompanyID'=>\Api\Model\User::get_companyID(),
         'UserID'=>\Api\Model\User::get_userID(),
-        'CreatedBy'=>\Api\Model\User::get_user_full_name()];
+        'CreatedBy'=>\Api\Model\User::get_user_full_name(),
+		"MessageID"=>$data['message_id']];
     if(\Api\Model\AccountEmailLog::Create($logData)){
         $status['status'] = 1;
     }
@@ -265,6 +288,16 @@ function email_log_data($data,$view = ''){
     {
         $body = $data['Message'];
     }
+	if(!isset($data['message_id']))
+	{
+		$data['message_id'] = '';
+	}
+	if(!isset($data['EmailCall']))
+	{
+		$data['EmailCall'] = \Api\Model\Messages::Sent;
+	}
+	
+	
 
     $logData = ['EmailFrom'=>\Api\Model\User::get_user_email(),
         'EmailTo'=>$data['EmailTo'],
@@ -276,9 +309,12 @@ function email_log_data($data,$view = ''){
         'CreatedBy'=>\Api\Model\User::get_user_full_name(),
         'Cc'=>$data['cc'],
         'Bcc'=>$data['bcc'],
-        "AttachmentPaths"=>$data['AttachmentPaths']
+        "AttachmentPaths"=>$data['AttachmentPaths'],
+		"MessageID"=>$data['message_id'],
+		"EmailParent"=>isset($data['EmailParent'])?$data['EmailParent']:0,
+		"EmailCall"=>$data['EmailCall'],
     ];
-
+	
     $data =  \Api\Model\AccountEmailLog::Create($logData);
     return $data;
 }
@@ -301,12 +337,15 @@ function site_configration_cache($request){
         $result       =  \Illuminate\Support\Facades\DB::table('tblCompanyThemes')->where(["DomainUrl" => $domain_url,'ThemeStatus'=>\Api\Model\Themes::ACTIVE])->first();
 
         if(!empty($result)){
-            $cache['Logo']       = empty($result->Logo)?'/assets/images/logo@2x.png':$result->Logo;
+            if(!empty($result->Logo)){
 
-        }else{
-            $cache['Logo']       = '/assets/images/logo@2x.png';
-
+                $cache['Logo']       = (!empty($result->Logo))?$result->Logo:"";
+            }
         }
+
+        $cache['DefaultLogo']       = '/assets/images/logo@2x.png';
+
+
         \Illuminate\Support\Facades\Cache::add($siteConfigretion, $cache, $minutes);
     }
     $cache = Cache::get($siteConfigretion);
@@ -338,7 +377,20 @@ function get_image_src($path){
 function getCompanyLogo($request){
 
     $cache = site_configration_cache($request);
-    $logo_url = \App\AmazonS3::unSignedImageUrl($cache["Logo"]);
+
+    if(isset($cache['Logo']) && !empty($cache['Logo'])){
+
+        $logo_url = \App\AmazonS3::unSignedImageUrl($cache["Logo"]);
+
+    }else {
+
+        // if no logo and amazon then use from site url even if amazon is set or not.
+        $DefaultLogo = $cache['DefaultLogo'];
+        $site_url = \Api\Model\CompanyConfiguration::get("SITE_URL");
+
+        $logo_url = combile_url_path($site_url,$DefaultLogo);
+
+    }
 
     return $logo_url;
 }
@@ -422,6 +474,7 @@ function SendTaskMail($data){
         $data['Subject_task']   =   $data['Subject'];
         $data['Subject']      =   "(Neon) ".$data['Subject'];
         $data['TitleHeading']   =   $LogginedUserName." <strong>Assigned</strong> you a Task";
+		$data['UserProfileImage']  =  UserProfile::get_user_picture_url($LogginedUser);
         $status       =   sendMail('emails.task.TaskEmailSend', $data);
     }
 }
@@ -473,6 +526,7 @@ function SendTaskMailUpdate($NewData,$OldData,$type='Task'){
                 $NewData['Subject']      =   "(Neon) ".$NewData['Subject'];
                 $NewData['CreatedBy']      =   $OldData['CreatedBy'];
                 $NewData['TitleHeading']  =   $LogginedUserName." <strong>Assigned</strong> you a ".$type;
+                $NewData['UserProfileImage']  =  UserProfile::get_user_picture_url($LogginedUser);
                 $status        =   sendMail('emails.task.TaskEmailSend', $NewData);
             }
         }
@@ -507,6 +561,91 @@ function remove_front_slash($str = ""){
     if(!empty($str)){
 
         return ltrim($str, '/')  ;
+
+    }
+}
+function get_currenttime(){
+    return date('Y-m-d H:i:s');
+}
+function template_var_replace($EmailMessage,$replace_array){
+    $extra = [
+        '{{FirstName}}',
+        '{{LastName}}',
+        '{{Email}}',
+        '{{Address1}}',
+        '{{Address2}}',
+        '{{Address3}}',
+        '{{City}}',
+        '{{State}}',
+        '{{PostCode}}',
+        '{{Country}}',
+        '{{InvoiceNumber}}',
+        '{{InvoiceGrandTotal}}',
+        '{{InvoiceOutstanding}}',
+        '{{OutstandingExcludeUnbilledAmount}}',
+        '{{Signature}}',
+        '{{OutstandingIncludeUnbilledAmount}}',
+        '{{BalanceThreshold}}',
+        '{{Currency}}',
+        '{{CompanyName}}'
+    ];
+
+    foreach($extra as $item){
+        $item_name = str_replace(array('{','}'),array('',''),$item);
+        if(array_key_exists($item_name,$replace_array)) {
+            $EmailMessage = str_replace($item,$replace_array[$item_name],$EmailMessage);
+        }
+    }
+    return $EmailMessage;
+}
+function next_run_time($data){
+
+    $Interval = $data['Interval'];
+    if(isset($data['StartTime'])) {
+        $StartTime = $data['StartTime'];
+    }
+    if(isset($data['LastRunTime'])){
+        $LastRunTime = $data['LastRunTime'];
+    }else{
+        $LastRunTime = date('Y-m-d H:i:00');
+    }
+    switch($data['Time']) {
+        case 'HOUR':
+            if($LastRunTime == ''){
+                $strtotime = strtotime('+'.$Interval.' hour');
+            }else{
+                $strtotime = strtotime($LastRunTime)+$Interval*60*60;
+            }
+            return date('Y-m-d H:i:00',$strtotime);
+        case 'MINUTE':
+            if($LastRunTime == ''){
+                $strtotime = strtotime('+'.$Interval.' minute');
+            }else{
+                $strtotime = strtotime($LastRunTime)+$Interval*60;
+            }
+            return date('Y-m-d H:i:00',$strtotime);
+        case 'DAILY':
+            if($LastRunTime == ''){
+                $strtotime = strtotime('+'.$Interval.' day');
+            }else{
+                $strtotime = strtotime($LastRunTime)+$Interval*60*60*24;
+            }
+            if(isset($StartTime)){
+                return date('Y-m-d',$strtotime).' '.date("H:i:00", strtotime("$StartTime"));
+            }
+            return date('Y-m-d H:i:00',$strtotime);
+        case 'MONTHLY':
+            if($LastRunTime == ''){
+                $strtotime = strtotime('+'.$Interval.' month');
+            }else{
+                $strtotime = strtotime("+$Interval month", strtotime($LastRunTime));
+            }
+            if(isset($StartTime)){
+                return date('Y-m-d',$strtotime).' '.date("H:i:00", strtotime("$StartTime"));
+            }
+            return date('Y-m-d H:i:00',$strtotime);
+        default:
+            return '';
 
     }
 }

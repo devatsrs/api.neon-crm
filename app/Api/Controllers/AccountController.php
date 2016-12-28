@@ -4,30 +4,36 @@ namespace Api\Controllers;
 
 use Dingo\Api\Http\Request;
 use Api\Model\AccountBalance;
+use Api\Model\AccountBalanceHistory;
+use Api\Model\DataTableSql;
+use Api\Model\User;
 use Api\Model\Account;
 use Api\Model\Note;
-use Api\Model\User;
 use Api\Model\Invoice;
+use Api\Model\Ticket;
 use Api\Model\Company;
 use Api\Model\CompanySetting;
-use Api\Model\DataTableSql;
+use Api\Model\CompanyConfiguration;
+use Api\Model\AccountEmailLog;
 use App\Http\Requests;
 use Dingo\Api\Facade\API;
-use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Api\Model\Tags;
 use Api\Model\PaymentGateway;
 use Api\Model\AccountPaymentProfile;
-
+use App\Freshdesk;
+use App\Imap;
 
 class AccountController extends BaseController
 {
-
+	protected $tokenClass;
+	
     public function __construct(Request $request)
-    {
+    { 
         $this->middleware('jwt.auth');
         Parent::__Construct($request);
     }
@@ -45,12 +51,10 @@ class AccountController extends BaseController
         $rules['account_id'] = 'required';
         $validator = Validator::make($post_data, $rules);
         if ($validator->fails()) {
-            return $this->response->errorBadRequest($validator->errors());
+            return generateResponse($validator->errors(),true);
         }
         $AccountBalance = AccountBalance::where('AccountID', $post_data['account_id'])->first();
-        $reponse_data = ['status' => 'success', 'data' => ['CurrentCredit' => $AccountBalance->CurrentCredit], 'status_code' => 200];
-
-        return API::response()->array($reponse_data)->statusCode(200);
+        return generateResponse('',false,false,array('UnbilledAmount' =>$AccountBalance->UnbilledAmount));
     }
 
     public function UpdateCredit()
@@ -62,7 +66,7 @@ class AccountController extends BaseController
         $rules['action'] = 'required';
         $validator = Validator::make($post_data, $rules);
         if ($validator->fails()) {
-            return $this->response->errorBadRequest($validator->errors());
+            return generateResponse($validator->errors(),true);
         }
         if (!in_array($post_data['action'], array('add', 'sub'))) {
             return $this->response->errorBadRequest('action is not valid');
@@ -78,16 +82,18 @@ class AccountController extends BaseController
             Log::info($e);
             return $this->response->errorInternal($e->getMessage());
         }
-        return API::response()->array(['status' => 'success', 'message' => 'credit added successfully', 'status_code' => 200])->statusCode(200);
+        return generateResponse('credit added successfully');
     }
-    public function DeleteCredit(){
 
-        return API::response()->array(['status' => 'success', 'message' => 'success', 'status_code' => 200])->statusCode(200);
+    public function DeleteCredit()
+    {
+
+        return generateResponse('success');
     }
 
     public function GetTempCredit()
     {
-        return API::response()->array(['status' => 'success', 'message' => 'success', 'status_code' => 200])->statusCode(200);
+        return generateResponse('success');
     }
 
     public function UpdateTempCredit()
@@ -101,7 +107,7 @@ class AccountController extends BaseController
 
         $validator = Validator::make($post_data, $rules);
         if ($validator->fails()) {
-            return $this->response->errorBadRequest($validator->errors());
+            return generateResponse($validator->errors(),true);
         }
         if (!in_array($post_data['action'], array('add', 'sub'))) {
             return $this->response->errorBadRequest('provide valid action');
@@ -116,12 +122,12 @@ class AccountController extends BaseController
             Log::info($e);
             return $this->response->errorInternal($e->getMessage());
         }
-        return API::response()->array(['status' => 'success', 'message' => 'Temporary credit added successfully', 'status_code' => 200])->statusCode(200);
+        return generateResponse('Temporary credit added successfully');
 
     }
     public function DeleteTempCredit()
     {
-        return API::response()->array(['status' => 'success', 'message' => 'success', 'status_code' => 200])->statusCode(200);
+        return generateResponse('success');
     }
 
     public function GetAccountThreshold()
@@ -131,7 +137,7 @@ class AccountController extends BaseController
         $rules['account_id'] = 'required';
         $validator = Validator::make($post_data, $rules);
         if ($validator->fails()) {
-            return $this->response->errorBadRequest($validator->errors());
+            return generateResponse($validator->errors(),true);
         }
         $BalanceThreshold = 0;
         try {
@@ -140,7 +146,7 @@ class AccountController extends BaseController
             Log::info($e);
             return $this->response->errorInternal($e->getMessage());
         }
-        return API::response()->array(['status' => 'success', 'data'=>['BalanceThreshold'=>$BalanceThreshold] , 'status_code' => 200])->statusCode(200);
+        return generateResponse('success',false,false,array('BalanceThreshold' =>$BalanceThreshold));
 
     }
 
@@ -152,20 +158,20 @@ class AccountController extends BaseController
         $rules['balance_threshold'] = 'required';
         $validator = Validator::make($post_data, $rules);
         if ($validator->fails()) {
-            return $this->response->errorBadRequest($validator->errors());
+            return generateResponse($validator->errors(),true);
         }
         try {
-            AccountBalance::setThreshold($post_data['account_id'],$post_data['balance_threshold']);
+            AccountBalance::setThreshold($post_data['account_id'], $post_data['balance_threshold']);
         } catch (\Exception $e) {
             Log::info($e);
             return $this->response->errorInternal($e->getMessage());
         }
-        return API::response()->array(['status' => 'success', 'message' => 'Balance Warning Threshold updated successfully' , 'status_code' => 200])->statusCode(200);
+        return generateResponse('Balance Warning Threshold updated successfully');
 
     }
     public function DeleteAccountThreshold()
     {
-        return API::response()->array(['status' => 'success', 'message' => 'success', 'status_code' => 200])->statusCode(200);
+        return generateResponse('success');
     }
     public function GetAccount($id){
         try{
@@ -250,20 +256,29 @@ class AccountController extends BaseController
 
     public function GetTimeLine()
     {
-        $data                       =   Input::all();
+        $data                       =   Input::all();  
         $companyID                  =   User::get_companyID();
         $rules['iDisplayStart']     =   'required|numeric|Min:0';
         $rules['iDisplayLength']    =   'required|numeric';
         $rules['AccountID']         =   'required|numeric';
-
+		
         $validator = Validator::make($data, $rules);
         if ($validator->fails()) {
             return generateResponse($validator->errors(),true);
-        }
-        try {
+        }			
+			
+        try { 
+			if($data['iDisplayStart']==0) {
+				if(\App\SiteIntegration::CheckIntegrationConfiguration(false,\App\SiteIntegration::$freshdeskSlug)){
+				 $freshsdesk = 	$this->FreshSDeskGetTickets($data['AccountID'],$data['GUID']); 
+					if($freshsdesk){
+						//return generateResponse(array("freshsdesk"=>array(0=>$freshsdesk['errors'][0]->message)),true);
+					}
+				}
+			}
             $columns =  ['Timeline_type','ActivityTitle','ActivityDescription','ActivityDate','ActivityType','ActivityID','Emailfrom','EmailTo','EmailSubject','EmailMessage','AccountEmailLogID','NoteID','Note','CreatedBy','created_at','updated_at'];
-            $query = "call prc_getAccountTimeLine(" . $data['AccountID'] . "," . $companyID . "," . $data['iDisplayStart'] . "," . $data['iDisplayLength'] . ")";
-            $result_array = DB::select($query);
+            $query = "call prc_getAccountTimeLine(" . $data['AccountID'] . "," . $companyID . ",'".$data['GUID']."'," . $data['iDisplayStart'] . "," . $data['iDisplayLength'] . ")";  
+            $result_array = DB::select($query); 
             return generateResponse('',false,false,$result_array);
        }
         catch (\Exception $ex){
@@ -271,6 +286,132 @@ class AccountController extends BaseController
             return $this->response->errorInternal($ex->getMessage());
         }
     }
+	
+	function FreshSDeskGetTickets($AccountID,$GUID){ 
+		//date_default_timezone_set("Europe/London");
+		Ticket::where(['AccountID'=>$AccountID,"GUID"=>$GUID])->delete(); //delete old tickets
+	    $companyID 		=	User::get_companyID();
+        /*$AccountEmails  =	Account::where("AccountID",$AccountID)->select(['Email','BillingEmail'])->first();
+        $AccountEmails  = 	json_decode(json_encode($AccountEmails),true);
+        $emails			=	array_unique($AccountEmails);*/
+ 
+		
+        $email_array			 = 	array();
+        $billingemail_array 	 = 	array();
+        $allemail 				 =  array();
+        $AccountEmails  		 =	Account::where("AccountID",$AccountID)->select(['Email'])->first();
+		
+        if(count($AccountEmails)>0)
+		{
+            $email_array = explode(',',$AccountEmails['Email']);
+        }
+		
+        $AccountEmails1  		=	Account::where("AccountID",$AccountID)->select(['BillingEmail'])->first();
+		
+        if(count($AccountEmails1)>0)
+		{
+            $billingemail_array = explode(',', $AccountEmails1['BillingEmail']);
+        }
+		
+        $allemail 				= 	array_merge($email_array,$billingemail_array);
+        $emails					=	array_filter(array_unique($allemail));
+		$TicketsIDs				=	array();  		
+		$FreshDeskObj 			=  	new \App\SiteIntegration();
+		$FreshDeskObj->SetSupportSettings();	
+			
+		if(count($emails)>0 && $FreshDeskObj->CheckSupportSettings())
+		{ 
+			foreach($emails as $UsersEmails)
+			{				
+				$GetTickets 	= 		$FreshDeskObj->GetSupportTickets(array("email"=>trim($UsersEmails),"include"=>"requester"));				
+				
+				if(isset($GetTickets['StatusCode']) && $GetTickets['StatusCode'] == 200 && count($GetTickets['data'])>0)
+				{   
+					foreach($GetTickets['data'] as $GetTickets_data)
+					{   
+						if(in_array($GetTickets_data->id,$TicketsIDs)){continue;}else{$TicketsIDs[] = $GetTickets_data->id;} //ticket duplication						
+						$TicketData['CompanyID']		=	$companyID;
+						$TicketData['AccountID'] 		=   $AccountID;
+						$TicketData['TicketID']			=   $GetTickets_data->id;	
+						$TicketData['Subject']			=	$GetTickets_data->subject;
+						$TicketData['Description']		=	$GetTickets_data->description;
+						//$TicketData['Description']		=	$GetTickets_data->description_text;
+						$TicketData['Priority']			=	$FreshDeskObj->SupportSetPriority($GetTickets_data->priority);
+						$TicketData['Status']			=	$FreshDeskObj->SupportSetStatus($GetTickets_data->status);
+						$TicketData['Type']				=	$GetTickets_data->type;				
+						$TicketData['Group']			=	$FreshDeskObj->SupportSetGroup($GetTickets_data->group_id);
+						$TicketData['RequestEmail']		=	$GetTickets_data->requester->email;				
+						$TicketData['ApiCreatedDate']	=   date("Y-m-d H:i:s",strtotime($GetTickets_data->created_at));
+						$TicketData['ApiUpdateDate']	=   date("Y-m-d H:i:s",strtotime($GetTickets_data->updated_at));	
+						$TicketData['created_by']  		= 	User::get_user_full_name();
+						$TicketData['GUID']  			= 	$GUID; 
+						if(!empty($GetTickets_data->to_emails) && $GetTickets_data->to_emails!='null'){
+							if(is_array($GetTickets_data->to_emails)){
+								$TicketData['to_emails']		=	implode(",",$GetTickets_data->to_emails);	
+							}
+							else{
+								$TicketData['to_emails']		=	$GetTickets_data->to_emails;	
+							}
+						}
+						$result 						= 	Ticket::create($TicketData);		
+						unset($TicketData);
+					}	
+				}
+				else
+				{
+					//return $GetTickets;	
+					if(isset($GetTickets['StatusCode']) && $GetTickets['StatusCode']!='200' && $GetTickets['StatusCode']!='400'){
+						Log::info("freshdesk StatusCode ".print_r($GetTickets,true));
+						return $GetTickets;							
+					}
+				} 	    
+			}		
+		}
+	}
+	
+	function GetConversations(){
+		$data           	=   	Input::all();  
+	
+		if(isset($data['conversations_type'])){
+			if($data['conversations_type']=='mail')
+			{
+				return $this->GetMailConversations();	
+			}
+			else if($data['conversations_type']=='ticket')
+			{
+			    return 	$this->GetTicketConversations();
+			}
+		}
+	}
+	
+	function GetMailConversations(){
+		$companyID 			=	 	User::get_companyID();
+		$data           	=   	Input::all();  		
+		$Emails				= 		AccountEmailLog::where(['EmailParent'=>$data['id'],'CompanyID'=>$companyID])->get();
+		if($Emails)
+		{
+			return generateResponse('',false,false,$Emails);
+		}else
+		{
+			return generateResponse('No Record Found.',false,false);
+		}		
+	}
+	
+	
+	function GetTicketConversations(){
+		$companyID 			=	 	User::get_companyID();
+		$data           	=   	Input::all();  		
+		$FreshDeskObj 		= 		new \App\SiteIntegration();
+		$FreshDeskObj->SetSupportSettings();		
+		
+		$GetTicketsCon 		= 		$FreshDeskObj->GetSupportTicketConversations($data['id']);  
+		if($GetTicketsCon['StatusCode'] == 200 && count($GetTicketsCon['data'])>0){ 
+			return generateResponse('',false,false,$GetTicketsCon['data']);
+		}
+		else{
+			return generateResponse('No Record Found.',false,false);
+		} 	
+	}
 
     public function DeleteNote(){
         $data = Input::all();
@@ -437,26 +578,10 @@ class AccountController extends BaseController
             if(isset($data['password'])) {
                 $this->sendPasswordEmail($account, $password, $data);
             }
-            $PaymentGatewayID = PaymentGateway::where(['Title'=>PaymentGateway::$gateways['Authorize']])
-                ->where(['CompanyID'=>$companyID])
-                ->pluck('PaymentGatewayID');
-            $PaymentProfile = AccountPaymentProfile::where(['AccountID'=>$id])
-                ->where(['CompanyID'=>$companyID])
-                ->where(['PaymentGatewayID'=>$PaymentGatewayID])
-                ->first();
-				
-            if(!empty($PaymentProfile)){
-                $options = json_decode($PaymentProfile->Options);
-                $ProfileID = $options->ProfileID;
-                $ShippingProfileID = $options->ShippingProfileID;
-
-                //If using Authorize.net
-                $isAuthorizedNet = getenv('AMAZONS3_KEY');
-                if(!empty($isAuthorizedNet)) {
-                    $AuthorizeNet = new AuthorizeNet();
-                    $result = $AuthorizeNet->UpdateShippingAddress($ProfileID, $ShippingProfileID, $shipping);
-                }
-            }
+			$isAuthorizedNet = 	\App\SiteIntegration::CheckIntegrationConfiguration(false,\App\SiteIntegration::$AuthorizeSlug);
+			if($isAuthorizedNet){
+				 $this->updateAuthorizeProfileShippingAddress($id,$companyID,$shipping);
+			}
            return generateResponse('Account Successfully Updated ');
         }catch (\Exception $ex){
                  Log::info($ex);
@@ -488,4 +613,115 @@ class AccountController extends BaseController
         return generateResponse('success',false,false,$account);
 	}
 
+    public function GetCreditInfo()
+    {
+        $post_data = Input::all();
+        $rules['AccountID'] = 'required';
+        $validator = Validator::make($post_data, $rules);
+        if ($validator->fails()) {
+            return generateResponse($validator->errors(),true);
+        }
+        try {
+            $AccountBalance = AccountBalance::where('AccountID', $post_data['AccountID'])->first(['AccountID', 'PermanentCredit', 'UnbilledAmount','EmailToCustomer', 'TemporaryCredit', 'TemporaryCreditDateTime', 'BalanceThreshold','BalanceAmount','VendorUnbilledAmount']);
+        }catch (\Exception $ex){
+            Log::info($ex);
+            return $this->response->errorInternal($ex->getMessage());
+        }
+        return generateResponse('success',false,false,$AccountBalance);
+    }
+
+    public function UpdateCreditInfo()
+    {
+        $post_data = Input::all();
+        $rules['AccountID'] = 'required';
+        $rules['BalanceThreshold'] = 'required';
+        $rules['PermanentCredit'] = 'required';
+        $validator = Validator::make($post_data, $rules);
+        if ($validator->fails()) {
+            return generateResponse($validator->errors(),true);
+        }
+        $AccountBalancedata = $AccountBalance = array();
+        if (isset($post_data['PermanentCredit'])) {
+            $AccountBalancedata['PermanentCredit'] = $post_data['PermanentCredit'];
+        }
+        if (isset($post_data['TemporaryCredit'])) {
+            $AccountBalancedata['TemporaryCredit'] = $post_data['TemporaryCredit'];
+        }
+        if (isset($post_data['TemporaryCreditDateTime'])) {
+            $AccountBalancedata['TemporaryCreditDateTime'] = $post_data['TemporaryCreditDateTime'];
+        }
+        if (isset($post_data['BalanceThreshold'])) {
+            $AccountBalancedata['BalanceThreshold'] = $post_data['BalanceThreshold'];
+        }
+        
+        $AccountBalancedata['EmailToCustomer'] = isset($post_data['EmailToCustomer'])?1:0;
+
+        try {
+            if (!empty($AccountBalancedata) && AccountBalance::where('AccountID', $post_data['AccountID'])->count()) {
+                $AccountBalance = AccountBalance::where('AccountID', $post_data['AccountID'])->update($AccountBalancedata);
+                $AccountBalancedata['AccountID'] = $post_data['AccountID'];
+            } elseif (AccountBalance::where('AccountID', $post_data['AccountID'])->count() == 0) {
+                $AccountBalancedata['AccountID'] = $post_data['AccountID'];
+                AccountBalance::create($AccountBalancedata);
+            }
+            unset($AccountBalancedata['EmailToCustomer']);
+            AccountBalanceHistory::addHistory($AccountBalancedata);
+            return generateResponse('Account Successfully Updated');
+        } catch (\Exception $e) {
+            Log::info($e);
+            return $this->response->errorInternal();
+        }
+    }
+    public function GetCreditHistoryGrid(){
+        $post_data = Input::all();
+        try {
+            $companyID = User::get_companyID();
+            $rules['iDisplayStart'] = 'required|Min:1';
+            $rules['iDisplayLength'] = 'required';
+            $rules['iDisplayLength'] = 'required';
+            $rules['sSortDir_0'] = 'required';
+            $rules['AccountID'] = 'required';
+            $validator = Validator::make($post_data, $rules);
+            if ($validator->fails()) {
+                return generateResponse($validator->errors(),true);
+            }
+            $post_data['iDisplayStart'] += 1;
+            $columns = ['PermanentCredit', 'TemporaryCredit', 'Threshold', 'CreatedBy','created_at'];
+            $sort_column = $columns[$post_data['iSortCol_0']];
+            $query = "call prc_GetAccountBalanceHistory (" . $companyID . "," . $post_data['AccountID'] . "," . (ceil($post_data['iDisplayStart'] / $post_data['iDisplayLength'])) . " ," . $post_data['iDisplayLength'] . ",'" . $sort_column . "','" . $post_data['sSortDir_0'] . "'";
+            if (isset($post_data['Export']) && $post_data['Export'] == 1) {
+                $result = DB::select($query . ',1)');
+            } else {
+                $query .= ',0)';
+                $result = DataTableSql::of($query)->make();
+            }
+            Log::info($query);
+            return generateResponse('',false,false,$result);
+        } catch (\Exception $e) {
+            Log::info($e);
+            return $this->response->errorInternal($e->getMessage());
+        }
+    }
+	
+	//This function is only for authorize.net	
+	public function updateAuthorizeProfileShippingAddress($AccountID,$companyID,$shipping){
+		$PaymentGatewayID = PaymentGateway::where(['Title'=>PaymentGateway::$gateways['Authorize']])
+		->where(['CompanyID'=>$companyID])
+		->pluck('PaymentGatewayID');
+		$PaymentProfile = AccountPaymentProfile::where(['AccountID'=>$AccountID])
+		->where(['CompanyID'=>$companyID])
+		->where(['PaymentGatewayID'=>$PaymentGatewayID])
+		->first();
+		
+		if(!empty($PaymentProfile)){
+			$options = json_decode($PaymentProfile->Options);
+			$ProfileID = $options->ProfileID;
+			$ShippingProfileID = $options->ShippingProfileID;
+	
+			//If using Authorize.net
+			//$isAuthorizedNet = getenv('AMAZONS3_KEY');
+			$AuthorizeNet = new AuthorizeNet();
+			 $result = $AuthorizeNet->UpdateShippingAddress($ProfileID, $ShippingProfileID, $shipping);
+		}
+	}	
 }

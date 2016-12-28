@@ -36,9 +36,9 @@ class AmazonS3 {
     /** Get Amazon Settings from Company Config table
      * @return array|mixed
      */
-    private static function getAmazonSettings(){
+    public static function getAmazonSettings(){
 
-        $cache = CompanyConfiguration::getConfiguration();
+      /*  $cache = CompanyConfiguration::getConfiguration();
         $amazon = array();
         if(isset($cache['Amazon'])) {
 
@@ -47,12 +47,18 @@ class AmazonS3 {
             if (!empty($amazoneJson)) {
                 $amazon = json_decode($amazoneJson, true);
              }
-        }
-
+        }*/
+		$amazon 		= 	array();
+		$AmazonData		=	\App\SiteIntegration::CheckIntegrationConfiguration(true,\App\SiteIntegration::$AmazoneSlug);
+		
+		if($AmazonData){
+			$amazon 	=	 array("AWS_BUCKET"=>$AmazonData->AmazonAwsBucket,"AMAZONS3_KEY"=>$AmazonData->AmazonKey,"AMAZONS3_SECRET"=>$AmazonData->AmazonSecret,"AWS_REGION"=>$AmazonData->AmazonAwsRegion);	
+		}
+		
         return $amazon;
     }
 
-    private static function getBucket(){
+    public static function getBucket(){
 
         $amazon = self::getAmazonSettings();
         if(isset($amazon['AWS_BUCKET'])){
@@ -107,6 +113,47 @@ class AmazonS3 {
 
         return $path;
     }
+	
+	static function generate_path($dir ='',$companyId , $accountId = '' ) {
+
+        $path = $companyId  ."/";
+
+        if($accountId > 0){
+            $path .= $accountId ."/";
+        }
+
+        $path .=  $dir . "/". date("Y")."/".date("m") ."/" .date("d") ."/";
+        $dir = getenv('UPLOAD_PATH') . '/'. $path;
+        if (!file_exists($dir)) {
+            mkdir($dir, 0777, TRUE);
+        }
+
+        return $path;
+    }
+	
+	static function upload($file,$dir){
+
+        // Instantiate an S3 client
+        $s3 = self::getS3Client();
+
+        //When no amazon return true;
+        if($s3 == 'NoAmazon'){
+            return true;
+        }
+		
+		$AmazonSettings  = self::getAmazonSettings();		
+        $bucket 		 = $AmazonSettings['AWS_BUCKET'];
+        // Upload a publicly accessible file. The file size, file type, and MD5 hash
+        // are automatically calculated by the SDK.
+        try {
+            $resource = fopen($file, 'r');
+            $s3->upload($bucket, $dir.basename($file), $resource, 'public-read');
+            @unlink($file);
+            return true;
+        } catch (S3Exception $e) {
+            return false ; //"There was an error uploading the file.\n";
+        }
+    }
 
     static function preSignedUrl($key=''){
 
@@ -134,20 +181,18 @@ class AmazonS3 {
     }
 
     static function unSignedUrl($key=''){
-
         $s3 = self::getS3Client();
 
         //When no amazon ;
         if($s3 == 'NoAmazon'){
             return  self::preSignedUrl($key);
         }
-
         $bucket = self::getBucket();
         $unsignedUrl = '';
         if(!empty($key)){
 
             $unsignedUrl = $s3->getObjectUrl($bucket, $key);
-        }
+        } 
         return $unsignedUrl;
 
     }

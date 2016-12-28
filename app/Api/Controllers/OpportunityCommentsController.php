@@ -81,6 +81,10 @@ class OpportunityCommentsController extends BaseController {
             $emailData['Task'] = $opportunity->OpportunityName.' Opportunity';
             $emailData['Logo'] = getCompanyLogo($this->request);
             //$emailData['mandrill'] =1;
+
+            $emailData['address'] = User::get_user_email();
+            $emailData['name'] = User::get_user_full_name();
+
             if(!empty($emailTo) && count($emailTo)>0){
                 $emailData['EmailTo'] = $emailTo;
                 $status = sendMail('emails.crm.AccountUserEmailSend',$emailData);
@@ -92,7 +96,9 @@ class OpportunityCommentsController extends BaseController {
                     $emailData['EmailTo'] = $opportunity->Email;
                     $emailData['EmailToName'] = $opportunity->FirstName.' '.$opportunity->LastName;
                     $emailData['CompanyID'] = $data ["CompanyID"];
+
                     $status = sendMail('emails.crm.AccountUserEmailSend',$emailData);
+					$emailData['message_id'] 	=  isset($status['message_id'])?$status['message_id']:"";
                     $emailData['Message'] = $status['body'];
                     $status = email_log($emailData);
                     if($status['status']==0){

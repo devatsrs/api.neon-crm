@@ -11,7 +11,7 @@ $api->version('v1', function ($api) {
 		$api->post('login', 'AuthController@authenticate');
         $api->post('logout', 'AuthController@logout');
 		$api->post('register', 'AuthController@register');
-        $api->post('l/{id}', 'AuthController@authenticate');
+		$api->post('l/{id}', 'AuthController@authenticate');
 
 		// Dogs! All routes in here are protected and thus need a valid token
 		//$api->group( [ 'protected' => true, 'middleware' => 'jwt.refresh' ], function ($api) {
@@ -34,27 +34,41 @@ $api->version('v1', function ($api) {
             $api->get('account/GetAccountLeadByContactNumber', 'AccountController@GetAccountLeadByContactNumber');
 
             $api->post('emailattachment/{id}/getattachment/{attachmentID}', 'AccountActivityController@getAttachment');
+			
+			//dashboard			
+			$api->post('dashboard/GetUsersTasks', 'DashboardController@GetUsersTasks');
+			$api->post('dashboard/GetPipleLineData', 'DashboardController@GetPipleLineData');
+			$api->post('dashboard/GetSalesdata', 'DashboardController@GetSalesdata');
+			$api->post('dashboard/GetForecastData', 'DashboardController@GetForecastData');			
+			$api->post('dashboard/get_opportunities_grid','DashboardController@getOpportunitiesGrid');			
+			$api->post('dashboard/CrmDashboardSalesRevenue','DashboardController@CrmDashboardSalesRevenue');
+			$api->post('dashboard/CrmDashboardUserRevenue','DashboardController@CrmDashboardUserRevenue');
+			
 
 
 			// account credit
             $api->get('account/get_credit', 'AccountController@GetCredit');
 			$api->post('account/update_credit', 'AccountController@UpdateCredit');
 			$api->delete('account/delete_credit', 'AccountController@DeleteCredit');
+			$api->get('account/get_creditinfo', 'AccountController@GetCreditInfo');
+			$api->post('account/update_creditinfo', 'AccountController@UpdateCreditInfo');
+			$api->get('account/get_credithistorygrid', 'AccountController@GetCreditHistoryGrid');
 
 			// account temp credit
-			$api->get('account/get_credit', 'AccountController@GetTempCredit');
+			$api->get('account/get_temp_credit', 'AccountController@GetTempCredit');
 			$api->post('account/update_temp_credit', 'AccountController@UpdateTempCredit');
 			$api->delete('account/delete_temp_credit', 'AccountController@DeleteTempCredit');
 			$api->post('account/add_note', 'AccountController@add_note');
             $api->get('account/get_note','AccountController@GetNote');
             $api->post('account/delete_note','AccountController@DeleteNote');
 			$api->post('account/update_note','AccountController@UpdateNote');
-			
+			$api->post('account/GetConversations','AccountController@GetConversations');
 
             $api->get('account/GetTimeLine', 'AccountController@GetTimeLine');
             $api->post('accounts/sendemail', 'AccountActivityController@sendMail');
             $api->get('account/get_email','AccountActivityController@GetMail');
             $api->post('account/delete_email','AccountActivityController@DeleteMail');
+			
 
 			// account threshold credit
 			$api->get('account/get_account_threshold', 'AccountController@GetAccountThreshold');
@@ -105,8 +119,6 @@ $api->version('v1', function ($api) {
 
             $api->post('task/{id}/getattachment/{attachmentid}', 'TaskController@getAttachment');
 
-
-
             //Allowed extensions
             $api->get('get_allowed_extensions', 'TaskController@get_allowed_extensions');
 
@@ -115,6 +127,54 @@ $api->version('v1', function ($api) {
             $api->get('taskcomments/{id}/get_comments', 'TaskCommentsController@get_comments');
             $api->post('taskcomment/{id}/getattachment/{attachmentid}', 'TaskCommentsController@getAttachment');
 
+            // Destination Group Set
+            $api->get('destinationgroupset/datagrid', 'DestinationGroupSetController@DataGrid');
+            //$api->get('destinationgroup/{id}', 'DestinationGroupSetController@show');
+            $api->post('destinationgroupset/store', 'DestinationGroupSetController@Store');
+            $api->put('destinationgroupset/update/{DestinationGroupSetID}', 'DestinationGroupSetController@Update');
+            $api->delete('destinationgroupset/delete/{DestinationGroupSetID}', 'DestinationGroupSetController@Delete');
+
+            // Destination Group
+            $api->get('destinationgroup/datagrid', 'DestinationGroupController@DataGrid');
+            //$api->get('destinationgroup/{id}', 'DestinationGroupController@show');
+            $api->post('destinationgroup/store', 'DestinationGroupController@Store');
+            $api->put('destinationgroup/update/{DestinationGroupID}', 'DestinationGroupController@Update');
+            $api->put('destinationgroup/update_name/{DestinationGroupID}', 'DestinationGroupController@UpdateName');
+            $api->delete('destinationgroup/delete/{DestinationGroupID}', 'DestinationGroupController@Delete');
+            $api->get('destinationgroupsetcode/datagrid', 'DestinationGroupController@CodeDataGrid');
+
+
+            // Discount Plan
+            $api->get('discountplan/datagrid', 'DiscountPlanController@DataGrid');
+            //$api->get('destinationgroup/{id}', 'DiscountPlanController@show');
+            $api->post('discountplan/store', 'DiscountPlanController@Store');
+            $api->put('discountplan/update/{DiscountPlanID}', 'DiscountPlanController@Update');
+            $api->delete('discountplan/delete/{DiscountPlanID}', 'DiscountPlanController@Delete');
+
+            // Discount
+            $api->get('discount/datagrid', 'DiscountController@DataGrid');
+            //$api->get('destinationgroup/{id}', 'DiscountPlanController@show');
+            $api->post('discount/store', 'DiscountController@Store');
+            $api->put('discount/update/{DiscountPlanID}', 'DiscountController@Update');
+            $api->delete('discount/delete/{DiscountPlanID}', 'DiscountController@Delete');
+
+            // Billing Class
+            $api->get('billing_class/datagrid', 'BillingClassController@DataGrid');
+            $api->get('billing_class/get/{BillingClassID}', 'BillingClassController@get');
+            $api->post('billing_class/store', 'BillingClassController@Store');
+            $api->put('billing_class/update/{BillingClassID}', 'BillingClassController@Update');
+            $api->delete('billing_class/delete/{BillingClassID}', 'BillingClassController@Delete');
+
+            // Alerts
+            $api->get('qos_alert/datagrid', 'AlertController@DataGrid');
+            //$api->get('qos_alert/get/{AlertID}', 'BillingClassController@get');
+            $api->post('qos_alert/store', 'AlertController@Store');
+            $api->put('qos_alert/update/{AlertID}', 'AlertController@Update');
+            $api->delete('qos_alert/delete/{AlertID}', 'AlertController@Delete');
+            $api->get('alert/history', 'AlertController@History');
+
+            // Mailbox Class
+            $api->post('email/sendemail', 'MailboxController@sendMail');
 
 		});
 
