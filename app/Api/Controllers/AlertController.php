@@ -320,6 +320,20 @@ class AlertController extends BaseController
                     $error_message = 'Close Time is required.';
                 }
 
+            }else if ($post_data['AlertType'] == 'vendor_balance_report') {
+                if (empty($post_data['CallAlert']['Interval'])) {
+                    $error_message = 'Monitoring Interval is required.';
+                }
+                if (empty($post_data['CallAlert']['Time'])) {
+                    $error_message = 'Monitoring Time is required.';
+                }
+                if (empty($post_data['CallAlert']['VAccountID'])) {
+                    $error_message = 'Vendor is required.';
+                }
+                if(empty($post_data['CallAlert']['ReminderEmail'])){
+                    $error_message = 'ReminderEmail Email is required.';
+                }
+
             }
 
         }
