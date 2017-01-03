@@ -39,6 +39,13 @@ class TicketsTable extends \Eloquent
 			return $ValuesID;
 	}
 	
+	static function getTicketStatusByID($id,$fld='FieldValueAgent'){
+		//TicketfieldsValues::WHERE
+		 $ValuesID =  TicketfieldsValues::join('tblTicketfields','tblTicketfields.TicketFieldsID','=','tblTicketfieldsValues.FieldsID')
+            ->where(['tblTicketfields.FieldType'=>Ticketfields::TICKET_SYSTEM_STATUS_FLD])->where(['tblTicketfieldsValues.ValuesID'=>$id])->pluck($fld);			
+			return $ValuesID;
+	}
+	
 	
 	static function getTicketStatus(){
 		//TicketfieldsValues::WHERE
@@ -48,6 +55,7 @@ class TicketsTable extends \Eloquent
 			}	
 			return $row;
 	}
+	
 	
 	static function getTicketType(){
 		//TicketfieldsValues::WHERE

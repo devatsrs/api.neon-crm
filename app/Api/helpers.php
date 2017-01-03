@@ -463,6 +463,46 @@ function cleanarray($data = [],$unset=[]){
     return $data;
 }
 
+function SendTicketEmail($Type='store',$id,$data = array()){
+	
+	$LogginedUser   	 = 		\Api\Model\User::get_userID();
+    $LogginedUserName    =  	\Api\Model\User::get_user_full_name();
+	$LogginedUserEmail	 =		\Api\Model\User::get_user_email();
+    //$AssignedUser    	 = 		$data['UsersIDs'];
+	
+	if($Type=='store')
+	{
+		if(isset($data['Requester']) && $data['Requester']!=$LogginedUserEmail)
+		{
+			$EmailData['EmailTo']     	  =   $data['Requester'];
+			$EmailData['Subject']   	  =   'Ticket Created. "'.$data['Subject'].'"';
+			$EmailData['TicketSubject']   =   "(Neon) ".$data['Subject'];
+			$EmailData['TitleHeading']    =   $LogginedUserName." <strong>created</strong> a ticket for you";
+			$EmailData['Description']	  =   $data['Description'];			
+			$EmailData['Status']	 	  =   \Api\Model\TicketsTable::getTicketStatusByID($data['Status']);
+			$EmailData['Priority']	 	  =   \Api\Model\TicketPriority::where(["PriorityID"=>$data['Priority']])->pluck('PriorityValue');			
+			$status       				  =   sendMail('emails.tickets.TicketCreated', $EmailData);									
+		}		
+		return true;		
+	}
+	
+	if($Type=='update')
+	{
+		if(isset($data['Requester']) && $data['Requester']!=$LogginedUserEmail)
+		{
+			$EmailData['EmailTo']     	  =   $data['Requester'];
+			$EmailData['Subject']   	  =   'Ticket Updated. "'.$data['Subject'].'"';
+			$EmailData['TicketSubject']   =   "(Neon) ".$data['Subject'];
+			$EmailData['TitleHeading']    =   $LogginedUserName." <strong>updated</strong> the ticket";
+			$EmailData['Description']	  =   $data['Description'];
+			$EmailData['Status']	 	  =   \Api\Model\TicketsTable::getTicketStatusByID($data['Status']);
+			$EmailData['Priority']	 	  =   \Api\Model\TicketPriority::where(["PriorityID"=>$data['Priority']])->pluck('PriorityValue');			
+			$status       				  =   sendMail('emails.tickets.TicketCreated', $EmailData);									
+		}		
+		return true;		
+	} 
+}
+
 function SendTaskMail($data){
     $LogginedUser   = \Api\Model\User::get_userID();
     $LogginedUserName   =  \Api\Model\User::get_user_full_name();

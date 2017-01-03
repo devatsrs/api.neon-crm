@@ -140,6 +140,7 @@ private $validlicense;
 					}
 				}				
 				 DB::commit();	
+				 SendTicketEmail('store',$TicketID,$TicketData);
 				 return generateResponse('Ticket Successfully Created');
       		 }catch (Exception $ex){ 	
 			      DB::rollback();
@@ -291,6 +292,7 @@ private $validlicense;
 						}
 					}				
 					 DB::commit();	
+					 SendTicketEmail('update',$ticketdata,$TicketData);
 					 return generateResponse('Ticket Successfully Updated');
 				 }catch (Exception $ex){ 	
 					  DB::rollback();
@@ -374,7 +376,7 @@ private $validlicense;
 				$postdata['parent_id']			=	  0;
 			}else{
 				$postdata['response_data']      =     TicketsConversation::find($ticket_number);
-				$postdata['AccountEmail'] 		= 	  TicketsConversation::where(array('TicketConversationID'=>$ticket_number))->pluck('TicketTo');
+				$postdata['AccountEmail'] 		= 	  TicketsConversation::where(array('TicketConversationID'=>$ticket_number))->pluck('Requester');
 				$postdata['parent_id']			=	  TicketsConversation::where(array('TicketConversationID'=>$ticket_number))->pluck('TicketConversationID');
 				$postdata['response_data']->Description		=	  $postdata['response_data']->TicketMessage;
 			}
@@ -474,7 +476,7 @@ private $validlicense;
 					
 					$ticketCoversationData = array(
 						"TicketID"=>$id,
-						"TicketTo"=>trim($data['email-to']),
+						"Requester"=>trim($data['email-to']),
 						"Cc"=>trim($data['cc']),
 						"Bcc"=>trim($data['bcc']),
 						"Subject"=>trim($data['Subject']),
