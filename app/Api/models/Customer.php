@@ -78,7 +78,7 @@ class Customer extends Model implements AuthenticatableContract,
     }
 
     public static function get_Email(){
-        return Auth::user()->Email;
+        return Auth::user()->BillingEmail;
     }
 
     public static function get_Billing_Email(){

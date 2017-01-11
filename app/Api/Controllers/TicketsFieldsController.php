@@ -41,6 +41,20 @@ private $validlicense;
 		try
 		{
 			$Ticketfields	=	DB::table('tblTicketfields')->orderBy('FieldOrder', 'asc')->get(); 
+			$final		 	=   Ticketfields::OptimizeDbFields($Ticketfields); 
+			return generateResponse('success', false, false, $Ticketfields);
+		}catch (\Exception $e) {
+         	Log::info($e);
+            return generateResponse('Some problem occurred.',true,true);
+        }		
+	}
+	
+	function GetDynamicFields(){
+
+		$this->IsValidLicense();
+		try
+		{	
+			$Ticketfields  =	DB::table('tblTicketfields')->orderBy('FieldOrder', 'asc')->get(); 
 			return generateResponse('success', false, false, $Ticketfields);
 		}catch (\Exception $e) {
          	Log::info($e);
@@ -50,9 +64,8 @@ private $validlicense;
 	
 	
 	function iframeSubmits(){ 
-	 Log::info("iframeSubmit api"); exit;
+	
 	 	$data 						 = 		Input::all();
-		 Log::info(print_r($data,true));
 		try {
 		//echo "<pre>"; print_r(json_decode($data['jsonData'])); echo "</pre>";exit;
 		$ticket_type = 0; $else_type = 0;
@@ -116,7 +129,7 @@ private $validlicense;
 				if(count($jsonData->choices)>0)
 				{
 					foreach($jsonData->choices as $key => $choices)
-					{ Log::info(print_r($choices,true));
+					{ 
 						$choicesdata 	  = 	array();
 						
 						if($data['FieldType']=='default_status')
@@ -216,65 +229,5 @@ private $validlicense;
         }
 	}
 	
-	function OptimizeDbFields($Ticketfields){
-		//$clas = (object) array();
-		$result 	=  	 array();
-		
-		foreach($Ticketfields as $key =>  $TicketFieldsData){
-				$data						   =		array();
-				$TicketFieldsID 			   = 		$TicketFieldsData->TicketFieldsID;
-				$TicketfieldsValues 	 	   = 		TicketfieldsValues::where(["FieldsID"=>$TicketFieldsID])->orderBy('FieldOrder', 'asc')->get();
-				$data['id']       			   = 		$TicketFieldsData->TicketFieldsID;
-				$data['type']        		   = 		Ticketfields::$type[$TicketFieldsData->FieldHtmlType];
-				$data['name']       		   = 		$TicketFieldsData->FieldName;
-				$data['label']       		   = 		$TicketFieldsData->AgentLabel;
-				$data['dom_type']       	   = 		$TicketFieldsData->FieldDomType;
-				$data['field_type']  		   = 		$TicketFieldsData->FieldType;
-				$data['label_in_portal']  	   = 		$TicketFieldsData->CustomerLabel;
-				$data['description']  		   = 		$TicketFieldsData->FieldDesc;
-				$data['has_section']  		   = 		'';				
-				$data['position']  			   = 		$TicketFieldsData->FieldOrder;
-				$data['active']  			   = 		1;
-				$data['required']  			   = 		$TicketFieldsData->AgentReqSubmit;
-				$data['required_for_closure']  = 		$TicketFieldsData->AgentReqClose;
-				$data['visible_in_portal']     = 		$TicketFieldsData->CustomerDisplay;
-				$data['editable_in_portal']    = 		$TicketFieldsData->CustomerEdit;
-				$data['required_in_portal']    = 		$TicketFieldsData->CustomerReqSubmit;
-				$data['field_options']  	   = 		(object) array();				
-				$choices 					   = 		array();	
-				
-				if(count($TicketfieldsValues)>0 &&  $data['field_type']!='default_priority' &&  $data['field_type']!='default_group'){
-					foreach($TicketfieldsValues as $key => $TicketfieldsValuesData){
-						if($data['field_type']=='default_status')
-						{
-						$choices[] = (object) array('status_id'=>$TicketfieldsValuesData->ValuesID,'name'=>$TicketfieldsValuesData->FieldValueAgent,'customer_display_name'=>$TicketfieldsValuesData->FieldValueCustomer,"stop_sla_timer"=>$TicketfieldsValuesData->FieldSlaTime,"deleted"=>'');
-						}
-						else if($data['field_type']=='default_ticket_type'){
-						$choices[] =  array('0'=>$TicketfieldsValuesData->FieldValueAgent,'1'=>$TicketfieldsValuesData->FieldValueAgent,"2"=>$TicketfieldsValuesData->ValuesID);
-						}else{
-						$choices[] =  array('0'=>$TicketfieldsValuesData->FieldValueAgent,"1"=>$TicketfieldsValuesData->ValuesID);
-						}
-					}
-				}else{									
-					if($data['field_type']=='default_priority'){						
-						$TicketPriority = DB::table('tblTicketPriority')->orderBy('PriorityID', 'asc')->get(); 								
-						foreach($TicketPriority as $TicketPriorityData){						
-							$choices[] =  array("0"=>$TicketPriorityData->PriorityValue,'1'=>$TicketPriorityData->PriorityID);
-						}
-					}
-					
-					if($data['field_type']=='default_group'){						
-						$TicketGroups = DB::table('tblTicketGroups')->orderBy('GroupID', 'asc')->get(); 						
-						foreach($TicketGroups as $TicketGroupsData){
-							$choices[] =  array("0"=>$TicketGroupsData->GroupName,'1'=>$TicketGroupsData->GroupID);
-						}
-					}
-				}
-				
-				$data['choices']	=  $choices;			
-				$result[] 			=  (object) $data;	
-		}		
-		//echo "<pre>"; print_r($result); echo "<pre>"; exit;
-		return $result;
-	}	
+	
 }

@@ -199,6 +199,7 @@ $api->version('v1', function ($api) {
 			
 			$api->post('ticketsfields/getfields', 'TicketsFieldsController@GetFields');
 			$api->post('ticketsfields/iframeSubmits', 'TicketsFieldsController@iframeSubmits');
+			$api->post('ticketsfields/GetDynamicFields', 'TicketsFieldsController@GetDynamicFields');
 			
 			$api->post('tickets/get_tickets', 'TicketsController@GetResult');			
 			$api->post('tickets/store', 'TicketsController@Store');
@@ -212,6 +213,8 @@ $api->version('v1', function ($api) {
 			$api->post('tickets/delete/{id}', 'TicketsController@Delete');	
 			$api->post('tickets/edit/{id}', 'TicketsController@Edit');
 			$api->post('tickets/update/{id}', 'TicketsController@Update');
+			$api->post('tickets/updatedetailpage/{id}', 'TicketsController@UpdateDetailPage');
+			
 			$api->post('tickets/updateticketattributes/{id}', 'TicketsController@UpdateTicketAttributes');									
 			
 		});

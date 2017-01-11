@@ -8,4 +8,8 @@ class TicketsConversation extends \Eloquent
     protected $primaryKey 	= 	 "TicketConversationID";
 	protected $guarded 		=	 array("TicketConversationID");
 	protected $fillable		= 	 [];
+	
+	
+	const ConversationIncoming	=  '1';
+	const ConversationOutgoing	=  '0';
 }

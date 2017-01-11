@@ -18,13 +18,33 @@ class TicketsTable extends \Eloquent
 	static  $defaultSortType 		= 	'desc';
 	static  $Sortcolumns			=	array("created_at"=>"Date Created","subject"=>"Subject","status"=>"Status","group"=>"Group","updated_at"=>"Last Modified");
 	
-	static function GetAgentSubmitRules(){
+	static function GetAgentSubmitRules($page='all'){
 		 $rules 	 =  array();
 		 $messages	 =  array();
 		 $fields 	 = 	Ticketfields::where(['AgentReqSubmit'=>1])->get();
 		 
 		foreach($fields as $fieldsdata)	 
-		{
+		{	
+			if($page=='DetailPage' && ($fieldsdata->FieldType=='default_requester' || $fieldsdata->FieldType=='default_subject' || $fieldsdata->FieldType=='default_description')){continue;}
+			
+			$rules[$fieldsdata->FieldType] = 'required';
+			$messages[$fieldsdata->FieldType.".required"] = "The ".$fieldsdata->AgentLabel." field is required";
+		}
+		
+		return array("rules"=>$rules,"messages"=>$messages);
+	}
+	
+	static function GetCustomerSubmitRules($page='all'){
+		 $rules 	 =  array();
+		 $messages	 =  array();
+		 $fields 	 = 	Ticketfields::where(['CustomerReqSubmit'=>1])->get();
+		 
+		foreach($fields as $fieldsdata)	 
+		{	
+			if($page=='DetailPage' && ($fieldsdata->FieldType=='default_requester' || $fieldsdata->FieldType=='default_subject' || $fieldsdata->FieldType=='default_description' || $fieldsdata->FieldType=='default_group')){continue;}
+			
+			if(($fieldsdata->FieldType=='default_requester'  || $fieldsdata->FieldType=='default_group' || $fieldsdata->FieldType=='default_agent' )){continue;}
+			
 			$rules[$fieldsdata->FieldType] = 'required';
 			$messages[$fieldsdata->FieldType.".required"] = "The ".$fieldsdata->AgentLabel." field is required";
 		}
@@ -70,7 +90,7 @@ class TicketsTable extends \Eloquent
 			$data = array();
 			
 			foreach($Ticketfields as $TicketfieldsData)
-			{	
+			{	 
 				if(in_array($TicketfieldsData->FieldType,Ticketfields::$staticfields))
 				{		
 					if($TicketfieldsData->FieldType=='default_requester')
@@ -118,18 +138,22 @@ class TicketsTable extends \Eloquent
 						$data[$TicketfieldsData->FieldType] = $TicketData->Description;
 					}
 				}else{
+					$found = 0;
 					foreach($ticketdetaildata as $ticketdetail){						
 						if($TicketfieldsData->TicketFieldsID == $ticketdetail->FieldID){
-							$data[$TicketfieldsData->FieldType] = $ticketdetail->FieldValue; break;
-						}else{
-							
-							if(($TicketfieldsData->FieldHtmlType == Ticketfields::FIELD_HTML_TEXT) || ($TicketfieldsData->FieldHtmlType == Ticketfields::FIELD_HTML_TEXTAREA) || ($TicketfieldsData->FieldHtmlType == Ticketfields::FIELD_HTML_DATE)){
-								$data[$TicketfieldsData->FieldType] =  '';
-							}else{
-								$data[$TicketfieldsData->FieldType] =  0;
-							}
+							$data[$TicketfieldsData->FieldType] = $ticketdetail->FieldValue;
+							$found=1;
+							break;
 						}
 					}
+					if($found==0){					
+						if(($TicketfieldsData->FieldHtmlType == Ticketfields::FIELD_HTML_TEXT) || ($TicketfieldsData->FieldHtmlType == Ticketfields::FIELD_HTML_TEXTAREA) || ($TicketfieldsData->FieldHtmlType == Ticketfields::FIELD_HTML_DATE)){
+							$data[$TicketfieldsData->FieldType] =  '';
+						}else{
+							$data[$TicketfieldsData->FieldType] =  0;
+						}
+					}
+						
 				}
 				
 			}
