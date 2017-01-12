@@ -477,6 +477,7 @@ function SendTicketEmail($Type='store',$id,$data = array()){
 			$EmailData['EmailTo']     	  =   $data['Requester'];
 			$EmailData['Subject']   	  =   'Ticket Created. "'.$data['Subject'].'"';
 			$EmailData['TicketSubject']   =   "(Neon) ".$data['Subject'];
+			$EmailData['AttachmentPaths'] =   $data['AttachmentPaths'];
 			$EmailData['TitleHeading']    =   $LogginedUserName." <strong>created</strong> a ticket for you";
 			$EmailData['Description']	  =   $data['Description'];			
 			$EmailData['Status']	 	  =   \Api\Model\TicketsTable::getTicketStatusByID($data['Status']);
