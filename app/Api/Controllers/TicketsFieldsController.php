@@ -38,9 +38,14 @@ private $validlicense;
 	
 	function GetFields(){
 		$this->IsValidLicense();
+		$data 					= 	Input::all();   
 		try
 		{
-			$Ticketfields	=	DB::table('tblTicketfields')->orderBy('FieldOrder', 'asc')->get(); 
+			if($data['LoginType']=='customer'){		
+				$Ticketfields	=	DB::table('tblTicketfields')->Where(['CustomerDisplay'=>1])->orderBy('FieldOrder', 'asc')->get(); 
+			}else{
+				$Ticketfields	=	DB::table('tblTicketfields')->orderBy('FieldOrder', 'asc')->get();
+			}
 			$final		 	=   Ticketfields::OptimizeDbFields($Ticketfields); 
 			return generateResponse('success', false, false, $Ticketfields);
 		}catch (\Exception $e) {

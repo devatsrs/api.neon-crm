@@ -473,11 +473,11 @@ function SendTicketEmail($Type='store',$id,$data = array()){
 	if($Type=='store')
 	{
 		if(isset($data['Requester']) && $data['Requester']!=$LogginedUserEmail)
-		{
+		{ Log::info(print_r($data,true));
 			$EmailData['EmailTo']     	  =   $data['Requester'];
 			$EmailData['Subject']   	  =   'Ticket Created. "'.$data['Subject'].'"';
 			$EmailData['TicketSubject']   =   "(Neon) ".$data['Subject'];
-			$EmailData['AttachmentPaths'] =   $data['AttachmentPaths'];
+			$EmailData['AttachmentPaths'] =   unserialize($data['AttachmentPaths']);
 			$EmailData['TitleHeading']    =   $LogginedUserName." <strong>created</strong> a ticket for you";
 			$EmailData['Description']	  =   $data['Description'];			
 			$EmailData['Status']	 	  =   \Api\Model\TicketsTable::getTicketStatusByID($data['Status']);
@@ -494,6 +494,7 @@ function SendTicketEmail($Type='store',$id,$data = array()){
 			$EmailData['EmailTo']     	  =   $data['Requester'];
 			$EmailData['Subject']   	  =   'Ticket Updated. "'.$data['Subject'].'"';
 			$EmailData['TicketSubject']   =   "(Neon) ".$data['Subject'];
+			$EmailData['AttachmentPaths'] =   unserialize($data['AttachmentPaths']);
 			$EmailData['TitleHeading']    =   $LogginedUserName." <strong>updated</strong> the ticket";
 			$EmailData['Description']	  =   $data['Description'];
 			$EmailData['Status']	 	  =   \Api\Model\TicketsTable::getTicketStatusByID($data['Status']);
