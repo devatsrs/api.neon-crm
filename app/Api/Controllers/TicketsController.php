@@ -129,11 +129,11 @@ private $validlicense;
 					"CompanyID"=>User::get_companyID(),
 					"Requester"=>$RequesterEmail,
 					"RequesterName"=>$RequesterName,
-					"Subject"=>$Ticketfields['default_subject'],
-					"Type"=>$Ticketfields['default_ticket_type'],
-					"Status"=>$Ticketfields['default_status'],
-					"Priority"=>$Ticketfields['default_priority'],					
-					"Description"=>$Ticketfields['default_description'],	
+					"Subject"=>isset($Ticketfields['default_subject'])?$Ticketfields['default_subject']:'',
+					"Type"=>isset($Ticketfields['default_ticket_type'])?$Ticketfields['default_ticket_type']:0,
+					"Status"=>isset($Ticketfields['default_status'])?$Ticketfields['default_status']:TicketsTable::getDefaultStatus(),
+					"Priority"=>isset($Ticketfields['default_priority'])?$Ticketfields['default_priority']:TicketPriority::getDefaultPriorityStatus(),					
+					"Description"=>isset($Ticketfields['default_description'])?$Ticketfields['default_description']:'',	 
 					"AttachmentPaths"=>$files,
 					"created_at"=>date("Y-m-d H:i:s"),
 					"created_by"=>User::get_user_full_name()
@@ -208,12 +208,21 @@ private $validlicense;
 	public function Edit($id)
 	{
 		$this->IsValidLicense();
+		$post_data = Input::all();
 	    if($id > 0)
 		{	
 			$data['TicketID'] 					=	 $id;
 			$data['ticketdata']					=	 TicketsTable::find($id);
 			$data['ticketdetaildata']			=	 TicketsDetails::where(["TicketID"=>$id])->get();								
-			$data['Ticketfields']	   			=	 DB::table('tblTicketfields')->orderBy('FieldOrder', 'asc')->get(); 
+			
+			
+			if($post_data['LoginType']=='customer'){		
+				$data['Ticketfields']			=	DB::table('tblTicketfields')->Where(['CustomerDisplay'=>1])->orderBy('FieldOrder', 'asc')->get(); 
+			}else{
+				$data['Ticketfields']			=	DB::table('tblTicketfields')->orderBy('FieldOrder', 'asc')->get();
+			}
+			
+			
 			$data['Agents']			   			= 	 User::getUserIDListAll(0);
 			$AllUsers		   					= 	 User::getUserIDListAll(0); 
 			$AllUsers[0] 	   					= 	 'None';	
@@ -296,16 +305,15 @@ private $validlicense;
 				}else{
 					
 					$TicketData = array(
-					"Subject"=>$Ticketfields['default_subject'],
-					"Type"=>$Ticketfields['default_ticket_type'],
-					"Status"=>$Ticketfields['default_status'],
-					"Priority"=>$Ticketfields['default_priority'],					
-					"Description"=>$Ticketfields['default_description'],	
+					"Subject"=>isset($Ticketfields['default_subject'])?$Ticketfields['default_subject']:'',
+					"Type"=>isset($Ticketfields['default_ticket_type'])?$Ticketfields['default_ticket_type']:0,
+					"Status"=>isset($Ticketfields['default_status'])?$Ticketfields['default_status']:TicketsTable::getDefaultStatus(),
+					"Priority"=>isset($Ticketfields['default_priority'])?$Ticketfields['default_priority']:TicketPriority::getDefaultPriorityStatus(),		
+					"Description"=>isset($Ticketfields['default_description'])?$Ticketfields['default_description']:'',
 					"AttachmentPaths"=>$files,
 					"updated_at"=>date("Y-m-d H:i:s"),
 					"updated_by"=>User::get_user_full_name()
-					);
-				
+					);								
 				}
 				
 				try{
@@ -442,10 +450,14 @@ private $validlicense;
 		   $Agents			 			 = 	 	User::getUserIDListAll(0);
 		   $data['Agents']				 = 	 	$row =  array("0"=> "Select")+json_decode(json_encode($Agents),true);   
 		   $data['CloseStatus'] 		 =  	TicketsTable::getClosedTicketStatus();  //close status id for ticket 
-		   
 		   $data['ticketdata']			 =	    TicketsTable::find($postdata['id']);
-		   $data['ticketdetaildata']	 =	    TicketsDetails::where(["TicketID"=>$postdata['id']])->get();								
-		   $data['Ticketfields']	   	 =	    DB::table('tblTicketfields')->orderBy('FieldOrder', 'asc')->get(); 		
+		   $data['ticketdetaildata']	 =	    TicketsDetails::where(["TicketID"=>$postdata['id']])->get();	
+		   							
+		   if($postdata['LoginType']=='customer'){		
+				$data['Ticketfields']	=	DB::table('tblTicketfields')->Where(['CustomerDisplay'=>1])->orderBy('FieldOrder', 'asc')->get(); 
+			}else{
+				$data['Ticketfields']	=	DB::table('tblTicketfields')->orderBy('FieldOrder', 'asc')->get();
+			}
 		   $data['ticketSavedData'] 	 = 		TicketsTable::SetUpdateValues($data['ticketdata'],$data['ticketdetaildata'],$data['Ticketfields']);
 		  
 		   $data['agentsAll'] = DB::table('tblTicketGroupAgents')

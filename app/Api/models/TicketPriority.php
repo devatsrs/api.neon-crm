@@ -15,4 +15,11 @@ class TicketPriority extends \Eloquent {
 		 $row =  array("0"=> "Select")+json_decode(json_encode($row),true);
 		 return $row;
 	}
+	
+	static $DefaultPriority = 'Low';
+	
+	
+	static function getDefaultPriorityStatus(){
+			return TicketPriority::where(["PriorityValue"=>TicketPriority::$DefaultPriority])->pluck('PriorityID');
+	}
 }

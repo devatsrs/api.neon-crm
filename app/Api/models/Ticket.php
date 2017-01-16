@@ -11,4 +11,5 @@ class Ticket extends Model
     protected $table = 'tblHelpDeskTickets';
 
     protected $primaryKey = "ID";
+	
 }
