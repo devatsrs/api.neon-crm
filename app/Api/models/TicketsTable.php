@@ -52,6 +52,25 @@ class TicketsTable extends \Eloquent
 		return array("rules"=>$rules,"messages"=>$messages);
 	}
 	
+	static function GetAgentSubmitComposeRules(){
+		
+		 $rules 	 =  array();
+		 $messages	 =  array();
+		 $fields 	 = 	Ticketfields::where(['AgentReqSubmit'=>1])->get();
+		
+		 
+		foreach($fields as $fieldsdata)	 
+		{
+			if(($fieldsdata->FieldType=='default_requester'  || $fieldsdata->FieldType=='default_group' || $fieldsdata->FieldType=='default_agent' || $fieldsdata->FieldType=='default_subject' || $fieldsdata->FieldType=='default_description' )){continue;}
+		
+			$rules[$fieldsdata->FieldType] = 'required';
+			$messages[$fieldsdata->FieldType.".required"] = "The ".$fieldsdata->AgentLabel." field is required";
+		}
+		
+		return array("rules"=>$rules,"messages"=>$messages);
+	
+	}
+	
 	static function getClosedTicketStatus(){
 		//TicketfieldsValues::WHERE
 		 $ValuesID =  TicketfieldsValues::join('tblTicketfields','tblTicketfields.TicketFieldsID','=','tblTicketfieldsValues.FieldsID')

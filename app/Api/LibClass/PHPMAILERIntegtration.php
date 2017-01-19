@@ -18,7 +18,17 @@ class PHPMAILERIntegtration{
 	{
 		Config::set('mail.host',$config->SMTPServer);
 		Config::set('mail.port',$config->Port);
-		Config::set('mail.from.address',$config->EmailFrom);
+		if(isset($data['EmailFrom'])){ Log::info("SetEmailConfiguration 1");	
+			Config::set('mail.from.address',$data['EmailFrom']);
+		}else{ Log::info("SetEmailConfiguration 2");	
+			Config::set('mail.from.address',$config->EmailFrom);
+		}
+		
+		if(isset($data['CompanyName'])){
+			Config::set('mail.from.name',$data['CompanyName']);
+		}else{
+			Config::set('mail.from.name',$config->CompanyName);
+		}
 		Config::set('mail.from.name',$config->CompanyName);
 		Config::set('mail.encryption',($config->IsSSL==1?'SSL':'TLS'));
 		Config::set('mail.username',$config->SMTPUsername);
@@ -40,7 +50,6 @@ class PHPMAILERIntegtration{
 		{
 			$mail->addCustomHeader('In-Reply-To', $data['In-Reply-To']); 
 		}
-	
 		$mail->From = $from['address'];
 		$mail->FromName = $from['name'];
 		$mail->IsHTML(true);		
@@ -48,7 +57,7 @@ class PHPMAILERIntegtration{
 	}	 
 	
 	public static function SendMail($view,$data,$config,$companyID='',$body)
-	{
+	{ 
 		if(empty($companyID)){
 			 $companyID = User::get_companyID();
 		}

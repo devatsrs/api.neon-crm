@@ -213,8 +213,8 @@ $api->version('v1', function ($api) {
 			$api->post('tickets/delete/{id}', 'TicketsController@Delete');	
 			$api->post('tickets/edit/{id}', 'TicketsController@Edit');
 			$api->post('tickets/update/{id}', 'TicketsController@Update');
-			$api->post('tickets/updatedetailpage/{id}', 'TicketsController@UpdateDetailPage');
-			
+			$api->post('tickets/updatedetailpage/{id}', 'TicketsController@UpdateDetailPage');			
+			$api->post('tickets/SendMailTicket', 'TicketsController@SendMailTicket');
 			$api->post('tickets/updateticketattributes/{id}', 'TicketsController@UpdateTicketAttributes');									
 			
 		});

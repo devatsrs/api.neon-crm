@@ -237,6 +237,88 @@ function email_log($data){
     return $status;
 }
 
+function email_log_data_Ticket($data,$view = '',$status){
+    $status = array('status' => 0, 'message' => 'Something wrong with Saving log.');
+    if(!isset($data['EmailTo']) && empty($data['EmailTo'])){
+        $status['message'] = 'Email To not set in Account mail log';
+        return $status;
+    }
+    
+    if(!isset($data['Subject']) && empty($data['Subject'])){
+        $status['message'] = 'Subject not set in Account mail log';
+        return $status;
+    }
+    if(!isset($data['Message']) && empty($data['Message'])){
+        $status['message'] = 'Message not set in Account mail log';
+        return $status;
+    }
+
+    if(is_array($data['EmailTo'])){
+        $data['EmailTo'] = implode(',',$data['EmailTo']);
+    }
+
+    if(!isset($data['cc']))
+    {
+        $data['cc'] = '';
+    }
+
+    if(!isset($data['bcc']))
+    {
+        $data['bcc'] = '';
+    }
+
+    if(isset($data['AttachmentPaths']) && count($data['AttachmentPaths'])>0)
+    {
+        $data['AttachmentPaths'] = serialize($data['AttachmentPaths']);
+    }
+    else
+    {
+        $data['AttachmentPaths'] = serialize([]);
+    }
+
+    if($view!='')
+    {
+        $body = htmlspecialchars_decode(View::make($view, compact('data'))->render());
+    }
+    else
+    {
+        $body = $data['Message'];
+    }
+	if(!isset($status['message_id']))
+	{
+		$status['message_id'] = '';
+	}
+	if(!isset($data['EmailCall']))
+	{
+		$data['EmailCall'] = \Api\Model\Messages::Sent;
+	}
+
+	if(isset($data['EmailFrom']))
+	{
+		$data['EmailFrom'] = $data['EmailFrom'];
+	}else{
+		$data['EmailFrom'] = \Api\Model\User::get_user_email();
+	}
+	
+    $logData = ['EmailFrom'=>$data['EmailFrom'],
+        'EmailTo'=>$data['EmailTo'],
+        'Subject'=>$data['Subject'],
+        'Message'=>$body,
+        'CompanyID'=>\Api\Model\User::get_companyID(),
+        'UserID'=>\Api\Model\User::get_userID(),
+        'CreatedBy'=>\Api\Model\User::get_user_full_name(),
+		"created_at"=>date("Y-m-d H:i:s"),
+        'Cc'=>$data['cc'],
+        'Bcc'=>$data['bcc'],
+        "AttachmentPaths"=>$data['AttachmentPaths'],
+		"MessageID"=>$status['message_id'],
+		"EmailParent"=>isset($data['EmailParent'])?$data['EmailParent']:0,
+		"EmailCall"=>$data['EmailCall'],
+    ];
+	
+    $data =  \Api\Model\AccountEmailLog::insertGetId($logData);
+    return $data;
+}
 
 function email_log_data($data,$view = ''){
     $status = array('status' => 0, 'message' => 'Something wrong with Saving log.');
@@ -296,10 +378,15 @@ function email_log_data($data,$view = ''){
 	{
 		$data['EmailCall'] = \Api\Model\Messages::Sent;
 	}
-	
-	
 
-    $logData = ['EmailFrom'=>\Api\Model\User::get_user_email(),
+	if(isset($data['EmailFrom']))
+	{
+		$data['EmailFrom'] = $data['EmailFrom'];
+	}else{
+		$data['EmailFrom'] = \Api\Model\User::get_user_email();
+	}
+	
+    $logData = ['EmailFrom'=>$data['EmailFrom'],
         'EmailTo'=>$data['EmailTo'],
         'Subject'=>$data['Subject'],
         'Message'=>$body,
@@ -479,15 +566,26 @@ function SendTicketEmail($Type='store',$id,$data = array()){
 			$EmailData['TicketSubject']   =   "(Neon) ".$data['Subject'];
 			$EmailData['AttachmentPaths'] =   unserialize($data['AttachmentPaths']);
 			$EmailData['TitleHeading']    =   $LogginedUserName." <strong>created</strong> a ticket for you";
+			
+			if(isset($data['email_from']) && !empty($data['email_from'])){
+				$EmailData['EmailFrom']       =   $data['email_from'];
+				$EmailData['CompanyName']  	  =   $data['email_from_name'];
+			}
+			
+			$EmailData['Message']	 	  =   $data['Description'];
 			$EmailData['Description']	  =   $data['Description'];			
 			$EmailData['Status']	 	  =   \Api\Model\TicketsTable::getTicketStatusByID($data['Status']);
 			$EmailData['Priority']	 	  =   \Api\Model\TicketPriority::where(["PriorityID"=>$data['Priority']])->pluck('PriorityValue');			
-			$status       				  =   sendMail('emails.tickets.TicketCreated', $EmailData);									
+			$status       				  =   sendMail('emails.tickets.TicketCreated', $EmailData);		
+				
+			if($status['status']==1){
+			return email_log_data_Ticket($EmailData,'emails.tickets.TicketCreated',$status);
+			}						
 		}		
-		return true;		
+		return false;		
 	}
 	
-	if($Type=='update')
+	/*if($Type=='update')
 	{
 		if(isset($data['Requester']) && $data['Requester']!=$LogginedUserEmail)
 		{
@@ -497,14 +595,47 @@ function SendTicketEmail($Type='store',$id,$data = array()){
 			$EmailData['AttachmentPaths'] =   unserialize($data['AttachmentPaths']);
 			$EmailData['TitleHeading']    =   $LogginedUserName." <strong>updated</strong> the ticket";
 			$EmailData['Description']	  =   $data['Description'];
+			
+			if(isset($data['email_from']) && !empty($data['email_from'])){
+				$EmailData['EmailFrom']       =   $data['email_from'];
+				$EmailData['CompanyName']  	  =   $data['email_from_name'];
+			}
+			$EmailData['Message']	 	  =   $data['Description'];
 			$EmailData['Status']	 	  =   \Api\Model\TicketsTable::getTicketStatusByID($data['Status']);
 			$EmailData['Priority']	 	  =   \Api\Model\TicketPriority::where(["PriorityID"=>$data['Priority']])->pluck('PriorityValue');			
-			$status       				  =   sendMail('emails.tickets.TicketCreated', $EmailData);									
+			$status       				  =   sendMail('emails.tickets.TicketCreated', $EmailData);	
+			
+			if($status['status']==1){
+				$result  =  email_log_data_Ticket($EmailData,'emails.tickets.TicketCreated'); Log::info("email_log_data result",$status); Log::info(print_r($result,true));
+				return $result;
+			}									
 		}		
-		return true;		
-	} 
+		return false;		
+	} */
 }
 
+	function SendComposeTicketEmail($data){
+		
+		$EmailData['EmailTo']     	  =   $data['Requester'];
+		$EmailData['Subject']   	  =   $data['Subject'];
+		$EmailData['EmailFrom']  	  =   $data['email_from'];
+		$EmailData['CompanyName']  	  =   $data['email_from_name'];
+		$EmailData['cc']  		 	  =   isset($data['cc'])?$data['cc']:'';
+		$EmailData['bcc']  		 	  =   isset($data['bcc'])?$data['bcc']:'';
+		$EmailData['AttachmentPaths'] =   !empty($data['files'])?unserialize($data['files']):'';
+		$EmailData['Description']	  =   $data['Description'];			
+		$EmailData['Message']	 	  =   $data['Description'];
+		$status       				  =   sendMail('emails.template', $EmailData);	
+		 		
+		if($status['status']==0){
+				 return generateResponse($status['message'],true,true);
+		}		
+		if($status['status']==1){
+			return email_log_data_Ticket($EmailData,'emails.template',$status);
+		}
+		return false;
+	}
+	
 function SendTaskMail($data){
     $LogginedUser   = \Api\Model\User::get_userID();
     $LogginedUserName   =  \Api\Model\User::get_user_full_name();
