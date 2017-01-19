@@ -13,7 +13,8 @@ class TicketsTable extends \Eloquent
 	
     static  $FreshdeskTicket  		= 	1;
     static  $SystemTicket 			= 	0;
-	
+	const TICKET					=	0;
+	const EMAIL						=	1;
 	static  $defaultSortField 		= 	'created_at';
 	static  $defaultSortType 		= 	'desc';
 	static  $Sortcolumns			=	array("created_at"=>"Date Created","subject"=>"Subject","status"=>"Status","group"=>"Group","updated_at"=>"Last Modified");

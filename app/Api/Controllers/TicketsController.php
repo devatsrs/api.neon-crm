@@ -761,6 +761,7 @@ private $validlicense;
 					//"Agent"=>$Ticketfields['default_agent'],
 					"Description"=>$data['Message'],	
 					"AttachmentPaths"=>$files,
+					"TicketType"=>TicketsTable::EMAIL,
 					"created_at"=>date("Y-m-d H:i:s"),
 					"created_by"=>User::get_user_full_name()
 				);
@@ -775,6 +776,7 @@ private $validlicense;
 					"Priority"=>isset($Ticketfields['default_priority'])?$Ticketfields['default_priority']:TicketPriority::getDefaultPriorityStatus(),					
 					"Description"=>isset($data['Message'])?$data['Message']:'',	 
 					"AttachmentPaths"=>$files,
+					"TicketType"=>TicketsTable::EMAIL,
 					"created_at"=>date("Y-m-d H:i:s"),
 					"created_by"=>User::get_user_full_name()
 				);
