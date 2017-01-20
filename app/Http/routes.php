@@ -85,7 +85,10 @@ $api->version('v1', function ($api) {
 			$api->get('account/get_account_threshold', 'AccountController@GetAccountThreshold');
 			$api->post('account/update_account_threshold', 'AccountController@UpdateAccountThreshold');
 			$api->delete('account/delete_temp_credit', 'AccountController@DeleteAccountThreshold');
-
+			
+			
+			$api->get('contact/GetTimeLine', 'ContactsController@GetTimeLine');
+			
             //Opportunity Board
             $api->get('opportunityboard/get_boards','OpportunityBoardController@getBoards');
             $api->post('opportunityboard/add_board','OpportunityBoardController@addBoard');

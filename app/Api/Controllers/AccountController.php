@@ -15,6 +15,7 @@ use Api\Model\Company;
 use Api\Model\CompanySetting;
 use Api\Model\CompanyConfiguration;
 use Api\Model\AccountEmailLog;
+use Api\Model\TicketsTable;
 use App\Http\Requests;
 use Dingo\Api\Facade\API;
 use Illuminate\Support\Facades\DB;
@@ -265,19 +266,30 @@ class AccountController extends BaseController
         if ($validator->fails()) {
             return generateResponse($validator->errors(),true);
         }			
+		
+		$queryTicketType	= 0;
+		$SystemTicket  = TicketsTable::CheckTicketLicense();
+		if($SystemTicket){
+			$queryTicketType	= TicketsTable::$SystemTicket;
+		}
 			
         try { 
-			if($data['iDisplayStart']==0) {
-				if(\App\SiteIntegration::CheckIntegrationConfiguration(false,\App\SiteIntegration::$freshdeskSlug)){
-				 $freshsdesk = 	$this->FreshSDeskGetTickets($data['AccountID'],$data['GUID']); 
-					if($freshsdesk){
-						//return generateResponse(array("freshsdesk"=>array(0=>$freshsdesk['errors'][0]->message)),true);
+			if(!$queryTicketType){ //check system ticket enable . if not then check freshdesk tickets
+				if($data['iDisplayStart']==0) {
+					if(\App\SiteIntegration::CheckIntegrationConfiguration(false,\App\SiteIntegration::$freshdeskSlug)){
+						$queryTicketType	= TicketsTable::$FreshdeskTicket;
+					 $freshsdesk = 	$this->FreshSDeskGetTickets($data['AccountID'],$data['GUID']); 
+						if($freshsdesk){
+							//return generateResponse(array("freshsdesk"=>array(0=>$freshsdesk['errors'][0]->message)),true);
+						}
 					}
 				}
 			}
+			
+			
             $columns =  ['Timeline_type','ActivityTitle','ActivityDescription','ActivityDate','ActivityType','ActivityID','Emailfrom','EmailTo','EmailSubject','EmailMessage','AccountEmailLogID','NoteID','Note','CreatedBy','created_at','updated_at'];
-            $query = "call prc_getAccountTimeLine(" . $data['AccountID'] . "," . $companyID . ",'".$data['GUID']."'," . $data['iDisplayStart'] . "," . $data['iDisplayLength'] . ")";  
-            $result_array = DB::select($query); 
+            $query = "call prc_getAccountTimeLine(" . $data['AccountID'] . "," . $companyID . ",".$queryTicketType.",'".$data['GUID']."'," . $data['iDisplayStart'] . "," . $data['iDisplayLength'] . ")";  
+            $result_array = DB::select($query); Log::info($query);
             return generateResponse('',false,false,$result_array);
        }
         catch (\Exception $ex){
@@ -400,16 +412,42 @@ class AccountController extends BaseController
 	function GetTicketConversations(){
 		$companyID 			=	 	User::get_companyID();
 		$data           	=   	Input::all();  		
-		$FreshDeskObj 		= 		new \App\SiteIntegration();
-		$FreshDeskObj->SetSupportSettings();		
 		
-		$GetTicketsCon 		= 		$FreshDeskObj->GetSupportTicketConversations($data['id']);  
-		if($GetTicketsCon['StatusCode'] == 200 && count($GetTicketsCon['data'])>0){ 
-			return generateResponse('',false,false,$GetTicketsCon['data']);
+		$queryTicketType	= 0;
+		$SystemTicket  = TicketsTable::CheckTicketLicense();
+		if($SystemTicket){
+			$queryTicketType	= TicketsTable::$SystemTicket;
 		}
-		else{
-			return generateResponse('No Record Found.',false,false);
-		} 	
+			
+		if(!$queryTicketType){ //fresh desk ticket
+			$FreshDeskObj 		= 		new \App\SiteIntegration();
+			$FreshDeskObj->SetSupportSettings();		
+			
+			$GetTicketsCon 		= 		$FreshDeskObj->GetSupportTicketConversations($data['id']);  
+			if($GetTicketsCon['StatusCode'] == 200 && count($GetTicketsCon['data'])>0){ 
+				return generateResponse('',false,false,$GetTicketsCon['data']);
+			}
+			else
+			{
+				return generateResponse('No Record Found.',false,false);
+			} 	
+		}else{ //system ticket
+			$ticket = TicketsTable::find($data['id']);
+			Log::info("Ticketid:".$data['id']);
+			Log::info("AccountEmailLogID:".$ticket->AccountEmailLogID);
+			
+			
+			$GetTicketsCon = AccountEmailLog::where(['EmailParent'=>$ticket->AccountEmailLogID,'CompanyID'=>$companyID])->select([DB::raw("Message AS body_text"), "created_at"])->orderBy('created_at', 'asc')->get();
+			Log::info(print_r($GetTicketsCon,true));	
+			if(count($ticket)>0 && $ticket->AccountEmailLogID>0 && count($GetTicketsCon)>0){
+				return generateResponse('',false,false,$GetTicketsCon);
+			}
+			else
+			{
+				return generateResponse('No Record Found.',false,false);
+			}
+		}
+		
 	}
 
     public function DeleteNote(){

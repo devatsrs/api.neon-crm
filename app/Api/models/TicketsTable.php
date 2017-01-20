@@ -11,8 +11,8 @@ class TicketsTable extends \Eloquent
 
     protected $primaryKey = "TicketID";
 	
-    static  $FreshdeskTicket  		= 	1;
-    static  $SystemTicket 			= 	0;
+    static  $FreshdeskTicket  		= 	2;
+    static  $SystemTicket 			= 	1;
 	const TICKET					=	0;
 	const EMAIL						=	1;
 	static  $defaultSortField 		= 	'created_at';

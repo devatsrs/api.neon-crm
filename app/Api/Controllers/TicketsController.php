@@ -62,7 +62,6 @@ private $validlicense;
 		Log::info("query:".$query);
 			$resultdata   	=  DataTableSql::of($query)->getProcResult(array('ResultCurrentPage','TotalResults'));	
 			$resultpage  	=  DataTableSql::of($query)->make(false);				
-		
 			$result = ["resultpage"=>$resultpage,"iTotalRecords"=>$resultdata->iTotalRecords,"iTotalDisplayRecords"=>$resultdata->iTotalDisplayRecords,"totalcount"=>$resultdata->data['TotalResults'][0]->totalcount,"ResultCurrentPage"=>$resultdata->data['ResultCurrentPage']];
 			
 			 return generateResponse('success', false, false,$result);
@@ -617,10 +616,11 @@ private $validlicense;
 					
 					DB::beginTransaction();
 					
-					$email_from_data   =  TicketGroups::where(["GroupID"=>$ticketdata->Group])->select('GroupReplyAddress','GroupName')->get(); 
+					$email_from_data   =  TicketGroups::where(["GroupEmailAddress"=>$data['email-from']])->select('GroupReplyAddress','GroupName')->get(); 
 					//$email_from_name   =  TicketGroups::where(["GroupID"=>$ticketdata->Group])->pluck('GroupName'); 
+					Log::info(print_r($data,true));
 					Log::info('email_from_data');
-					Log::info(print_r($email_from_data[0],true));
+					Log::info(print_r($email_from_data,true));
 					 $files = '';
 					 $FilesArray = array();
 					 if (isset($data['file']) && !empty($data['file'])) {
@@ -628,7 +628,7 @@ private $validlicense;
 						$files = serialize(json_decode($data['file'],true));
 					}
 					 
-					 $data['EmailFrom']  		=   $email_from_data[0]->GroupReplyAddress;
+					 $data['EmailFrom']  		=   $data['email-from'];
 					 $data['CompanyName'] 	    =   $email_from_data[0]->GroupName;
 					 $data['EmailTo']  		  	= 	$data['email-to'];
 					 $data['AttachmentPaths'] 	= 	$FilesArray;
