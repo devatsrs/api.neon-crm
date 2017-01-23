@@ -88,6 +88,10 @@ $api->version('v1', function ($api) {
 			
 			
 			$api->get('contact/GetTimeLine', 'ContactsController@GetTimeLine');
+			$api->post('contact/add_note', 'ContactsController@add_note');
+            $api->get('contact/get_note','ContactsController@GetNote');
+            $api->post('contact/delete_note','ContactsController@DeleteNote');
+			$api->post('contact/update_note','ContactsController@UpdateNote');
 			
             //Opportunity Board
             $api->get('opportunityboard/get_boards','OpportunityBoardController@getBoards');

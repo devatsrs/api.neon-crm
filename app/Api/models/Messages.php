@@ -11,6 +11,9 @@ class Messages extends \Eloquent {
     protected $primaryKey 	= 	"MsgID";
     public    $timestamps 	= 	false; // no created_at and updated_at
 	
+	const  UserTypeAccount	= 	0;
+    const  UserTypeContact	=   1;
+	
 	const  Sent 			= 	0;
     const  Received			=   1;
     const  Draft 			= 	2;

@@ -9,6 +9,8 @@ use Api\Model\Note;
 use Api\Model\User;
 use Api\Model\DataTableSql;
 use Api\Model\AccountEmailLog;
+use Api\Model\Messages;
+use Api\Model\Contact;
 use App\Http\Requests;
 use Dingo\Api\Facade\API;
 use Illuminate\Support\Facades\Input;
@@ -34,14 +36,21 @@ class AccountActivityController extends BaseController {
 	 */
 
     public function sendMail(){
-		$data = Input::all();  				
+		$data = Input::all();  		Log::info(print_r($data,true));
+		$usertype = 0;	 //acount by default	
         $rules = array(
 			"email-to" =>'required',
             'Subject'=>'required',
             'Message'=>'required'			
         );
-
-        $account    		= 	Account::find($data['AccountID']);
+		
+		if(isset($data['usertype'])  && $data['usertype']==Messages::UserTypeContact){
+			$Contact	 	=	Contact::find($data['ContactID']);	
+			$usertype 		  		 =    1;
+		}else{
+			$account	 	=    Account::find($data['AccountID']);	
+		}
+		
  	    $data['EmailTo']	= 	$data['email-to'];
 
         $validator = Validator::make($data,$rules);
@@ -59,7 +68,11 @@ class AccountActivityController extends BaseController {
 		}
 
         $JobLoggedUser = User::find(User::get_userID());
-        $replace_array = Account::create_replace_array($account,array(),$JobLoggedUser);
+		if($usertype){
+			$replace_array  = Contact::create_replace_array_contact($Contact,array(),$JobLoggedUser);
+		}else{
+       		 $replace_array = Account::create_replace_array($account,array(),$JobLoggedUser);
+		}
         $data['Message'] = template_var_replace($data['Message'],$replace_array);
 		// image upload end
 		

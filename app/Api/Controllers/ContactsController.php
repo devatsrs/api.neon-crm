@@ -8,13 +8,14 @@ use Api\Model\AccountBalanceHistory;
 use Api\Model\DataTableSql;
 use Api\Model\User;
 use Api\Model\Account;
-use Api\Model\Note;
+use Api\Model\ContactNote;
 use Api\Model\Invoice;
 use Api\Model\Ticket;
 use Api\Model\Company;
 use Api\Model\CompanySetting;
 use Api\Model\CompanyConfiguration;
 use Api\Model\AccountEmailLog;
+use Api\Model\TicketsTable;
 use App\Http\Requests;
 use Dingo\Api\Facade\API;
 use Illuminate\Support\Facades\DB;
@@ -37,15 +38,13 @@ class ContactsController extends BaseController
         Parent::__Construct($request);
     }
 
-   
-
-	 public function add_note(){
+    public function add_note(){
 
         $data 	= 	Input::all();
 
 	   $rules = array(
             'CompanyID' => 'required',
-            'AccountID' => 'required',
+            'ContactID' => 'required',
             'Note' => 'required',
         );
 
@@ -57,7 +56,7 @@ class ContactsController extends BaseController
 
 		try{
 			$data = cleanarray($data,[]);
-            $result = Note::create($data);
+            $result = ContactNote::create($data);
             return generateResponse('',false,false,$result);
         }catch (\Exception $ex){
             Log::info($ex);
@@ -75,7 +74,7 @@ class ContactsController extends BaseController
             return generateResponse($validator->errors(),true);
         }
         try {
-            $Note = Note::find($data['NoteID']);
+            $Note = ContactNote::find($data['NoteID']);
         } catch (\Exception $e) {
             Log::info($e);
             return $this->response->errorInternal($e->getMessage());
@@ -100,8 +99,8 @@ class ContactsController extends BaseController
 
 		try{
 			 $data = cleanarray($data,[]);
-			$result = Note::find($data['NoteID'])->update($data);
-			$result = Note::find($data['NoteID']);
+			$result = ContactNote::find($data['NoteID'])->update($data);
+			$result = ContactNote::find($data['NoteID']);
 
             return generateResponse('',false,false,$result);
         }catch (\Exception $ex){
@@ -109,32 +108,63 @@ class ContactsController extends BaseController
             return $this->response->errorInternal($ex->getMessage());
         }
     }
+	
+	 public function DeleteNote(){
+        $data = Input::all();
+
+        $rules['NoteID'] = 'required';
+        $validator = Validator::make($data, $rules);
+        if ($validator->fails()) {
+            return generateResponse($validator->errors(),true);
+        }
+
+        try{
+            ContactNote::where(['NoteID'=>$data['NoteID']])->delete();
+        }catch (\Exception $ex){
+            Log::info($ex);
+            return $this->response->errorInternal($ex->getMessage());
+        }
+        return generateResponse('successfull');
+
+    }
+
 
     public function GetTimeLine()
-    { 
-        $data                       =   Input::all();   Log::info(print_r($data,true));
+    {
+        $data                       =   Input::all();  
         $companyID                  =   User::get_companyID();
         $rules['iDisplayStart']     =   'required|numeric|Min:0';
         $rules['iDisplayLength']    =   'required|numeric';
-        $rules['AccountID']         =   'required|numeric';
+        $rules['ContactID']         =   'required|numeric';
 		
         $validator = Validator::make($data, $rules);
         if ($validator->fails()) {
             return generateResponse($validator->errors(),true);
         }			
+		
+		$queryTicketType	= 0;
+		$SystemTicket  = TicketsTable::CheckTicketLicense();
+		if($SystemTicket){
+			$queryTicketType	= TicketsTable::$SystemTicket;
+		}
 			
         try { 
-			if($data['iDisplayStart']==0) {
-				if(\App\SiteIntegration::CheckIntegrationConfiguration(false,\App\SiteIntegration::$freshdeskSlug)){
-				 $freshsdesk = 	$this->FreshSDeskGetTickets($data['AccountID'],$data['GUID']); 
-					if($freshsdesk){
-						//return generateResponse(array("freshsdesk"=>array(0=>$freshsdesk['errors'][0]->message)),true);
+			if(!$queryTicketType){ //check system ticket enable . if not then check freshdesk tickets
+				if($data['iDisplayStart']==0) {
+					if(\App\SiteIntegration::CheckIntegrationConfiguration(false,\App\SiteIntegration::$freshdeskSlug)){
+						$queryTicketType	= TicketsTable::$FreshdeskTicket;
+					 $freshsdesk = 	$this->FreshSDeskGetTickets($data['AccountID'],$data['GUID']); 
+						if($freshsdesk){
+							//return generateResponse(array("freshsdesk"=>array(0=>$freshsdesk['errors'][0]->message)),true);
+						}
 					}
 				}
 			}
+			
+			
             $columns =  ['Timeline_type','ActivityTitle','ActivityDescription','ActivityDate','ActivityType','ActivityID','Emailfrom','EmailTo','EmailSubject','EmailMessage','AccountEmailLogID','NoteID','Note','CreatedBy','created_at','updated_at'];
-            $query = "call prc_getAccountTimeLine(" . $data['AccountID'] . "," . $companyID . ",'".$data['GUID']."'," . $data['iDisplayStart'] . "," . $data['iDisplayLength'] . ")";  
-            $result_array = DB::select($query); 
+            $query = "call prc_getContactTimeLine(" . $data['ContactID'] . "," . $companyID . ",".$queryTicketType.",'".$data['GUID']."'," . $data['iDisplayStart'] . "," . $data['iDisplayLength'] . ")";  
+            $result_array = DB::select($query); Log::info($query);
             return generateResponse('',false,false,$result_array);
        }
         catch (\Exception $ex){
@@ -269,24 +299,6 @@ class ContactsController extends BaseController
 		} 	
 	}
 
-    public function DeleteNote(){
-        $data = Input::all();
-
-        $rules['NoteID'] = 'required';
-        $validator = Validator::make($data, $rules);
-        if ($validator->fails()) {
-            return generateResponse($validator->errors(),true);
-        }
-
-        try{
-            Note::where(['NoteID'=>$data['NoteID']])->delete();
-        }catch (\Exception $ex){
-            Log::info($ex);
-            return $this->response->errorInternal($ex->getMessage());
-        }
-        return generateResponse('successfull');
-
-    }
 	
 	public function GetAccountLeadByContactNumber()
 	{

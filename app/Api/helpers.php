@@ -326,10 +326,10 @@ function email_log_data($data,$view = ''){
         $status['message'] = 'Email To not set in Account mail log';
         return $status;
     }
-    if(!isset($data['AccountID']) && empty($data['AccountID'])){
+   /* if(!isset($data['AccountID']) && empty($data['AccountID'])){
         $status['message'] = 'AccountID not set in Account mail log';
         return $status;
-    }
+    }*/
     if(!isset($data['Subject']) && empty($data['Subject'])){
         $status['message'] = 'Subject not set in Account mail log';
         return $status;
@@ -390,7 +390,9 @@ function email_log_data($data,$view = ''){
         'EmailTo'=>$data['EmailTo'],
         'Subject'=>$data['Subject'],
         'Message'=>$body,
-        'AccountID'=>$data['AccountID'],
+        'AccountID'=>isset($data['AccountID'])?$data['AccountID']:0,
+		'ContactID'=>isset($data['ContactID'])?$data['ContactID']:0,
+		"UserType"=>isset($data['usertype'])?$data['usertype']:0,
         'CompanyID'=>\Api\Model\User::get_companyID(),
         'UserID'=>\Api\Model\User::get_userID(),
         'CreatedBy'=>\Api\Model\User::get_user_full_name(),
