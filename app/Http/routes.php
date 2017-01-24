@@ -201,7 +201,7 @@ $api->version('v1', function ($api) {
 			$api->post('ticketgroups/get_group_agents/{id}', 'TicketsGroupController@get_group_agents');
 			$api->post('ticketgroups/get_group_agents_ids/{id}', 'TicketsGroupController@get_group_agents_ids');
 			$api->put('ticketgroups/update/{id}', 'TicketsGroupController@Update');
-            $api->delete('ticketgroups/delete/{id}', 'TicketsGroupController@Delete');			
+            $api->post('ticketgroups/delete/{id}', 'TicketsGroupController@Delete');			
 			$api->post('ticketgroups/send_activation_single/{id}', 'TicketsGroupController@send_activation_single');
 			
 			$api->post('ticketsfields/getfields', 'TicketsFieldsController@GetFields');
