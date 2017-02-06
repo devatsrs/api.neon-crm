@@ -9,6 +9,9 @@ use Api\Model\Note;
 use Api\Model\User;
 use Api\Model\DataTableSql;
 use Api\Model\AccountEmailLog;
+use Api\Model\TicketGroups;
+use Api\Model\TicketsTable;
+use Api\Model\TicketPriority;
 use Api\Model\Messages;
 use Api\Model\Contact;
 use App\Http\Requests;
@@ -35,15 +38,15 @@ class AccountActivityController extends BaseController {
 	 * @return Response
 	 */
 
-    public function sendMail(){
-		$data = Input::all();  		Log::info(print_r($data,true));
+    public function sendMail(){ 
+		$data = Input::all();  
 		$usertype = 0;	 //acount by default	
         $rules = array(
 			"email-to" =>'required',
             'Subject'=>'required',
             'Message'=>'required'			
         );
-		
+
 		if(isset($data['usertype'])  && $data['usertype']==Messages::UserTypeContact){
 			$Contact	 	=	Contact::find($data['ContactID']);	
 			$usertype 		  		 =    1;
@@ -57,9 +60,10 @@ class AccountActivityController extends BaseController {
         if ($validator->fails()) {
             return generateResponse($validator->errors(),true);
         }
-
+		$files = '';
         if (isset($data['file']) && !empty($data['file'])) {
             $data['AttachmentPaths'] = json_decode($data['file'],true);
+			$files = serialize(json_decode($data['file'],true));			
         }
 		
 		if(isset($data['EmailParent'])){
@@ -84,8 +88,38 @@ class AccountActivityController extends BaseController {
 		$data['CompanyName'] = User::get_user_full_name(); //logined user's name as from name
 		
         try{
-            if(isset($data['email_send'])&& $data['email_send']==1) {
-				
+			 DB::beginTransaction();
+        	 Contact::CheckEmailContact($data['EmailTo'],$data['AccountID']);
+			 Contact::CheckEmailContact($data['cc'],$data['AccountID']);
+			 Contact::CheckEmailContact($data['bcc'],$data['AccountID']);		
+			 
+			 if(isset($data['createticket']) && TicketsTable::CheckTicketLicense()){ //check and create ticket
+			 	$email_from_data   	= 	TicketGroups::where(["GroupEmailAddress"=>$data['email-from']])->select('GroupEmailAddress','GroupName','GroupID','GroupReplyAddress')->get(); 
+				$TicketData = array(
+					"CompanyID"=>User::get_companyID(),
+					"Requester"=>$data['EmailTo'],
+					"Subject"=>isset($data['Subject'])?$data['Subject']:'',
+					"Type"=>0,
+					"Group"=>isset($email_from_data[0]->GroupID)?$email_from_data[0]->GroupID:0,
+					"Status"=>TicketsTable::getDefaultStatus(),
+					"Priority"=>TicketPriority::getDefaultPriorityStatus(),					
+					"Description"=>isset($data['Message'])?$data['Message']:'',	 
+					"AttachmentPaths"=>$files,
+					"TicketType"=>TicketsTable::EMAIL,
+					"created_at"=>date("Y-m-d H:i:s"),
+					"created_by"=>User::get_user_full_name()
+				);
+				$TicketID = TicketsTable::insertGetId($TicketData);	
+				 $data['In-Reply-To']	  = 	$email_from_data[0]->GroupEmailAddress;				
+				 $data['EmailFrom']	   	  = 	$email_from_data[0]->GroupReplyAddress;
+				 $data['CompanyName']  	  = 	$email_from_data[0]->GroupName;		
+			 }else{
+				 $data['EmailFrom']	   = 	$data['email-from'];
+			 }
+			 
+			 
+			if(isset($data['email_send'])&& $data['email_send']==1) {
+					  
                 $status = sendMail('emails.template', $data);
             }else{$status = array("status"=>1);}
 			if($status['status']==0){
@@ -94,7 +128,7 @@ class AccountActivityController extends BaseController {
 			
 			$data['message_id'] 	=  isset($status['message_id'])?$status['message_id']:"";			
             $result 				= 	email_log_data($data,'emails.template');
-           	$result['message'] 		= 	'Email Sent Successfully';
+           	$result->message 		= 	'Email Sent Successfully';
 			$multiple_addresses		= 	strpos($data['EmailTo'],',');
 
 			if($multiple_addresses == false){
@@ -102,9 +136,14 @@ class AccountActivityController extends BaseController {
 				if(count($user_data)>0) {
 					$result->EmailTo = $user_data[0]['FirstName'].' '.$user_data[0]['LastName'];
 				}
-			}
+			} 
+			 if(isset($data['createticket']) && TicketsTable::CheckTicketLicense()){ //check and create ticket
+			 	TicketsTable::find($TicketID)->update(array("AccountEmailLogID"=>$result->AccountEmailLogID));
+			 }
+			  DB::commit(); 
             return generateResponse('',false,false,$result);
-        }catch (Exception $ex){
+        }catch (Exception $ex){ 	
+			 DB::rollback(); 
         	 return $this->response->errorInternal($ex->getMessage());
         }
     }

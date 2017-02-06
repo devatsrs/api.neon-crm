@@ -15,8 +15,8 @@ class Ticketfields extends \Eloquent {
 	protected $fillable = [];
 	
 	
-	static  $FIELD_TYPE_STATIC  		= 	0;
-    static  $FIELD_TYPE_DYNAMIC 		= 	1;
+	const  FIELD_TYPE_STATIC  		= 	0;
+    const  FIELD_TYPE_DYNAMIC 		= 	1;
 	
 	const  FIELD_HTML_TEXT    		= 	1;
 	const  FIELD_HTML_TEXTAREA    	= 	2;

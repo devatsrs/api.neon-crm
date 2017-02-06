@@ -41,7 +41,7 @@ private $validlicense;
 	 }
 	  
 	  function GetResult(){ 
-		   $data 					= 	Input::all();   
+		   $data 					= 	Input::all();  Log::info(print_r($data,true));  
 		   $CompanyID 				= 	User::get_companyID(); 
 		   $search		 			=	isset($data['Search'])?$data['Search']:'';	   		   
 		   $status					=	isset($data['status'])?is_array($data['status'])?implode(",",$data['status']):'':'';		   
@@ -52,7 +52,7 @@ private $validlicense;
 		   $sort_column 			= 	$data['iSortCol_0'];
 		   $data['iDisplayStart']    +=1;
 		   
-		   if($data['LoginType']=='customer'){		
+		   if(isset($data['LoginType']) && $data['LoginType']=='customer'){		
 				   $agent		=	'';
 				   $emails 		=	Account::GetAccountAllEmails(User::get_userID());				 
 				   $query 		= 	"call prc_GetSystemTicketCustomer ('".$CompanyID."','".$search."','".$status."','".$priority."','".$Group."','".$agent."','".$emails."','".Messages::Received."',".( ceil($data['iDisplayStart']/$data['iDisplayLength']) )." ,".$data['iDisplayLength'].",'".$sort_column."','".$data['sSortDir_0']."',0)";  
@@ -75,10 +75,9 @@ private $validlicense;
 			return generateResponse("Please submit required fields.",true);
 		}
 		
-		Log::info(print_r($data,true));
 		//Log::info(".....................................");
 		//$RulesMessages      = 	TicketsTable::GetAgentSubmitRules();       
-		if($data['LoginType']=='customer'){
+		if(isset($data['LoginType']) && $data['LoginType']=='customer'){
 			$RulesMessages      = 	TicketsTable::GetCustomerSubmitRules();       
 		}else{
 			$RulesMessages      = 	TicketsTable::GetAgentSubmitRules();       
@@ -223,7 +222,7 @@ private $validlicense;
 			$data['ticketdetaildata']			=	 TicketsDetails::where(["TicketID"=>$id])->get();								
 			
 			
-			if($post_data['LoginType']=='customer'){		
+			if(isset($data['LoginType']) && $post_data['LoginType']=='customer'){		
 				$data['Ticketfields']			=	DB::table('tblTicketfields')->Where(['CustomerDisplay'=>1])->orderBy('FieldOrder', 'asc')->get(); 
 			}else{
 				$data['Ticketfields']			=	DB::table('tblTicketfields')->orderBy('FieldOrder', 'asc')->get();
@@ -270,7 +269,7 @@ private $validlicense;
 			$DetailPage 		=   isset($data['Page'])?$data['Page']:'all';
 			
 			//$RulesMessages      = 	TicketsTable::GetAgentSubmitRules($DetailPage);       
-			if($data['LoginType']=='customer'){
+			if(isset($data['LoginType']) && $data['LoginType']=='customer'){
 			$RulesMessages      = 	TicketsTable::GetCustomerSubmitRules($DetailPage);       
 			}else{
 				$RulesMessages      = 	TicketsTable::GetAgentSubmitRules($DetailPage);       
@@ -289,7 +288,7 @@ private $validlicense;
 				$Ticketfields 	   =  $data['Ticket'];
 				
 			
-				if($data['LoginType']=='user')
+				if(isset($data['LoginType']) && $data['LoginType']=='user')
 				{	
 					$RequesterData 	   =  explode(" <",$Ticketfields['default_requester']);
 					$RequesterName	   =  $RequesterData[0];
@@ -369,7 +368,7 @@ private $validlicense;
 			Log::info(print_r($data,true));
 			//Log::info(".....................................");
 			$DetailPage 		=   isset($data['Page'])?$data['Page']:'all'; Log::info($DetailPage);
-			if($data['LoginType']=='customer'){
+			if(isset($data['LoginType']) && $data['LoginType']=='customer'){
 				$RulesMessages      = 	TicketsTable::GetCustomerSubmitRules($DetailPage);       
 			}else{
 				$RulesMessages      = 	TicketsTable::GetAgentSubmitRules($DetailPage);       
@@ -454,7 +453,7 @@ private $validlicense;
 	{	
 	   try
 	   {	
-	   	   $postdata 					 = 		Input::all();   
+	   	   $postdata 					 = 		Input::all();     Log::info(print_r($postdata,true));
 		   $data						 =		array();
 		   $CompanyID 					 = 		User::get_companyID(); 
 		   $data['status']	 			 =   	TicketsTable::getTicketStatus();
@@ -466,7 +465,7 @@ private $validlicense;
 		   $data['ticketdata']			 =	    TicketsTable::find($postdata['id']);
 		   $data['ticketdetaildata']	 =	    TicketsDetails::where(["TicketID"=>$postdata['id']])->get();	
 		   							
-		   if($postdata['LoginType']=='customer'){		
+		   if(isset($postdata['LoginType']) && $postdata['LoginType']=='customer'){		
 				$data['Ticketfields']	=	DB::table('tblTicketfields')->Where(['CustomerDisplay'=>1])->orderBy('FieldOrder', 'asc')->get(); 
 			}else{
 				$data['Ticketfields']	=	DB::table('tblTicketfields')->orderBy('FieldOrder', 'asc')->get();
@@ -722,7 +721,7 @@ private $validlicense;
 		
 		//Log::info(".....................................");
 		//$RulesMessages      = 	TicketsTable::GetAgentSubmitRules();       
-		if($data['LoginType']=='customer'){
+		if(isset($data['LoginType']) && $data['LoginType']=='customer'){
 			$RulesMessages      = 	TicketsTable::GetCustomerSubmitRules();       
 		}else{
 			$RulesMessages      = 	TicketsTable::GetAgentSubmitComposeRules();       
@@ -740,12 +739,12 @@ private $validlicense;
 		
 			//$email_from		   =  TicketGroups::where(["GroupID"=>$data['email-from']])->pluck('GroupReplyAddress'); 
 			//$email_from_name   =  TicketGroups::where(["GroupID"=>$data['email-from']])->pluck('GroupName'); 
-			$email_from_data   				= 	TicketGroups::where(["GroupEmailAddress"=>$data['email-from']])->select('GroupEmailAddress','GroupName','GroupID')->get(); 
+			$email_from_data   				= 	TicketGroups::where(["GroupEmailAddress"=>$data['email-from']])->select('GroupEmailAddress','GroupName','GroupID','GroupReplyAddress')->get(); 
 			$Ticketfields      				= 	$data['Ticket'];
 			$Ticketfields['default_group']  = 	$email_from_data[0]->GroupID;
 			$RequesterEmail	  			 	=  	trim($data['email-to']);					
 			Log::info("ticket group: ".$data['email-from']);
-			Log::info(print_r($email_from_data,true));
+			Log::info(print_r($data,true));
 		
 			if($data['LoginType']=='user')
 			{
@@ -801,9 +800,13 @@ private $validlicense;
 				{
 					$ContactData = array("Email"=>$RequesterEmail,"CompanyId"=>User::get_companyID());
 					Contact::create($ContactData);
-				}
-				 $TicketData['email_from']  	= 	$email_from_data[0]->GroupEmailAddress;
-				 $TicketData['email_from_name'] = 	$email_from_data[0]->GroupName;			  
+				}	
+				 $TicketData['In-Reply-To']	 	  = 	$email_from_data[0]->GroupEmailAddress;				
+				 $TicketData['email_from']	   	  = 	$email_from_data[0]->GroupReplyAddress;
+				 $TicketData['email_from_name']   = 	$email_from_data[0]->GroupName;		
+				 $TicketData['cc']				  =     isset($data['cc'])?$data['cc']:''; 
+				 $TicketData['bcc']				  =     isset($data['bcc'])?$data['bcc']:''; 
+				 
 				 $logID 						= 	SendComposeTicketEmail($TicketData); Log::info('logID'); Log::info(print_r($logID,true));
 				 if(!isset($logID['status'])){
 				  	TicketsTable::find($TicketID)->update(array("AccountEmailLogID"=>$logID));

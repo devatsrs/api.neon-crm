@@ -16,6 +16,7 @@ use Api\Model\CompanySetting;
 use Api\Model\CompanyConfiguration;
 use Api\Model\AccountEmailLog;
 use Api\Model\TicketsTable;
+use Api\Model\Contact;
 use App\Http\Requests;
 use Dingo\Api\Facade\API;
 use Illuminate\Support\Facades\DB;
@@ -288,8 +289,8 @@ class AccountController extends BaseController
 			
 			
             $columns =  ['Timeline_type','ActivityTitle','ActivityDescription','ActivityDate','ActivityType','ActivityID','Emailfrom','EmailTo','EmailSubject','EmailMessage','AccountEmailLogID','NoteID','Note','CreatedBy','created_at','updated_at'];
-            $query = "call prc_getAccountTimeLine(" . $data['AccountID'] . "," . $companyID . ",".$queryTicketType.",'".$data['GUID']."'," . $data['iDisplayStart'] . "," . $data['iDisplayLength'] . ")";  
-            $result_array = DB::select($query); Log::info($query);
+            $query = "call prc_getAccountTimeLine(" . $data['AccountID'] . "," . $companyID . ",".$queryTicketType.",'".$data['GUID']."','".date('Y-m-d H:i:00')."'," . $data['iDisplayStart'] . "," . $data['iDisplayLength'] . ")";   
+            $result_array = DB::select($query); 
             return generateResponse('',false,false,$result_array);
        }
         catch (\Exception $ex){
@@ -310,6 +311,7 @@ class AccountController extends BaseController
         $email_array			 = 	array();
         $billingemail_array 	 = 	array();
         $allemail 				 =  array();
+		$Contacts_Email_array	 =	array();
         $AccountEmails  		 =	Account::where("AccountID",$AccountID)->select(['Email'])->first();
 		
         if(count($AccountEmails)>0)
@@ -324,7 +326,14 @@ class AccountController extends BaseController
             $billingemail_array = explode(',', $AccountEmails1['BillingEmail']);
         }
 		
-        $allemail 				= 	array_merge($email_array,$billingemail_array);
+		$AccountsContacts  	=DB::table('tblContact')->select(DB::raw("group_concat(DISTINCT Email separator ',') as ContactsEmails"))->where(array("AccountID"=>$AccountID))->pluck('ContactsEmails');
+	
+		if(strlen($AccountsContacts)>0)
+		{
+            $Contacts_Email_array = explode(',', $AccountsContacts);
+        }
+		
+        $allemail 				= 	array_merge($email_array,$billingemail_array,$Contacts_Email_array);
         $emails					=	array_filter(array_unique($allemail));
 		$TicketsIDs				=	array();  		
 		$FreshDeskObj 			=  	new \App\SiteIntegration();

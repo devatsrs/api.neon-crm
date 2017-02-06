@@ -52,7 +52,6 @@ function sendMail($view,$data)
 		$config = \Api\Model\Company::select('SMTPServer','SMTPUsername','CompanyName','SMTPPassword','Port','IsSSL','EmailFrom')->where("CompanyID", '=', $companyID)->first();
 		$status = 	 \App\PHPMAILERIntegtration::SendMail($view,$data,$config,$companyID,$body);
 	}
-
    /* $status = array('status' => 0, 'message' => 'Something wrong with sending mail.');
     if(empty($data['companyID']))
     {
@@ -237,20 +236,23 @@ function email_log($data){
     return $status;
 }
 
-function email_log_data_Ticket($data,$view = '',$status){
-    $status = array('status' => 0, 'message' => 'Something wrong with Saving log.');
+function email_log_data_Ticket($data,$view = '',$status){ 
+Log::info("ticket data");
+Log::info(print_r($data,true));
+Log::info(print_r($status,true));
+    $status_return = array('status' => 0, 'message' => 'Something wrong with Saving log.');
     if(!isset($data['EmailTo']) && empty($data['EmailTo'])){
-        $status['message'] = 'Email To not set in Account mail log';
-        return $status;
+        $status_return['message'] = 'Email To not set in Account mail log';
+        return $status_return;
     }
     
     if(!isset($data['Subject']) && empty($data['Subject'])){
-        $status['message'] = 'Subject not set in Account mail log';
-        return $status;
+        $status_return['message'] = 'Subject not set in Account mail log';
+        return $status_return;
     }
     if(!isset($data['Message']) && empty($data['Message'])){
-        $status['message'] = 'Message not set in Account mail log';
-        return $status;
+        $status_return['message'] = 'Message not set in Account mail log';
+        return $status_return;
     }
 
     if(is_array($data['EmailTo'])){
@@ -283,11 +285,11 @@ function email_log_data_Ticket($data,$view = '',$status){
     else
     {
         $body = $data['Message'];
-    }
+    } Log::info(print_r($status,true));
 	if(!isset($status['message_id']))
 	{
 		$status['message_id'] = '';
-	}
+	} Log::info($status['message_id']);
 	if(!isset($data['EmailCall']))
 	{
 		$data['EmailCall'] = \Api\Model\Messages::Sent;
@@ -315,7 +317,7 @@ function email_log_data_Ticket($data,$view = '',$status){
 		"EmailParent"=>isset($data['EmailParent'])?$data['EmailParent']:0,
 		"EmailCall"=>$data['EmailCall'],
     ];
-	
+	Log::info(print_r($logData,true));
     $data =  \Api\Model\AccountEmailLog::insertGetId($logData);
     return $data;
 }
@@ -522,7 +524,7 @@ function call_api($post = array()){
 }
 
 function generateResponse($message,$isError=false,$isCustomError=false,$data=[]){
-    $status = 'success';
+    $status = 'success'; 
     if($isError){
         if($isCustomError) {
             $message = ["error" => [$message]];
@@ -532,7 +534,7 @@ function generateResponse($message,$isError=false,$isCustomError=false,$data=[])
     $reponse_data = ['status' => $status,'message'=>$message];
     if(count($data)>0){
         $reponse_data['data'] = $data;
-    }
+    }   
     return \Dingo\Api\Facade\API::response()->array($reponse_data)->statusCode(200);
 }
 
@@ -562,7 +564,7 @@ function SendTicketEmail($Type='store',$id,$data = array()){
 	if($Type=='store')
 	{
 		if(isset($data['Requester']) && $data['Requester']!=$LogginedUserEmail)
-		{ Log::info(print_r($data,true));
+		{
 			$EmailData['EmailTo']     	  =   $data['Requester'];
 			$EmailData['Subject']   	  =   'Ticket Created. "'.$data['Subject'].'"';
 			$EmailData['TicketSubject']   =   "(Neon) ".$data['Subject'];
@@ -622,6 +624,7 @@ function SendTicketEmail($Type='store',$id,$data = array()){
 		$EmailData['Subject']   	  =   $data['Subject'];
 		$EmailData['EmailFrom']  	  =   $data['email_from'];
 		$EmailData['CompanyName']  	  =   $data['email_from_name'];
+		$EmailData['In-Reply-To']  	  =   $data['In-Reply-To'];
 		$EmailData['cc']  		 	  =   isset($data['cc'])?$data['cc']:'';
 		$EmailData['bcc']  		 	  =   isset($data['bcc'])?$data['bcc']:'';
 		$EmailData['AttachmentPaths'] =   !empty($data['files'])?unserialize($data['files']):'';
