@@ -843,9 +843,11 @@ private $validlicense;
 						"Note"=>$data['Note'],
 						"TicketID"=>$data['TicketID'],
 						"AccountID"=>$Account,
+						"created_at"=>date("Y-m-d H:i:s"),
+						"created_by"=>User::get_user_full_name()
 					);
 				 
-				Note::create($NoteData);
+				Note::insertGetId($NoteData);
 				return generateResponse('Note Successfully Created');	
 			} catch (\Exception $ex) {
 				 return generateResponse($ex->getMessage(), true, true);			
