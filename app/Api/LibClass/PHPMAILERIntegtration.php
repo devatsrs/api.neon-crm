@@ -109,7 +109,7 @@ class PHPMAILERIntegtration{
             $mail->AddAttachment($file,$attachment_data['filename']);
         }
     } 
-		Log::info(print_r($mail,true));
+
 		$emailto = is_array($data['EmailTo'])?implode(",",$data['EmailTo']):$data['EmailTo'];
 		if (!$mail->send()) {
 					$status['status'] = 0;
@@ -121,7 +121,6 @@ class PHPMAILERIntegtration{
 					$status['body'] = $body;
 					$status['message_id']	=	$mail->getLastMessageID(); 
 		}
-	
 		return $status;
 	}
 	

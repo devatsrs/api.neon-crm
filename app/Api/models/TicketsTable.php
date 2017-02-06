@@ -196,4 +196,13 @@ class TicketsTable extends \Eloquent
 			return $ValuesID;
 	
 	}
+	
+	static function CheckTicketAccount($id){
+		$TicketsData =	TicketsTable::find($id);	
+		if($TicketsData){
+			return Account::where(array("Email"=>$TicketsData->Requester))->orWhere(array("BillingEmail"=>$TicketsData->Requester))->pluck('AccountID');
+		}
+		return 0;
+
+	}
 }

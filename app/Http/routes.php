@@ -223,7 +223,7 @@ $api->version('v1', function ($api) {
 			$api->post('tickets/updatedetailpage/{id}', 'TicketsController@UpdateDetailPage');			
 			$api->post('tickets/SendMailTicket', 'TicketsController@SendMailTicket');
 			$api->post('tickets/updateticketattributes/{id}', 'TicketsController@UpdateTicketAttributes');									
-			
+			$api->post('tickets/add_note', 'TicketsController@add_note');															
 		});
 
 	});

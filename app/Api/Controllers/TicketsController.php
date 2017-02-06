@@ -14,6 +14,7 @@ use Api\Model\Ticketfields;
 use Api\Model\TicketsDetails;
 use Api\Model\TicketPriority;
 use Api\Model\TicketGroups;
+use Api\Model\Note;
 use Api\Model\AccountEmailLog;
 use Api\Model\Contact;
 use Api\Model\Messages;
@@ -478,13 +479,15 @@ private $validlicense;
             ->get();
 		   
 			if($postdata['id'])
-			{
-				//$data['TicketConversation']	 =		TicketsConversation::where(array('TicketID'=>$postdata['id']))->get();
-				if($data['ticketdata']->AccountEmailLogID>0){
+			{	
+				$timeline_query 				=      	"call prc_getTicketTimeline (".$CompanyID.",".$postdata['id'].")";  
+				Log::info($timeline_query);
+				$data['TicketConversation']		 =		$result_array = DB::select($timeline_query); 
+				/*if($data['ticketdata']->AccountEmailLogID>0){
 				$data['TicketConversation'] 	 = 		AccountEmailLog::where(['EmailParent'=>$data['ticketdata']->AccountEmailLogID,'CompanyID'=>$CompanyID])->get();
 				}else{
 					$data['TicketConversation'] 	 = array();
-				}
+				}*/
 				if($postdata['admin'])
 				{
 					 $data['NextTicket'] 				 =	TicketsTable::WhereRaw("TicketID > ".$postdata['id'])->orderby('created_at','asc')->pluck('TicketID');
@@ -617,9 +620,9 @@ private $validlicense;
 					
 					$email_from_data   =  TicketGroups::where(["GroupEmailAddress"=>$data['email-from']])->select('GroupEmailAddress','GroupName')->get(); 
 					//$email_from_name   =  TicketGroups::where(["GroupID"=>$ticketdata->Group])->pluck('GroupName'); 
-					Log::info(print_r($data,true));
-					Log::info('email_from_data');
-					Log::info(print_r($email_from_data,true));
+					//Log::info(print_r($data,true));
+					//Log::info('email_from_data');
+					//Log::info(print_r($email_from_data,true));
 					 $files = '';
 					 $FilesArray = array();
 					 if (isset($data['file']) && !empty($data['file'])) {
@@ -819,6 +822,34 @@ private $validlicense;
 			      DB::rollback();
 				  return generateResponse($ex->getMessage(), true, true);
        		 }    
-	  		
 	}
+	
+	function add_note(){
+		$this->IsValidLicense();
+		$data 			= 	Input::all();  
+		
+		 $rules = array(
+				'TicketID' =>'required',
+				'Note' =>'required',
+			);
+			$validator = Validator::make($data, $rules);
+			if ($validator->fails()) {
+				return generateResponse($validator->errors(),true);
+			}
+			try{
+				$Account = TicketsTable::CheckTicketAccount($data['TicketID']);
+				$NoteData = array(
+						"CompanyID"=>User::get_companyID(),
+						"Note"=>$data['Note'],
+						"TicketID"=>$data['TicketID'],
+						"AccountID"=>$Account,
+					);
+				 
+				Note::create($NoteData);
+				return generateResponse('Note Successfully Created');	
+			} catch (\Exception $ex) {
+				 return generateResponse($ex->getMessage(), true, true);			
+			}
+	}
+	
 }
