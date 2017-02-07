@@ -37,7 +37,7 @@ class PHPMAILERIntegtration{
 	
 		$mail = new \PHPMailer;
 		//$mail->SMTPDebug = 0;                               // Enable verbose debug output
-		//$mail->SMTPDebug = 1;
+		$mail->SMTPDebug = 1;
 		$mail->isSMTP();                                      // Set mailer to use SMTP
 		$mail->Host = $host;  // Specify main and backup SMTP servers
 		$mail->SMTPAuth = true;                               // Enable SMTP authentication
@@ -55,7 +55,7 @@ class PHPMAILERIntegtration{
 		$mail->SetFrom($from['address'], $from['name']);
 		//$mail->From = $from['address'];
 	//	$mail->FromName = $from['name'];
-		$mail->IsHTML(true);		
+		$mail->IsHTML(true); 
 		return $mail;		
 	}	 
 	
@@ -120,7 +120,7 @@ class PHPMAILERIntegtration{
 					$status['message'] = 'Email has been sent';
 					$status['body'] = $body;
 					$status['message_id']	=	$mail->getLastMessageID(); 
-		}
+		} Log::info(print_r($mail,true));
 		return $status;
 	}
 	
