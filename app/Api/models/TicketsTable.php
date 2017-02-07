@@ -3,6 +3,8 @@ namespace Api\Model;
 use Illuminate\Support\Facades\Log;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Input;
+
 class TicketsTable extends \Eloquent 
 {
     protected $guarded = array("TicketID");
@@ -198,11 +200,26 @@ class TicketsTable extends \Eloquent
 	}
 	
 	static function CheckTicketAccount($id){
-		$TicketsData =	TicketsTable::find($id);	
-		if($TicketsData){
-			return Account::where(array("Email"=>$TicketsData->Requester))->orWhere(array("BillingEmail"=>$TicketsData->Requester))->pluck('AccountID');
+		$data 		 	= 	Input::all(); 
+		$TicketsData 	=	TicketsTable::find($id);	
+		$accountID 		= 	0;
+		
+		if($TicketsData)
+		{
+			$accountID =  Account::where(array("Email"=>$TicketsData->Requester))->orWhere(array("BillingEmail"=>$TicketsData->Requester))->pluck('AccountID');
+			if(!$accountID)
+			{
+				if(isset($data['LoginType']) && $data['LoginType']=='customer')
+				{
+					$accountID = User::get_userID();		
+				}
+			}
+			if(!$accountID)
+			{
+				$accountID =0;
+			}
 		}
-		return 0;
+		return $accountID;
 
 	}
 }
