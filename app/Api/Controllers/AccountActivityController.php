@@ -89,9 +89,9 @@ class AccountActivityController extends BaseController {
 		
         try{
 			 DB::beginTransaction();
-        	 Contact::CheckEmailContact($data['EmailTo'],$data['AccountID']);
-			 Contact::CheckEmailContact($data['cc'],$data['AccountID']);
-			 Contact::CheckEmailContact($data['bcc'],$data['AccountID']);		
+        	 Contact::CheckEmailContact($data['EmailTo'],isset($data['AccountID'])?$data['AccountID']:0);
+			 Contact::CheckEmailContact($data['cc'],isset($data['AccountID'])?$data['AccountID']:0);
+			 Contact::CheckEmailContact($data['bcc'],isset($data['AccountID'])?$data['AccountID']:0);		
 			 
 			 if(isset($data['createticket']) && TicketsTable::CheckTicketLicense()){ //check and create ticket
 			 	$email_from_data   	= 	TicketGroups::where(["GroupEmailAddress"=>$data['email-from']])->select('GroupEmailAddress','GroupName','GroupID','GroupReplyAddress')->get(); 

@@ -15,7 +15,7 @@ class PHPMAILERIntegtration{
 
 
 	public static function SetEmailConfiguration($config,$companyID,$data)
-	{     
+	{    
 		Config::set('mail.host',$config->SMTPServer);
 		Config::set('mail.port',$config->Port);
 		if(isset($data['EmailFrom'])){ 
@@ -37,7 +37,7 @@ class PHPMAILERIntegtration{
 	
 		$mail = new \PHPMailer;
 		//$mail->SMTPDebug = 0;                               // Enable verbose debug output
-		$mail->SMTPDebug = 1;
+		//$mail->SMTPDebug = 1;
 		$mail->isSMTP();                                      // Set mailer to use SMTP
 		$mail->Host = $host;  // Specify main and backup SMTP servers
 		$mail->SMTPAuth = true;                               // Enable SMTP authentication

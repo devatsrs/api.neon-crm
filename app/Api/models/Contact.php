@@ -46,23 +46,34 @@ class Contact extends \Eloquent {
     }
 	
 	public static function CheckEmailContact($emails,$accountID = 0){
-		$emails_array = array();
-		$AllEmails    = Messages::GetAllSystemEmails(); 
-		$CompanyID 	  = User::get_companyID();
-		if(is_array($emails)){
+		
+		$emails_array 	= 	array();
+		$AllEmails    	= 	Messages::GetAllSystemEmails(); 
+		$CompanyID 	  	= 	User::get_companyID();
+		
+		if(is_array($emails))
+		{
 			$emails_array = $emails;			
-		}else{
+		}
+		else
+		{
 			if(strlen($emails)<1){return;}
 			$emails_array = explode(",",$emails);
 		}
 		
-		foreach($emails_array as $emails_array_data){
-			if(strlen($emails_array_data)>0){
-				if(!in_array($emails_array_data,$AllEmails)){
+		foreach($emails_array as $emails_array_data)
+		{
+			if(strlen($emails_array_data)>0)
+			{
+				if(!in_array($emails_array_data,$AllEmails))
+				{
 						$FromName = 	explode("@",$emails_array_data); 
-						if($accountID){
+						if($accountID)
+						{
 							$ContactData = array("FirstName"=>$FromName[0],"Email"=>$emails_array_data,"CompanyId"=>$CompanyID,"AccountID"=>$accountID,"Owner"=>$accountID);
-						}else{
+						}
+						else
+						{
 							$ContactData = array("FirstName"=>$FromName[0],"Email"=>$emails_array_data,"CompanyId"=>$CompanyID);
 						}
 						Contact::create($ContactData);

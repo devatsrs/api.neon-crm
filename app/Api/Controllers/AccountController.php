@@ -10,6 +10,7 @@ use Api\Model\User;
 use Api\Model\Account;
 use Api\Model\Note;
 use Api\Model\Invoice;
+use Api\Model\ContactNote;
 use Api\Model\Ticket;
 use Api\Model\Company;
 use Api\Model\CompanySetting;
@@ -213,14 +214,18 @@ class AccountController extends BaseController
     public function GetNote()
     {
         $data = Input::all();
-
+		Log::info(print_r($data,true));
         $rules['NoteID'] = 'required';
         $validator = Validator::make($data, $rules);
         if ($validator->fails()) {
             return generateResponse($validator->errors(),true);
         }
         try {
-            $Note = Note::find($data['NoteID']);
+			if(isset($data['note_type']) && $data['note_type'] == 'ContactNote'){
+				$Note = ContactNote::find($data['NoteID']); Log::info("ContactNote");
+			}else{
+            	$Note = Note::find($data['NoteID']); Log::info("AccountNote");
+			} Log::info(print_r($Note,true));
         } catch (\Exception $e) {
             Log::info($e);
             return $this->response->errorInternal($e->getMessage());
@@ -244,9 +249,18 @@ class AccountController extends BaseController
         }
 
 		try{
-			 $data = cleanarray($data,[]);
-			$result = Note::find($data['NoteID'])->update($data);
-			$result = Note::find($data['NoteID']);
+			 $NoteType = $data['NoteType'];
+			 $data = cleanarray($data,['NoteType']);
+			 if(isset($NoteType) && $NoteType == 'ContactNote'){
+				ContactNote::find($data['NoteID'])->update($data);
+				$result = ContactNote::find($data['NoteID']);
+			}else{
+				Note::find($data['NoteID'])->update($data);
+				$result = Note::find($data['NoteID']);
+			} 
+			
+			//$result = Note::find($data['NoteID'])->update($data);
+			//$result = Note::find($data['NoteID']);
 
             return generateResponse('',false,false,$result);
         }catch (\Exception $ex){
@@ -289,7 +303,7 @@ class AccountController extends BaseController
 			
 			
             $columns =  ['Timeline_type','ActivityTitle','ActivityDescription','ActivityDate','ActivityType','ActivityID','Emailfrom','EmailTo','EmailSubject','EmailMessage','AccountEmailLogID','NoteID','Note','CreatedBy','created_at','updated_at'];
-            $query = "call prc_getAccountTimeLine(" . $data['AccountID'] . "," . $companyID . ",".$queryTicketType.",'".$data['GUID']."','".date('Y-m-d H:i:00')."'," . $data['iDisplayStart'] . "," . $data['iDisplayLength'] . ")";   
+            $query = "call prc_getAccountTimeLine(" . $data['AccountID'] . "," . $companyID . ",".$queryTicketType.",'".$data['GUID']."','".date('Y-m-d H:i:00')."'," . $data['iDisplayStart'] . "," . $data['iDisplayLength'] . ")";   Log::info($query);
             $result_array = DB::select($query); 
             return generateResponse('',false,false,$result_array);
        }
@@ -461,7 +475,7 @@ class AccountController extends BaseController
 
     public function DeleteNote(){
         $data = Input::all();
-
+ 		Log::info(print_r($data,true));
         $rules['NoteID'] = 'required';
         $validator = Validator::make($data, $rules);
         if ($validator->fails()) {
@@ -469,7 +483,11 @@ class AccountController extends BaseController
         }
 
         try{
-            Note::where(['NoteID'=>$data['NoteID']])->delete();
+			 if(isset($data['NoteType']) && $data['NoteType'] == 'ContactNote'){
+				 ContactNote::where(['NoteID'=>$data['NoteID']])->delete();
+			}else{
+				 Note::where(['NoteID'=>$data['NoteID']])->delete();
+			}
         }catch (\Exception $ex){
             Log::info($ex);
             return $this->response->errorInternal($ex->getMessage());

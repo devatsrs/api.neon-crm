@@ -98,7 +98,7 @@ class ContactsController extends BaseController
         }
 
 		try{
-			 $data = cleanarray($data,[]);
+			$data = cleanarray($data,[]);
 			$result = ContactNote::find($data['NoteID'])->update($data);
 			$result = ContactNote::find($data['NoteID']);
 

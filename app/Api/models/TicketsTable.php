@@ -192,11 +192,9 @@ class TicketsTable extends \Eloquent
 	}
 	
 		static function getDefaultStatus(){			
-		//TicketfieldsValues::WHERE
 		 $ValuesID =  TicketfieldsValues::join('tblTicketfields','tblTicketfields.TicketFieldsID','=','tblTicketfieldsValues.FieldsID')
             ->where(['tblTicketfields.FieldType'=>Ticketfields::TICKET_SYSTEM_STATUS_FLD])->where(['tblTicketfieldsValues.FieldValueAgent'=>Ticketfields::TICKET_SYSTEM_STATUS_DEFAULT,'tblTicketfieldsValues.FieldType'=>Ticketfields::FIELD_TYPE_STATIC])->pluck('ValuesID');			
-			return $ValuesID;
-	
+			return $ValuesID;	
 	}
 	
 	static function CheckTicketAccount($id){
