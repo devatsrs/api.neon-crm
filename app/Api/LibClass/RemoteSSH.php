@@ -32,7 +32,7 @@ class RemoteSSH{
                     $source = rtrim(self::$uploadPath, '/') . '/' . $key;
                 }
                 try {
-                    $tempPath = getenv('TEMP_PATH');
+                    $tempPath = CompanyConfiguration::get("TEMP_PATH");
                     $destination = rtrim($tempPath, '/') . '/' . Uuid::uuid() . basename($key);
                     RemoteFacade::get($source, $destination);
                     $status['status'] = 1;

@@ -123,7 +123,8 @@ class AmazonS3 {
         }
 
         $path .=  $dir . "/". date("Y")."/".date("m") ."/" .date("d") ."/";
-        $dir = getenv('UPLOAD_PATH') . '/'. $path;
+        $upload_path = CompanyConfiguration::get("UPLOADPATH");
+        $dir = $upload_path . '/'. $path;
         if (!file_exists($dir)) {
             mkdir($dir, 0777, TRUE);
         }

@@ -12,7 +12,7 @@ function uploaded_File_Handler($fileArray){
     foreach($fileArray as $Index=>$file){
         $decoded_file = base64_decode($file['file']);
         $fileName = $file['fileName'];
-        $tempPath = getenv('TEMP_PATH');
+        $tempPath = \Api\Model\CompanyConfiguration::get("TEMP_PATH");
         $stamp = date_timestamp_get(date_create());
         $path = $tempPath.'/'.$stamp.$fileName;
         file_put_contents($path, $decoded_file);
@@ -325,7 +325,8 @@ function email_log_data($data,$view = ''){
  */
 function site_configration_cache($request){
 
-    $time = empty(getenv('CACHE_EXPIRE'))?60:getenv('CACHE_EXPIRE');
+    $CACHE_EXPIRE = \Api\Model\CompanyConfiguration::get("CACHE_EXPIRE");
+    $time = empty($CACHE_EXPIRE)?60:$CACHE_EXPIRE;
     $minutes = \Carbon\Carbon::now()->addMinutes($time);
     $LicenceKey = $request->only('LicenceKey')['LicenceKey'];
     $CompanyName = $request->only('CompanyName')['CompanyName'];
