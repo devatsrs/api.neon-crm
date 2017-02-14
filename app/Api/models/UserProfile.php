@@ -8,7 +8,7 @@ class UserProfile extends \Eloquent {
 
     public static function get_user_picture_url($user_id){
 
-        $site_url = \Api\Model\CompanyConfiguration::get("SITE_URL");
+        $site_url = \Api\Model\CompanyConfiguration::get("WEBURL");
 
         $user_profile_img = UserProfile::where(["UserID"=>$user_id])->pluck('Picture');
         if(empty($user_profile_img)){
