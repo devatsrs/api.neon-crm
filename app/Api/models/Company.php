@@ -172,7 +172,7 @@ class Company extends \Eloquent {
     }
 
     public static function getLicenceResponse($request){
-        $CACHE_EXPIRE = CompanyConfiguration::get("CACHE_EXPIRE");
+        $CACHE_EXPIRE = 60;
         $time = empty($CACHE_EXPIRE)?60:$CACHE_EXPIRE;
         $minutes = \Carbon\Carbon::now()->addMinutes($time);
         $license  = $request->only('LicenceKey','CompanyName');
