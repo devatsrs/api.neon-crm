@@ -433,7 +433,7 @@ class TaskController extends BaseController {
                         }
                     }
 
-                    //$response = $this->add_edit_calendar_event($options);
+                    $response = $this->add_edit_calendar_event($options);
 
                     //Update Event ID on DB to update.
                     if (isset($response["event_id"]) && isset($response["change_key"]) && !empty($response["event_id"]) && !empty($response["change_key"])) {
