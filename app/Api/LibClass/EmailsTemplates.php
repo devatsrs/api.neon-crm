@@ -1,0 +1,74 @@
+<?php 
+namespace App;
+use Api\Model\User;
+use Aws\S3\S3Client;
+use Api\Model\Company;
+use Api\Model\Invoice;
+use Api\Model\EmailTemplate;
+use Api\Model\Estimate;
+use Api\Model\Account;
+use Api\Model\Currency;
+use Illuminate\Support\Facades\Log;
+
+class EmailsTemplates{
+
+	protected $EmailSubject;
+	protected $EmailTemplate;
+	protected $Error;
+	protected $CompanyName;
+	
+	 public function __construct($data = array()){
+		 foreach($data as $key => $value){
+			 $this->$key = $value;
+		 }		 		 
+		 $this->CompanyName = Company::getName();
+	}
+	
+	
+	
+	
+	static function SendOpportunityTaskTagEmail($slug,$obj,$type="body",$data){
+			$replace_array							=	 $data;		
+			$LogginedUser   						=  	 \Api\Model\User::get_userID();
+    		$LogginedUserName  						= 	 \Api\Model\User::get_user_full_name();			
+			$request								=	 new \Dingo\Api\Http\Request;
+            $replace_array['UserProfileImage']  	= 	 \Api\Model\UserProfile::get_user_picture_url($LogginedUser);
+			$replace_array['Logo']					= 	 getCompanyLogo($request);		
+			$replace_array['user']					= 	 $LogginedUserName;	
+			$replace_array['CompanyName']			=	 Company::getName();
+			$message								=	 "";		
+			$EmailTemplate 							= 	 EmailTemplate::where(["SystemType"=>$slug])->first();
+			if($type=="subject"){
+				$EmailMessage						=	 $EmailTemplate->Subject;
+			}else{
+				$EmailMessage						=	 $EmailTemplate->TemplateBody;
+			}
+			
+			$extra = [
+				'{{TitleHeading}}',
+				'{{UserProfileImage}}',
+				'{{TaskBoardUrl}}',
+				'{{Subject_task}}',
+				'{{Description}}',					
+				'{{CompanyName}}',
+				'{{user}}',
+				'{{type}}',
+				'{{CommentText}}',
+				'{{Logo}}'
+			];
+		
+		foreach($extra as $item){
+			$item_name = str_replace(array('{','}'),array('',''),$item);
+			if(array_key_exists($item_name,$replace_array)) {					
+				$EmailMessage = str_replace($item,$replace_array[$item_name],$EmailMessage);					
+			}
+		} 
+		return $EmailMessage; 			
+	}
+	
+	
+	static function GetEmailTemplateFrom($slug){
+		return EmailTemplate::where(["SystemType"=>$slug])->pluck("EmailFrom");
+	}
+}
+?>

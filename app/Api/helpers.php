@@ -34,7 +34,7 @@ function rename_win($oldfile,$newfile) {
 }
 
 
-function sendMail($view,$data)
+function sendMail($view,$data,$ViewType=1)
 {
 		
 	if(empty($data['companyID']))
@@ -43,7 +43,13 @@ function sendMail($view,$data)
     }else{
         $companyID = $data['companyID'];
     }
-	$body 	=  html_entity_decode(View::make($view,compact('data'))->render()); 
+	
+	if($ViewType){
+		$body 	=  html_entity_decode(View::make($view,compact('data'))->render()); 
+	}
+	else{
+		$body  = $view;
+	}
 
 	if(\App\SiteIntegration::CheckCategoryConfiguration(false,\App\SiteIntegration::$EmailSlug)){
 		$status = 	 \App\SiteIntegration::SendMail($view,$data,$companyID,$body);		
@@ -653,7 +659,7 @@ function SendTaskMail($data){
         $data['Subject_task']   =   $data['Subject'];
         $data['Subject']      =   "(Neon) ".$data['Subject'];
         $data['TitleHeading']   =   $LogginedUserName." <strong>Assigned</strong> you a Task";
-		$data['UserProfileImage']  =  UserProfile::get_user_picture_url($LogginedUser);
+		$data['UserProfileImage']  =  \Api\Model\UserProfile::get_user_picture_url($LogginedUser);
         $status       =   sendMail('emails.task.TaskEmailSend', $data);
     }
 }
@@ -661,7 +667,7 @@ function SendTaskMail($data){
 function SendTaskMailUpdate($NewData,$OldData,$type='Task'){
     $LogginedUser   =  \Api\Model\User::get_userID();
     $LogginedUserName  =  \Api\Model\User::get_user_full_name();
-
+	$request			=	new \Dingo\Api\Http\Request;
     //Tagged Users Email
     if($NewData['TaggedUsers']!=''){
         $TaggedUsersNew   =  explode(",",$NewData['TaggedUsers']);
@@ -678,18 +684,23 @@ function SendTaskMailUpdate($NewData,$OldData,$type='Task'){
             $NewData['EmailTo']     =   $TaggedUsersDiffEmail;
             //$NewData['cc']        =   "umer.ahmed@code-desk.com";
             if($type=='Opportunity'){
-                $NewData['Subject_task']   =   $NewData['OpportunityName'];
-                $NewData['Subject']      =   "(Neon) ".$NewData['OpportunityName'];
-                $NewData['Description']    =   "";
+                $NewData['Subject_task']    =   $NewData['OpportunityName'];
+                $NewData['Subject']      	=   "(Neon) ".$NewData['OpportunityName'];
+                $NewData['Description']     =   "";
             }else if($type=='Task'){
-                $NewData['Subject_task']   =   $NewData['Subject'];
-                $NewData['Subject']      =   "(Neon) ".$NewData['Subject'];
+                $NewData['Subject_task']    =   $NewData['Subject'];
+                $NewData['Subject']      	=   "(Neon) ".$NewData['Subject'];
             }
-            $NewData['CreatedBy']      =   $OldData['CreatedBy'];
-            $NewData['TitleHeading']  =   $LogginedUserName." <strong>Tagged</strong> you in a ".$type;
-            $NewData['UserProfileImage']  =  UserProfile::get_user_picture_url($LogginedUser);
-
-            $status        =   sendMail('emails.task.TaskEmailSend', $NewData);
+            $NewData['CreatedBy']    		=   $OldData['CreatedBy'];
+            $NewData['TitleHeading']  		=   $LogginedUserName." <strong>Tagged</strong> you in a ".$type;
+            $NewData['UserProfileImage']  	=   \Api\Model\UserProfile::get_user_picture_url($LogginedUser);
+			$NewData['user']				=	$LogginedUserName;
+			$NewData['type']				=	$type;
+			$NewData['Logo']				= 	getCompanyLogo($request);
+			$body				= \App\EmailsTemplates::SendOpportunityTaskTagEmail(\Api\Model\Opportunity::OPPERTUNITYTEMPLATE,$NewData,'body',$NewData);
+			$NewData['Subject']	= \App\EmailsTemplates::SendOpportunityTaskTagEmail(\Api\Model\Opportunity::OPPERTUNITYTEMPLATE,$NewData,"subject",$NewData);
+			$NewData['EmailFrom']	=	\App\EmailsTemplates::GetEmailTemplateFrom(\Api\Model\Opportunity::OPPERTUNITYTEMPLATE);
+            $status        		=   sendMail($body, $NewData,0);
         }
     }
 
@@ -698,15 +709,23 @@ function SendTaskMailUpdate($NewData,$OldData,$type='Task'){
         if($OldData['UsersIDs']!=$NewData['UsersIDs']){ // new and old assigned user are not same
             if($LogginedUser!=$NewData['UsersIDs']){ //new user and logined user are not same
 
-                $AssignedUserData       =  \Api\Model\User::find($NewData['UsersIDs']);
-                $NewData['EmailTo']     =   $AssignedUserData->EmailAddress;
-                //$NewData['cc']        =   "umer.ahmed@code-desk.com";
-                $NewData['Subject_task']   =   $NewData['Subject'];
-                $NewData['Subject']      =   "(Neon) ".$NewData['Subject'];
-                $NewData['CreatedBy']      =   $OldData['CreatedBy'];
-                $NewData['TitleHeading']  =   $LogginedUserName." <strong>Assigned</strong> you a ".$type;
-                $NewData['UserProfileImage']  =  UserProfile::get_user_picture_url($LogginedUser);
-                $status        =   sendMail('emails.task.TaskEmailSend', $NewData);
+                $AssignedUserData       		=  \Api\Model\User::find($NewData['UsersIDs']);
+                $NewData['EmailTo']     		=   $AssignedUserData->EmailAddress;
+                $NewData['Subject_task']   		=   $NewData['Subject'];
+                $NewData['Subject']     		=   "(Neon) ".$NewData['Subject'];
+                $NewData['CreatedBy']      		=   $OldData['CreatedBy'];
+                $NewData['TitleHeading']  		=   $LogginedUserName." <strong>Assigned</strong> you a ".$type;
+                $NewData['UserProfileImage']  	=  \Api\Model\UserProfile::get_user_picture_url($LogginedUser);
+				$NewData['user']				=	$LogginedUser;
+				$NewData['type']				=	$type;
+			
+				$NewData['Logo'] 				= 	getCompanyLogo($request);
+				
+			$body				= \App\EmailsTemplates::SendOpportunityTaskTagEmail(\Api\Model\Task::TASKASSIGNEDTEMPLATE,$NewData,'body',$NewData);
+			$NewData['Subject']	= \App\EmailsTemplates::SendOpportunityTaskTagEmail(\Api\Model\Task::TASKASSIGNEDTEMPLATE,$NewData,"subject",$NewData);
+			$NewData['EmailFrom']	=	\App\EmailsTemplates::GetEmailTemplateFrom(\Api\Model\Task::TASKASSIGNEDTEMPLATE);
+				
+              $status        =   sendMail($body, $NewData,0);
             }
         }
     }
