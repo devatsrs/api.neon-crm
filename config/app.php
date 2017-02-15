@@ -39,7 +39,7 @@ return [
     |
     */
 
-   'timezone' => getenv('APP_TIMEZONE'),
+   'timezone' => env('APP_TIMEZONE','Europe/London'),
 
     /*
     |--------------------------------------------------------------------------
@@ -78,7 +78,7 @@ return [
     |
     */
 
-    'key' => env('APP_KEY', 'SomeRandomString'),
+    'key' => env('APP_KEY', 'OyZInqBJrJIj7PeIEixM492IRhwwjp6W'),
 
     'cipher' => 'AES-256-CBC',
 

@@ -2,6 +2,7 @@
 namespace Api\Controllers;
 
 use Api\Model\Company;
+use Api\Model\CompanyConfiguration;
 use App\CalendarAPI;
 use Dingo\Api\Http\Request;
 use Api\Model\DataTableSql;
@@ -525,7 +526,7 @@ class TaskController extends BaseController {
     }
 
     public function get_allowed_extensions(){
-        $allowed     =  getenv("CRM_ALLOWED_FILE_UPLOAD_EXTENSIONS");
+        $allowed = CompanyConfiguration::get("CRM_ALLOWED_FILE_UPLOAD_EXTENSIONS");
         $allowedextensions   =  explode(',',$allowed);
         $allowedextensions   =  array_change_key_case($allowedextensions);
         return generateResponse('',false,false,$allowedextensions);
