@@ -324,6 +324,9 @@ class Account extends Model
 			$replace_array['BalanceThreshold'] = AccountBalance::getBalanceThreshold($Account->AccountID);
 			$replace_array['Currency'] = Currency::getCurrencySymbol($Account->CurrencyId);
 			$replace_array['CompanyName'] = Company::getName($Account->CompanyId);
+			$replace_array['CompanyVAT'] = Company::getCompanyField($Account->CompanyId,"VAT");
+		    $replace_array['CompanyAddress'] = Company::getCompanyFullAddress($Account->CompanyId);
+			
 			$replace_array['OutstandingExcludeUnbilledAmount'] = AccountBalance::getOutstandingAmount($Account->CompanyId,$Account->AccountID);
 		}
         $Signature = '';

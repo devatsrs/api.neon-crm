@@ -194,4 +194,21 @@ class Company extends \Eloquent {
         }
         return $LicenceApiResponse;
     }
+	
+	public static function getCompanyFullAddress($companyID){
+		 if($companyID>0)
+		 {
+			 $companyData = Company::find($companyID);
+		 }else{
+			$companyData = Company::find(User::get_companyID());
+		 }
+			$Address = "";
+			$Address .= !empty($companyData->Address1) ? $companyData->Address1 . ',' . PHP_EOL : '';
+			$Address .= !empty($companyData->Address2) ? $companyData->Address2 . ',' . PHP_EOL : '';
+			$Address .= !empty($companyData->Address3) ? $companyData->Address3 . ',' . PHP_EOL : '';
+			$Address .= !empty($companyData->City) ? $companyData->City . ',' . PHP_EOL : '';
+			$Address .= !empty($companyData->PostCode) ? $companyData->PostCode . ',' . PHP_EOL : '';
+			$Address .= !empty($companyData->Country) ? $companyData->Country : '';
+			return $Address;		
+    }
 }
