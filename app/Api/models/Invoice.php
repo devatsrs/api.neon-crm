@@ -160,7 +160,7 @@ class Invoice extends Model{
             } else {
                 $as3url = (AmazonS3::unSignedUrl($InvoiceTemplate->CompanyLogoAS3Key));
             }
-            $upload_path = CompanyConfiguration::get("UPLOADPATH");
+            $upload_path = CompanyConfiguration::get("UPLOAD_PATH");
             chmod($upload_path,0777);
             $logo = $upload_path . '/' . basename($as3url);
             file_put_contents($logo, file_get_contents($as3url));
@@ -178,7 +178,7 @@ class Invoice extends Model{
             $footer = htmlspecialchars_decode($footer);
 
             $amazonPath = AmazonS3::generate_path(AmazonS3::$dir['INVOICE_UPLOAD'],$Account->CompanyId,$Invoice->AccountID) ;
-            $upload_path = CompanyConfiguration::get("UPLOADPATH");
+            $upload_path = CompanyConfiguration::get("UPLOAD_PATH");
              $destination_dir = $upload_path . '/'. $amazonPath;
 			
             if (!file_exists($destination_dir)) {
