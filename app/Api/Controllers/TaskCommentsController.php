@@ -8,6 +8,7 @@ use Api\Model\CRMComments;
 use Api\Model\User;
 use Api\Model\UserProfile;
 use App\AmazonS3;
+use App\EmailsTemplates;
 use App\Http\Requests;
 use Dingo\Api\Facade\API;
 use Faker\Provider\Uuid;
@@ -93,9 +94,9 @@ class TaskCommentsController extends BaseController {
             if(!empty($emailTo) && count($emailTo)>0){
                 $emailData['EmailTo'] = $emailTo;
 				
-			$body				= \App\EmailsTemplates::SendOpportunityTaskTagEmail(\Api\Model\Task::TASKCOMMENTTEMPLATE,$comment_data,'body',$emailData);
-			$emailData['Subject']	= \App\EmailsTemplates::SendOpportunityTaskTagEmail(\Api\Model\Task::TASKCOMMENTTEMPLATE,$comment_data,"subject",$emailData);
-			$emailData['EmailFrom']	=	\App\EmailsTemplates::GetEmailTemplateFrom(\Api\Model\Task::TASKCOMMENTTEMPLATE);
+			$body					=  EmailsTemplates::SendOpportunityTaskTagEmail(Task::TASKCOMMENTTEMPLATE,$comment_data,'body',$emailData);
+			$emailData['Subject']	=  EmailsTemplates::SendOpportunityTaskTagEmail(Task::TASKCOMMENTTEMPLATE,$comment_data,"subject",$emailData);
+			$emailData['EmailFrom']	=  EmailsTemplates::GetEmailTemplateFrom(Task::TASKCOMMENTTEMPLATE);
 				
                 $status = sendMail($body,$emailData,0);
             }

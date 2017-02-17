@@ -7,6 +7,7 @@ use Api\Model\Opportunity;
 use Api\Model\CRMComments;
 use Api\Model\User;
 use App\AmazonS3;
+use App\EmailsTemplates;
 use App\Http\Requests;
 use Dingo\Api\Facade\API;
 use Faker\Provider\Uuid;
@@ -86,9 +87,9 @@ class OpportunityCommentsController extends BaseController {
             $emailData['address'] = User::get_user_email();
             $emailData['name'] = User::get_user_full_name();
 			$emailData['CommentText'] = $comment_data['CommentText'];
-			$body				= \App\EmailsTemplates::SendOpportunityTaskTagEmail(\Api\Model\Task::TASKCOMMENTTEMPLATE,$comment_data,'body',$emailData);
-			$emailData['Subject']	= \App\EmailsTemplates::SendOpportunityTaskTagEmail(\Api\Model\Task::TASKCOMMENTTEMPLATE,$comment_data,"subject",$emailData);
-			$emailData['EmailFrom']	=	\App\EmailsTemplates::GetEmailTemplateFrom(\Api\Model\Task::TASKCOMMENTTEMPLATE);
+			$body				= 	  EmailsTemplates::SendOpportunityTaskTagEmail(Opportunity::OPPORTUNITYCOMMENTTEMPLATE,$comment_data,'body',$emailData);
+			$emailData['Subject']	= EmailsTemplates::SendOpportunityTaskTagEmail(Opportunity::OPPORTUNITYCOMMENTTEMPLATE,$comment_data,"subject",$emailData);
+			$emailData['EmailFrom']	= EmailsTemplates::GetEmailTemplateFrom(Opportunity::OPPORTUNITYCOMMENTTEMPLATE);
 			
             if(!empty($emailTo) && count($emailTo)>0){
                 $emailData['EmailTo'] = $emailTo;

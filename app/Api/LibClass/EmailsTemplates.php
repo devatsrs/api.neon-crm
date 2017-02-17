@@ -29,6 +29,7 @@ class EmailsTemplates{
 	
 	static function SendOpportunityTaskTagEmail($slug,$obj,$type="body",$data){
 			$replace_array							=	 $data;		
+			$replace_array							=	 EmailsTemplates::setCompanyFields($replace_array);
 			$LogginedUser   						=  	 \Api\Model\User::get_userID();
     		$LogginedUserName  						= 	 \Api\Model\User::get_user_full_name();			
 			$request								=	 new \Dingo\Api\Http\Request;
@@ -69,6 +70,20 @@ class EmailsTemplates{
 	
 	static function GetEmailTemplateFrom($slug){
 		return EmailTemplate::where(["SystemType"=>$slug])->pluck("EmailFrom");
+	}
+	
+		static function setCompanyFields($array){
+			$CompanyData							=	Company::find(User::get_companyID());
+			$array['CompanyName']					=   Company::getName();
+			$array['CompanyVAT']					=   $CompanyData->VAT;			
+			$array['CompanyAddress1']				=   $CompanyData->Address1;
+			$array['CompanyAddress2']				=   $CompanyData->Address1;
+			$array['CompanyAddress3']				=   $CompanyData->Address1;
+			$array['CompanyCity']					=   $CompanyData->City;
+			$array['CompanyPostCode']				=   $CompanyData->PostCode;
+			$array['CompanyCountry']				=   $CompanyData->Country;
+			//$array['CompanyAddress']				=   Company::getCompanyFullAddress(User::get_companyID());
+			return $array;
 	}
 }
 ?>
