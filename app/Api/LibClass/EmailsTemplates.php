@@ -85,5 +85,9 @@ class EmailsTemplates{
 			//$array['CompanyAddress']				=   Company::getCompanyFullAddress(User::get_companyID());
 			return $array;
 	}
+	
+	static function CheckEmailTemplateStatus($slug){
+		return EmailTemplate::where(["SystemType"=>$slug])->pluck("Status");
+	}
 }
 ?>

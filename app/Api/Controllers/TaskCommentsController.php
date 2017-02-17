@@ -92,13 +92,12 @@ class TaskCommentsController extends BaseController {
 			$emailData['type']		 =	 'Task';
             //$emailData['mandrill'] =1;
             if(!empty($emailTo) && count($emailTo)>0){
-                $emailData['EmailTo'] = $emailTo;
+                $emailData['EmailTo'] = $emailTo;			 
+				$body					=  EmailsTemplates::SendOpportunityTaskTagEmail(Task::TASKCOMMENTTEMPLATE,$comment_data,'body',$emailData);
+				$emailData['Subject']	=  EmailsTemplates::SendOpportunityTaskTagEmail(Task::TASKCOMMENTTEMPLATE,$comment_data,"subject",$emailData);
+				$emailData['EmailFrom']	=  EmailsTemplates::GetEmailTemplateFrom(Task::TASKCOMMENTTEMPLATE);
+				$status = sendMail($body,$emailData,0);
 				
-			$body					=  EmailsTemplates::SendOpportunityTaskTagEmail(Task::TASKCOMMENTTEMPLATE,$comment_data,'body',$emailData);
-			$emailData['Subject']	=  EmailsTemplates::SendOpportunityTaskTagEmail(Task::TASKCOMMENTTEMPLATE,$comment_data,"subject",$emailData);
-			$emailData['EmailFrom']	=  EmailsTemplates::GetEmailTemplateFrom(Task::TASKCOMMENTTEMPLATE);
-				
-                $status = sendMail($body,$emailData,0);
             }
             if($status['status']==1){
                 if(isset($data['PrivateComment']) && $data['PrivateComment']==1) {
@@ -107,6 +106,7 @@ class TaskCommentsController extends BaseController {
                     $emailData['EmailTo'] = $account->Email;
                     $emailData['EmailToName'] = $account->FirstName.' '.$account->LastName;
                     $emailData['CompanyID'] = $data ["CompanyID"];
+					if(EmailsTemplates::CheckEmailTemplateStatus(Task::TASKCOMMENTTEMPLATE)){	
                     $status = sendMail($body,$emailData,0);
                     $emailData['Message'] = $body;
 					$emailData['message_id'] 	=  isset($status['message_id'])?$status['message_id']:"";
@@ -114,6 +114,7 @@ class TaskCommentsController extends BaseController {
                     if($status['status']==0){
                         return generateResponse($status['message'],true,true);
                     }
+					}else{$status['status'] =1;}
                 }
             }else{
                 return generateResponse($status['message'],true,true);

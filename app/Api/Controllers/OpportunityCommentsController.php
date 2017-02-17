@@ -91,10 +91,12 @@ class OpportunityCommentsController extends BaseController {
 			$emailData['Subject']	= EmailsTemplates::SendOpportunityTaskTagEmail(Opportunity::OPPORTUNITYCOMMENTTEMPLATE,$comment_data,"subject",$emailData);
 			$emailData['EmailFrom']	= EmailsTemplates::GetEmailTemplateFrom(Opportunity::OPPORTUNITYCOMMENTTEMPLATE);
 			
-            if(!empty($emailTo) && count($emailTo)>0){
-                $emailData['EmailTo'] = $emailTo;
-                $status = sendMail($body,$emailData,0);
-            }
+			
+				if(!empty($emailTo) && count($emailTo)>0){
+					$emailData['EmailTo'] = $emailTo;
+					$status = sendMail($body,$emailData,0);
+				}
+			
             if($status['status']==1){
                 if(isset($data['PrivateComment']) && $data['PrivateComment']==1) {
                     $account = Account::find($data['AccountID']);
@@ -102,14 +104,15 @@ class OpportunityCommentsController extends BaseController {
                     $emailData['EmailTo'] = $opportunity->Email;
                     $emailData['EmailToName'] = $opportunity->FirstName.' '.$opportunity->LastName;
                     $emailData['CompanyID'] = $data ["CompanyID"];
-
-                    $status = sendMail($body,$emailData,0);
-					$emailData['message_id'] 	=  isset($status['message_id'])?$status['message_id']:"";
-                    $emailData['Message'] = $status['body'];
-                    $status = email_log($emailData);
-                    if($status['status']==0){
-                        return generateResponse($status['message'],true,true);
-                    }
+					if(EmailsTemplates::CheckEmailTemplateStatus(Opportunity::OPPORTUNITYCOMMENTTEMPLATE)){
+						$status = sendMail($body,$emailData,0);						
+						$emailData['message_id'] 	=  isset($status['message_id'])?$status['message_id']:"";
+						$emailData['Message'] = $status['body'];
+						$status = email_log($emailData);
+						if($status['status']==0){
+							return generateResponse($status['message'],true,true);
+						}
+					}else{$status['status'] =1;}
                 }
             }else{
                 return generateResponse($status['message'],true,true);
