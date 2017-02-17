@@ -90,6 +90,7 @@ class TaskCommentsController extends BaseController {
 			$emailData['user']  	=  \Api\Model\User::get_user_full_name();
 			$emailData['CommentText'] = $comment_data['CommentText'];
 			$emailData['type']		 =	 'Task';
+			$comment_data['AccountID']=	$task->AccountIDs;
             //$emailData['mandrill'] =1;
             if(!empty($emailTo) && count($emailTo)>0){
                 $emailData['EmailTo'] = $emailTo;			 

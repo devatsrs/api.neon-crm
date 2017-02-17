@@ -87,6 +87,7 @@ class OpportunityCommentsController extends BaseController {
             $emailData['address'] = User::get_user_email();
             $emailData['name'] = User::get_user_full_name();
 			$emailData['CommentText'] = $comment_data['CommentText'];
+			$comment_data['AccountID']=	$opportunity->AccountID;
 			$body				= 	  EmailsTemplates::SendOpportunityTaskTagEmail(Opportunity::OPPORTUNITYCOMMENTTEMPLATE,$comment_data,'body',$emailData);
 			$emailData['Subject']	= EmailsTemplates::SendOpportunityTaskTagEmail(Opportunity::OPPORTUNITYCOMMENTTEMPLATE,$comment_data,"subject",$emailData);
 			$emailData['EmailFrom']	= EmailsTemplates::GetEmailTemplateFrom(Opportunity::OPPORTUNITYCOMMENTTEMPLATE);
