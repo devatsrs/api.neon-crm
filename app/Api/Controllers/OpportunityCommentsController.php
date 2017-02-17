@@ -104,7 +104,7 @@ class OpportunityCommentsController extends BaseController {
                     $emailData['EmailTo'] = $opportunity->Email;
                     $emailData['EmailToName'] = $opportunity->FirstName.' '.$opportunity->LastName;
                     $emailData['CompanyID'] = $data ["CompanyID"];
-					if(EmailsTemplates::CheckEmailTemplateStatus(Opportunity::OPPORTUNITYCOMMENTTEMPLATE)){
+					if(EmailsTemplates::CheckEmailTemplateStatus(Opportunity::OPPORTUNITYCOMMENTTEMPLATE)){ 
 						$status = sendMail($body,$emailData,0);						
 						$emailData['message_id'] 	=  isset($status['message_id'])?$status['message_id']:"";
 						$emailData['Message'] = $status['body'];

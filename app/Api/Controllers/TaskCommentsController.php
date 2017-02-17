@@ -106,7 +106,8 @@ class TaskCommentsController extends BaseController {
                     $emailData['EmailTo'] = $account->Email;
                     $emailData['EmailToName'] = $account->FirstName.' '.$account->LastName;
                     $emailData['CompanyID'] = $data ["CompanyID"];
-					if(EmailsTemplates::CheckEmailTemplateStatus(Task::TASKCOMMENTTEMPLATE)){	
+					Log::info("status:".EmailsTemplates::CheckEmailTemplateStatus(Task::TASKCOMMENTTEMPLATE));
+					if(EmailsTemplates::CheckEmailTemplateStatus(Task::TASKCOMMENTTEMPLATE)){	 
                     $status = sendMail($body,$emailData,0);
                     $emailData['Message'] = $body;
 					$emailData['message_id'] 	=  isset($status['message_id'])?$status['message_id']:"";
