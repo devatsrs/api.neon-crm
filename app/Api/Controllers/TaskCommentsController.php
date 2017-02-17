@@ -87,8 +87,8 @@ class TaskCommentsController extends BaseController {
             $emailData['Logo'] = getCompanyLogo($this->request);
 			$emailData['CommentText'] = $comment_data['CommentText'];
 			$emailData['UserProfileImage']  	=  UserProfile::get_user_picture_url($LogginedUser);
-			$emailData['user']  	=  \Api\Model\User::get_user_full_name();
-			$emailData['CommentText'] = $comment_data['CommentText'];
+			$emailData['User']  	=  \Api\Model\User::get_user_full_name();
+			$emailData['Comment'] = $comment_data['CommentText'];
 			$emailData['type']		 =	 'Task';
 			$comment_data['AccountID']=	$task->AccountIDs;
             //$emailData['mandrill'] =1;
