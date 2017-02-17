@@ -73,7 +73,7 @@ class EmailsTemplates{
 			$extraDefault	=	EmailsTemplates::$fields;
 			$extraSpecific  = [			
 				'{{subject}}',				
-				'{{user}}',
+				'{{User}}',
 				'{{type}}',
 				'{{Comment}}',
 				'{{Logo}}'
