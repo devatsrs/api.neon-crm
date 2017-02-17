@@ -80,7 +80,7 @@ class OpportunityCommentsController extends BaseController {
             $emailData['EmailToName'] = '';
             $emailData['CreatedBy'] = User::get_user_full_name();
             $emailData['Task'] = $opportunity->OpportunityName.' Opportunity';
-			$emailData['Subject_task'] = $opportunity->OpportunityName.' Opportunity';		
+			$emailData['subject'] = $opportunity->OpportunityName.' Opportunity';		
             $emailData['Logo'] = getCompanyLogo($this->request);
             //$emailData['mandrill'] =1;
 			$emailData['type']		 =	 'Opportunity';

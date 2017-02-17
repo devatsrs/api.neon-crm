@@ -49,7 +49,7 @@ class EmailsTemplates{
 				'{{TitleHeading}}',
 				'{{UserProfileImage}}',
 				'{{TaskBoardUrl}}',
-				'{{Subject_task}}',
+				'{{subject}}',
 				'{{Description}}',					
 				'{{CompanyName}}',
 				'{{user}}',

@@ -83,7 +83,7 @@ class TaskCommentsController extends BaseController {
             $emailData['EmailToName'] = '';
             $emailData['CreatedBy'] = User::get_user_full_name();
             $emailData['Task'] = $task->Subject.' Task';
-			$emailData['Subject_task'] = $task->Subject.' Task';			
+			$emailData['subject'] = $task->Subject.' Task';			
             $emailData['Logo'] = getCompanyLogo($this->request);
 			$emailData['CommentText'] = $comment_data['CommentText'];
 			$emailData['UserProfileImage']  	=  UserProfile::get_user_picture_url($LogginedUser);
