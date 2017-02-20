@@ -60,19 +60,18 @@ class DBSelector
 
                     Config::set('database.connections.rm_db.host',     $DBSetting['RMDB']['DB_HOST']);
                     Config::set('database.connections.rm_db.username', $DBSetting['RMDB']['DB_USERNAME']);
-                    Config::set('database.connections.rm_db.password', $DBSetting['RMDB']['DB_PASSWORD']);
+                    Config::set('database.connections.rm_db.password', substr($DBSetting['RMDB']['DB_PASSWORD'],5));
                     Config::set('database.connections.rm_db.database', $DBSetting['RMDB']['DB_DATABASE']);
 
                     Config::set('database.connections.billing_db.host',     $DBSetting['BILLINGDB']['DB_HOST']);
                     Config::set('database.connections.billing_db.username', $DBSetting['BILLINGDB']['DB_USERNAME']);
-                    Config::set('database.connections.billing_db.password', $DBSetting['BILLINGDB']['DB_PASSWORD']);
+                    Config::set('database.connections.billing_db.password', substr($DBSetting['BILLINGDB']['DB_PASSWORD'],5));
                     Config::set('database.connections.billing_db.database', $DBSetting['BILLINGDB']['DB_DATABASE']);
 
                     Config::set('database.connections.cdr_db.host',     $DBSetting['CDRDB']['DB_HOST']);
                     Config::set('database.connections.cdr_db.username', $DBSetting['CDRDB']['DB_USERNAME']);
-                    Config::set('database.connections.cdr_db.password', $DBSetting['CDRDB']['DB_PASSWORD']);
-                    Config::set('database.connections.cdr_db.database', $DBSetting['CDRDB']['DB_DATABASE']);					
-
+                    Config::set('database.connections.cdr_db.password', substr($DBSetting['CDRDB']['DB_PASSWORD'],5));
+                    Config::set('database.connections.cdr_db.database', $DBSetting['CDRDB']['DB_DATABASE']);
                 }else{
                     return response()->json(['Company not found'], 404);
                 }
