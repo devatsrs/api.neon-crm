@@ -220,4 +220,11 @@ class TicketsTable extends \Eloquent
 		return $accountID;
 
 	}
+	
+	static function getTicketTypeByID($id,$fld='FieldValueAgent'){
+		//TicketfieldsValues::WHERE
+			$ValuesID =  TicketfieldsValues::join('tblTicketfields','tblTicketfields.TicketFieldsID','=','tblTicketfieldsValues.FieldsID')
+            ->where(['tblTicketfields.FieldType'=>Ticketfields::TICKET_SYSTEM_TYPE_FLD])->where(['tblTicketfieldsValues.ValuesID'=>$id])->pluck($fld);			
+			return $ValuesID;
+	}
 }

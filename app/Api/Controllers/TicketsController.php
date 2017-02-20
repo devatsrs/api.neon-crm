@@ -25,6 +25,9 @@ use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use App\TicketEmails;
+
+
 
 class TicketsController extends BaseController
 {
@@ -61,6 +64,8 @@ private $validlicense;
 			  	  $query 		= 	"call prc_GetSystemTicket ('".$CompanyID."','".$search."','".$status."','".$priority."','".$Group."','".$agent."','".Messages::Received."',".( ceil($data['iDisplayStart']/$data['iDisplayLength']) )." ,".$data['iDisplayLength'].",'".$sort_column."','".$data['sSortDir_0']."',0)";  
 			}
 		Log::info("query:".$query);
+			$TicketEmails 	=  new TicketEmails(array("TicketID"=>103,"TriggerType"=>"AgentNewTicketCreated"));
+			Log::info("error:".$TicketEmails->GetError());
 			$resultdata   	=  DataTableSql::of($query)->getProcResult(array('ResultCurrentPage','TotalResults'));	
 			$resultpage  	=  DataTableSql::of($query)->make(false);				
 			$result = ["resultpage"=>$resultpage,"iTotalRecords"=>$resultdata->iTotalRecords,"iTotalDisplayRecords"=>$resultdata->iTotalDisplayRecords,"totalcount"=>$resultdata->data['TotalResults'][0]->totalcount,"ResultCurrentPage"=>$resultdata->data['ResultCurrentPage']];
@@ -848,6 +853,8 @@ private $validlicense;
 					);
 				 
 				Note::insertGetId($NoteData);
+				$TicketEmails 	=  new TicketEmails(array("TicketID"=>$data['TicketID'],"TriggerType"=>"Noteaddedtoticket"));
+				Log::info("error:".$TicketEmails->GetError());
 				return generateResponse('Note Successfully Created');	
 			} catch (\Exception $ex) {
 				 return generateResponse($ex->getMessage(), true, true);			

@@ -22,4 +22,8 @@ class TicketPriority extends \Eloquent {
 	static function getDefaultPriorityStatus(){
 			return TicketPriority::where(["PriorityValue"=>TicketPriority::$DefaultPriority])->pluck('PriorityID');
 	}
+	
+	static function getPriorityStatusByID($id){
+			return TicketPriority::where(["PriorityID"=>$id])->pluck('PriorityValue');
+	}
 }
