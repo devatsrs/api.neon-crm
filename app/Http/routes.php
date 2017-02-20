@@ -1,4 +1,6 @@
 <?php
+//use Illuminate\Http\Request;
+
 $api = app('Dingo\Api\Routing\Router');
 
 // Version 1 of our API
@@ -12,7 +14,16 @@ $api->version('v1', function ($api) {
         $api->post('logout', 'AuthController@logout');
 		$api->post('register', 'AuthController@register');
 		$api->post('l/{id}', 'AuthController@authenticate');
+		$request =$api->getCurrentRequest();
 
+       $postdata    =  Input::all(); 
+        if(isset($postdata['LoginType']) && $postdata['LoginType']=='customer') { //set customer configuration  
+              \Config::set('jwt.user' , "Api\Model\Customer");
+              \Config::set('auth.table', 'tblAccount');
+              \Config::set('auth.model', Api\Model\Customer::class);
+			  \Config::set('jwt.identifier', 'AccountID');
+        }
+		
 		// Dogs! All routes in here are protected and thus need a valid token
 		//$api->group( [ 'protected' => true, 'middleware' => 'jwt.refresh' ], function ($api) {
 		$api->group( [ 'middleware' => 'jwt.refresh' ], function ($api) {
@@ -74,7 +85,14 @@ $api->version('v1', function ($api) {
 			$api->get('account/get_account_threshold', 'AccountController@GetAccountThreshold');
 			$api->post('account/update_account_threshold', 'AccountController@UpdateAccountThreshold');
 			$api->delete('account/delete_temp_credit', 'AccountController@DeleteAccountThreshold');
-
+			
+			
+			$api->get('contact/GetTimeLine', 'ContactsController@GetTimeLine');
+			$api->post('contact/add_note', 'ContactsController@add_note');
+            $api->get('contact/get_note','ContactsController@GetNote');
+            $api->post('contact/delete_note','ContactsController@DeleteNote');
+			$api->post('contact/update_note','ContactsController@UpdateNote');
+			
             //Opportunity Board
             $api->get('opportunityboard/get_boards','OpportunityBoardController@getBoards');
             $api->post('opportunityboard/add_board','OpportunityBoardController@addBoard');
@@ -175,7 +193,37 @@ $api->version('v1', function ($api) {
 
             // Mailbox Class
             $api->post('email/sendemail', 'MailboxController@sendMail');
-
+			
+			$api->post('ticketgroups/get_groups', 'TicketsGroupController@getGroups');
+			$api->post('ticketgroups/store', 'TicketsGroupController@Store');
+			$api->post('ticketgroups/get/{id}', 'TicketsGroupController@get');
+			
+			$api->post('ticketgroups/get_group_agents/{id}', 'TicketsGroupController@get_group_agents');
+			$api->post('ticketgroups/get_group_agents_ids/{id}', 'TicketsGroupController@get_group_agents_ids');
+			$api->put('ticketgroups/update/{id}', 'TicketsGroupController@Update');
+            $api->post('ticketgroups/delete/{id}', 'TicketsGroupController@Delete');			
+			$api->post('ticketgroups/send_activation_single/{id}', 'TicketsGroupController@send_activation_single');
+			
+			$api->post('ticketsfields/getfields', 'TicketsFieldsController@GetFields');
+			$api->post('ticketsfields/iframeSubmits', 'TicketsFieldsController@iframeSubmits');
+			$api->post('ticketsfields/GetDynamicFields', 'TicketsFieldsController@GetDynamicFields');
+			
+			$api->post('tickets/get_tickets', 'TicketsController@GetResult');			
+			$api->post('tickets/store', 'TicketsController@Store');
+			
+			$api->post('tickets/getticket/{id}', 'TicketsController@GetSingleTicket');
+			$api->post('tickets/getticketdetail/{id}', 'TicketsController@GetSingleTicketDetails');		
+			$api->post('tickets/getticketdetailsdata', 'TicketsController@GetTicketDetailsData');
+			$api->post('tickets/ticketcction', 'TicketsController@TicketAction');
+			$api->post('tickets/actionsubmit/{id}', 'TicketsController@ActionSubmit');		
+			$api->post('tickets/closeticket/{id}', 'TicketsController@CloseTicket');	
+			$api->post('tickets/delete/{id}', 'TicketsController@Delete');	
+			$api->post('tickets/edit/{id}', 'TicketsController@Edit');
+			$api->post('tickets/update/{id}', 'TicketsController@Update');
+			$api->post('tickets/updatedetailpage/{id}', 'TicketsController@UpdateDetailPage');			
+			$api->post('tickets/SendMailTicket', 'TicketsController@SendMailTicket');
+			$api->post('tickets/updateticketattributes/{id}', 'TicketsController@UpdateTicketAttributes');									
+			$api->post('tickets/add_note', 'TicketsController@add_note');															
 		});
 
 	});

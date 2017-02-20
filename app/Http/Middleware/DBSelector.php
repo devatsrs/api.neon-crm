@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use Api\Model\Company;
+use Api\Model\Customer;
 use Carbon\Carbon;
 use Closure;
 use Illuminate\Support\Facades\Auth;
@@ -29,7 +30,17 @@ class DBSelector
         $credentials = $request->only('LoggedEmailAddress', 'password');
         $UserID = $request->only('LoggedUserID');
         $LicenceKey  = $request->only('LicenceKey','CompanyName');
-
+		$LoginType	=	$request->only('LoginType');
+		
+		/* if(isset($LoginType) && $LoginType['LoginType']=='customer') {
+    	    Config::set('auth.model', '\Api\Model\Customer');
+	        Config::set('auth.table', 'tblAccount');
+			Config::set('jwt.identifier', 'AccountID');
+ 			Config::set('jwt.user', '\Api\Model\Customer');
+			Config::set('auth.providers.users.model', \Api\Model\Customer::class);				  
+			Config::set('auth.providers.users.table', 'tblAccount');
+        }
+		*/
         if (!empty($LicenceKey['LicenceKey']) && !empty($LicenceKey['CompanyName'])) {
             if(!empty($credentials['LoggedEmailAddress']) || !empty($UserID['LoggedUserID'])){
                 $license = 	Company::getLicenceResponse($request);
@@ -61,8 +72,6 @@ class DBSelector
                     Config::set('database.connections.cdr_db.username', $DBSetting['CDRDB']['DB_USERNAME']);
                     Config::set('database.connections.cdr_db.password', substr($DBSetting['CDRDB']['DB_PASSWORD'],5));
                     Config::set('database.connections.cdr_db.database', $DBSetting['CDRDB']['DB_DATABASE']);
-
-
                 }else{
                     return response()->json(['Company not found'], 404);
                 }

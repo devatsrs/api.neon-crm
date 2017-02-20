@@ -15,7 +15,8 @@ class Opportunity extends \Eloquent {
     const Lost = 3;
     const Abandoned = 4;
     const Close  = 5;
-
+	const OPPERTUNITYTEMPLATE = "OppertunityTaskTagged";
+	const OPPORTUNITYCOMMENTTEMPLATE = 'OpportunityCommentEmail';
     public static $defaultSelectedStatus = [Opportunity::Open,Opportunity::Won,Opportunity::Lost,Opportunity::Abandoned];
 
     public static $status = [Opportunity::Open=>'Open',Opportunity::Won=>'Won',Opportunity::Lost=>'Lost',
