@@ -59,7 +59,7 @@ class OpportunityBoardColumnController extends BaseController
         );
         $validator = Validator::make($data, $rules);
         if ($validator->fails()) {
-            generateResponse($validator->errors(),true);
+         	return generateResponse($validator->errors(),true);
         }
 
 

@@ -172,7 +172,9 @@ class Company extends \Eloquent {
     }
 
     public static function getLicenceResponse($request){
-        $minutes = Carbon::now()->addMinutes(getenv('CACHE_EXPIRE'));
+        $CACHE_EXPIRE = 60;
+        $time = empty($CACHE_EXPIRE)?60:$CACHE_EXPIRE;
+        $minutes = \Carbon\Carbon::now()->addMinutes($time);
         $license  = $request->only('LicenceKey','CompanyName');
         $license['LicenceHost'] = $request->getHttpHost();
         $license['LicenceIP'] = $request->getClientIp();
@@ -184,7 +186,6 @@ class Company extends \Eloquent {
                     return $LicenceApiResponse;
                 }
                 Cache::add($licenseCacheKey, $LicenceApiResponse, $minutes);
-                //Cache::forever($licenseCacheKey, $LicenceApiResponse);
             } else {
                 $LicenceApiResponse['Status'] = 0;
                 $LicenceApiResponse['Message'] = 'Some thing wrong with license';
@@ -193,5 +194,22 @@ class Company extends \Eloquent {
             $LicenceApiResponse = Cache::get($licenseCacheKey);
         }
         return $LicenceApiResponse;
+    }
+	
+	public static function getCompanyFullAddress($companyID){
+		 if($companyID>0)
+		 {
+			 $companyData = Company::find($companyID);
+		 }else{
+			$companyData = Company::find(User::get_companyID());
+		 }
+			$Address = "";
+			$Address .= !empty($companyData->Address1) ? $companyData->Address1 . ',' . PHP_EOL : '';
+			$Address .= !empty($companyData->Address2) ? $companyData->Address2 . ',' . PHP_EOL : '';
+			$Address .= !empty($companyData->Address3) ? $companyData->Address3 . ',' . PHP_EOL : '';
+			$Address .= !empty($companyData->City) ? $companyData->City . ',' . PHP_EOL : '';
+			$Address .= !empty($companyData->PostCode) ? $companyData->PostCode . ',' . PHP_EOL : '';
+			$Address .= !empty($companyData->Country) ? $companyData->Country : '';
+			return $Address;		
     }
 }

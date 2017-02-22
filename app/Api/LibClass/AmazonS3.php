@@ -123,7 +123,8 @@ class AmazonS3 {
         }
 
         $path .=  $dir . "/". date("Y")."/".date("m") ."/" .date("d") ."/";
-        $dir = getenv('UPLOAD_PATH') . '/'. $path;
+        $upload_path = CompanyConfiguration::get("UPLOAD_PATH");
+        $dir = $upload_path . '/'. $path;
         if (!file_exists($dir)) {
             mkdir($dir, 0777, TRUE);
         }
@@ -161,7 +162,7 @@ class AmazonS3 {
 
         //When no amazon ;
         if($s3 == 'NoAmazon'){
-            $status = RemoteSSH::downloadFile($key);
+            $status = RemoteSSH::downloadFile($key); 
             return $status['filePath'];
         }
         $bucket = self::getBucket();
@@ -205,7 +206,7 @@ class AmazonS3 {
         //When no amazon ;
         if($s3 == 'NoAmazon'){
 
-            $site_url = \Api\Model\CompanyConfiguration::get("SITE_URL");
+            $site_url = \Api\Model\CompanyConfiguration::get("WEBURL");
 
             return combile_url_path($site_url,$key);
 
@@ -226,7 +227,7 @@ class AmazonS3 {
             //When no amazon ;
             if($s3 == 'NoAmazon'){
 
-                $upload_path = CompanyConfiguration::get("UPLOADPATH");
+                $upload_path = CompanyConfiguration::get("UPLOAD_PATH");
                 $file_path = rtrim($upload_path,'/').'/'. $file;
                 return RemoteSSH::deleteFile($file_path);
 

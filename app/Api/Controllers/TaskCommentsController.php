@@ -6,7 +6,9 @@ use Api\Model\Account;
 use Api\Model\Task;
 use Api\Model\CRMComments;
 use Api\Model\User;
+use Api\Model\UserProfile;
 use App\AmazonS3;
+use App\EmailsTemplates;
 use App\Http\Requests;
 use Dingo\Api\Facade\API;
 use Faker\Provider\Uuid;
@@ -14,6 +16,7 @@ use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
+
 class TaskCommentsController extends BaseController {
 
     public function __construct(Request $request)
@@ -40,6 +43,7 @@ class TaskCommentsController extends BaseController {
 	 */
     public function add_comment(){
         $data = Input::all();
+		 $LogginedUser   =  \Api\Model\User::get_userID();
         $rules = array(
             'TaskID' => 'required',
             'CommentText'=>'required'
@@ -79,11 +83,22 @@ class TaskCommentsController extends BaseController {
             $emailData['EmailToName'] = '';
             $emailData['CreatedBy'] = User::get_user_full_name();
             $emailData['Task'] = $task->Subject.' Task';
+			$emailData['subject'] = $task->Subject.' Task';			
             $emailData['Logo'] = getCompanyLogo($this->request);
+			$emailData['CommentText'] = $comment_data['CommentText'];
+			$emailData['UserProfileImage']  	=  UserProfile::get_user_picture_url($LogginedUser);
+			$emailData['User']  	=  \Api\Model\User::get_user_full_name();
+			$emailData['Comment'] = $comment_data['CommentText'];
+			$emailData['type']		 =	 'Task';
+			$comment_data['AccountID']=	$task->AccountIDs;
             //$emailData['mandrill'] =1;
             if(!empty($emailTo) && count($emailTo)>0){
-                $emailData['EmailTo'] = $emailTo;
-                $status = sendMail('emails.crm.AccountUserEmailSend',$emailData);
+                $emailData['EmailTo'] = $emailTo;			 
+				$body					=  EmailsTemplates::SendOpportunityTaskTagEmail(Task::TASKCOMMENTTEMPLATE,$comment_data,'body',$emailData);
+				$emailData['Subject']	=  EmailsTemplates::SendOpportunityTaskTagEmail(Task::TASKCOMMENTTEMPLATE,$comment_data,"subject",$emailData);
+				$emailData['EmailFrom']	=  EmailsTemplates::GetEmailTemplateFrom(Task::TASKCOMMENTTEMPLATE);
+				$status = sendMail($body,$emailData,0);
+				
             }
             if($status['status']==1){
                 if(isset($data['PrivateComment']) && $data['PrivateComment']==1) {
@@ -92,13 +107,16 @@ class TaskCommentsController extends BaseController {
                     $emailData['EmailTo'] = $account->Email;
                     $emailData['EmailToName'] = $account->FirstName.' '.$account->LastName;
                     $emailData['CompanyID'] = $data ["CompanyID"];
-                    $status = sendMail('emails.crm.AccountUserEmailSend',$emailData);
-                    $emailData['Message'] = $status['body'];
+					Log::info("status:".EmailsTemplates::CheckEmailTemplateStatus(Task::TASKCOMMENTTEMPLATE));
+					if(EmailsTemplates::CheckEmailTemplateStatus(Task::TASKCOMMENTTEMPLATE)){	 
+                    $status = sendMail($body,$emailData,0);
+                    $emailData['Message'] = $body;
 					$emailData['message_id'] 	=  isset($status['message_id'])?$status['message_id']:"";
                     $status = email_log($emailData);
                     if($status['status']==0){
                         return generateResponse($status['message'],true,true);
                     }
+					}else{$status['status'] =1;}
                 }
             }else{
                 return generateResponse($status['message'],true,true);

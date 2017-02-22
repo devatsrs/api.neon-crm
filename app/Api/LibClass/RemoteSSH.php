@@ -15,7 +15,7 @@ class RemoteSSH{
         $Configuration = CompanyConfiguration::getConfiguration();
         if(!empty($Configuration) && isset($Configuration['SSH'])){
             self::$config = json_decode($Configuration['SSH'],true);
-            self::$uploadPath = $Configuration['UPLOADPATH'];
+            self::$uploadPath = $Configuration['UPLOAD_PATH'];
         }
         if(count(self::$config) && isset(self::$config['host']) && isset(self::$config['username']) && isset(self::$config['password'])){
             Config::set('remote.connections.production',self::$config);
@@ -32,7 +32,7 @@ class RemoteSSH{
                     $source = rtrim(self::$uploadPath, '/') . '/' . $key;
                 }
                 try {
-                    $tempPath = getenv('TEMP_PATH');
+                    $tempPath = CompanyConfiguration::get("TEMP_PATH");
                     $destination = rtrim($tempPath, '/') . '/' . Uuid::uuid() . basename($key);
                     RemoteFacade::get($source, $destination);
                     $status['status'] = 1;
