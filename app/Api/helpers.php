@@ -443,7 +443,7 @@ function site_configration_cache($request){
             }
         }
 
-        $cache['DefaultLogo']       = '/assets/images/logo@2x.png';
+        $cache['DefaultLogo']       = \Api\Model\CompanyConfiguration::get("WEB_URL").'/assets/images/logo@2x.png';
 
 
         \Illuminate\Support\Facades\Cache::add($siteConfigretion, $cache, $minutes);
