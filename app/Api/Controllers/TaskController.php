@@ -525,6 +525,7 @@ class TaskController extends BaseController {
         return generateResponse('',false,false,$Priorities);
     }
 
+
     public function get_allowed_extensions(){
         $allowed = CompanyConfiguration::get("CRM_ALLOWED_FILE_UPLOAD_EXTENSIONS");
         $allowedextensions   =  explode(',',$allowed);
