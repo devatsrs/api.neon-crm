@@ -243,9 +243,11 @@ function email_log($data){
 }
 
 function email_log_data_Ticket($data,$view = '',$status){ 
-Log::info("ticket data");
-Log::info(print_r($data,true));
-Log::info(print_r($status,true));
+	
+	$EmailParent =	 0;
+	if(isset($data['TicketID'])){
+			//$EmailParent =	\Api\Model\TicketsTable::where(["TicketID"=>$data['TicketID']])->pluck('AccountEmailLogID');
+	}
     $status_return = array('status' => 0, 'message' => 'Something wrong with Saving log.');
     if(!isset($data['EmailTo']) && empty($data['EmailTo'])){
         $status_return['message'] = 'Email To not set in Account mail log';
@@ -320,7 +322,7 @@ Log::info(print_r($status,true));
         'Bcc'=>$data['bcc'],
         "AttachmentPaths"=>$data['AttachmentPaths'],
 		"MessageID"=>$status['message_id'],
-		"EmailParent"=>isset($data['EmailParent'])?$data['EmailParent']:0,
+		"EmailParent"=>isset($data['EmailParent'])?$data['EmailParent']:$EmailParent,
 		"EmailCall"=>$data['EmailCall'],
     ];
 	Log::info(print_r($logData,true));
@@ -694,7 +696,7 @@ function SendTaskMailUpdate($NewData,$OldData,$type='Task'){
             }
             $NewData['CreatedBy']      =   $OldData['CreatedBy'];
             $NewData['TitleHeading']  =   $LogginedUserName." <strong>Tagged</strong> you in a ".$type;
-            $NewData['UserProfileImage']  =  UserProfile::get_user_picture_url($LogginedUser);
+            $NewData['UserProfileImage']  =  \Api\Model\UserProfile::get_user_picture_url($LogginedUser);
 
             $status        =   sendMail('emails.task.TaskEmailSend', $NewData);
         }
@@ -712,7 +714,7 @@ function SendTaskMailUpdate($NewData,$OldData,$type='Task'){
                 $NewData['Subject']      =   "(Neon) ".$NewData['Subject'];
                 $NewData['CreatedBy']      =   $OldData['CreatedBy'];
                 $NewData['TitleHeading']  =   $LogginedUserName." <strong>Assigned</strong> you a ".$type;
-                $NewData['UserProfileImage']  =  UserProfile::get_user_picture_url($LogginedUser);
+                $NewData['UserProfileImage']  =  \Api\Model\UserProfile::get_user_picture_url($LogginedUser);
                 $status        =   sendMail('emails.task.TaskEmailSend', $NewData);
             }
         }
