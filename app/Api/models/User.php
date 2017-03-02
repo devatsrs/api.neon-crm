@@ -12,6 +12,8 @@ use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class User extends Model implements AuthenticatableContract,
                                     AuthorizableContract,
@@ -60,20 +62,54 @@ class User extends Model implements AuthenticatableContract,
         return [];
     }
 
-    public static function get_companyID(){
-        return Auth::user()->CompanyID;
+    public static function get_companyID(){ 
+		if(isset(Auth::user()->CompanyID)){
+       	  return Auth::user()->CompanyID;
+		}else{
+		  return Auth::user()->CompanyId;
+		}
     }
 
     public static  function get_user_full_name(){
         return Auth::user()->FirstName.' '. Auth::user()->LastName;
     }
 	
-	   public static function get_user_email(){      
-        return Auth::user()->EmailAddress;
+	   public static function get_user_email(){     
+	   if(isset(Auth::user()->EmailAddress)){
+       	  return Auth::user()->EmailAddress;
+		}else{
+		  return Auth::user()->Email;
+		}  	    
     }
 	
-	   public static function get_userID(){       
-        return Auth::user()->UserID;
+	   public static function get_userID(){    
+	   if(isset(Auth::user()->UserID)){
+       	  return Auth::user()->UserID;
+		}else{
+		  return Auth::user()->AccountID;
+		}   
+        
     }
-
+	
+		public static function getUserIDListAll($select = 1){
+        $where = array('Status'=>1,'CompanyID'=>User::get_companyID());
+        $user = User::where($where);
+        
+        $row = json_decode(json_encode($user->select(array(DB::raw("concat(tblUser.FirstName,' ',tblUser.LastName) as FullName"), 'UserID'))->orderBy('FullName')->lists('FullName', 'UserID')),true);
+        if(!empty($row) & $select==1){
+			$row =  array("0"=> "Select")+$row;
+        }
+        return $row;
+    }
+	
+	
+	 public static function getUserIDListOnly($select = 1){
+        $where = array('Status'=>1,'CompanyID'=>User::get_companyID());
+        $user = User::where($where);
+        if($select==0){
+            $user->where('AdminUser','!=',1);
+        }
+        $row = $user->select(array(DB::raw("concat(tblUser.FirstName,' ',tblUser.LastName) as FullName"),'EmailAddress'))->orderBy('FullName')->lists('FullName', 'EmailAddress');
+        return $row;
+    }
 }

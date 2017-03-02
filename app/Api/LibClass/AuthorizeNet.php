@@ -25,7 +25,7 @@ class AuthorizeNet {
 		if(count($AuthorizeData)>0){					
 			$AUTHORIZENET_API_LOGIN_ID  	= 	isset($AuthorizeData->AuthorizeLoginID)?$AuthorizeData->AuthorizeLoginID:'';		
 			$AUTHORIZENET_TRANSACTION_KEY  	= 	isset($AuthorizeData->AuthorizeTransactionKey)?$AuthorizeData->AuthorizeTransactionKey:'';
-			$isSandbox						=	isset($AuthorizeDbData->AuthorizeTestAccount)?$AuthorizeDbData->AuthorizeTestAccount:'';
+			$isSandbox						=	isset($AuthorizeData->AuthorizeTestAccount)?$AuthorizeData->AuthorizeTestAccount:'';
 			
 			define("AUTHORIZENET_API_LOGIN_ID", $AUTHORIZENET_API_LOGIN_ID);
 			define("AUTHORIZENET_TRANSACTION_KEY", $AUTHORIZENET_TRANSACTION_KEY);
