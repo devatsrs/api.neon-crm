@@ -43,4 +43,40 @@ class TicketGroups extends \Eloquent
             return FALSE;
         }
     }
+	
+	static function get_group_agents($id,$select = 1,$fld = 'UserID')
+	{
+		if($select){
+			$Groupagents    =   array("Select"=>0);
+		}else{
+			$Groupagents    =   array();
+		}
+		if($id)
+		{
+			$Groupagentsdb	=	TicketGroupAgents::where(["GroupID"=>$id])->get(); 
+		}
+		else
+		{
+			$Groupagentsdb	=	TicketGroupAgents::get(); 
+		}
+		
+		foreach($Groupagentsdb as $Groupagentsdata){
+			$userdata = 	User::find($Groupagentsdata->UserID);
+			if($userdata){	
+				
+				$Groupagents[$userdata->FirstName." ".$userdata->LastName] =	$userdata->$fld; 
+			}			
+		} 
+		return $Groupagents;
+	}
+	
+	static function Get_User_Groups($id)
+	{
+		$groupsArray	=	array();
+		$Groupagentsdb	=	TicketGroupAgents::where(["UserID"=>$id])->get(); 
+		foreach($Groupagentsdb as $Groupagentsdata){
+			$groupsArray[]	= $Groupagentsdata->GroupID;	
+		} 
+		return implode(",",$groupsArray);
+	}
 }

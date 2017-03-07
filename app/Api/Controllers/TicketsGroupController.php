@@ -357,23 +357,7 @@ private $validlicense;
 	function get_group_agents($id){
 		try
 		{
-			$Groupagents    =   array("Select"=>0);
-			if($id)
-			{
-				$Groupagentsdb	=	TicketGroupAgents::where(["GroupID"=>$id])->get(); 
-			}
-			else
-			{
-				$Groupagentsdb	=	TicketGroupAgents::get(); 
-			}
-			
-			foreach($Groupagentsdb as $Groupagentsdata){
-				$userdata = 	User::find($Groupagentsdata->UserID);
-				if($userdata){	
-					$Groupagents[$userdata->FirstName." ".$userdata->LastName] =$userdata->UserID; 
-				}
-				
-			} Log::info(print_r($Groupagents,true));
+			$Groupagents = TicketGroupAgents::get_group_agents($id);
 			//echo "<pre>"; print_r($Groupagents);	echo "</pre>";
 			return generateResponse('',false,false,$Groupagents);
 		
