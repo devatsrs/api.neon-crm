@@ -15,8 +15,11 @@ class TicketsTable extends \Eloquent
 	
     static  $FreshdeskTicket  		= 	2;
     static  $SystemTicket 			= 	1;
-	const TICKET					=	0;
-	const EMAIL						=	1;
+	const   TICKET					=	0;
+	const   EMAIL					=	1;
+	const   TICKETGLOBALACCESS		=	1;
+	const   TICKETGROUPACCESS		=	2;
+	const   TICKETRESTRICTEDACCESS	=	3;
 	static  $defaultSortField 		= 	'created_at';
 	static  $defaultSortType 		= 	'desc';
 	static  $Sortcolumns			=	array("created_at"=>"Date Created","subject"=>"Subject","status"=>"Status","group"=>"Group","updated_at"=>"Last Modified");
@@ -78,6 +81,13 @@ class TicketsTable extends \Eloquent
 		//TicketfieldsValues::WHERE
 		 $ValuesID =  TicketfieldsValues::join('tblTicketfields','tblTicketfields.TicketFieldsID','=','tblTicketfieldsValues.FieldsID')
             ->where(['tblTicketfields.FieldType'=>Ticketfields::TICKET_SYSTEM_STATUS_FLD])->where(['tblTicketfieldsValues.FieldValueAgent'=>TicketfieldsValues::$Status_Closed])->pluck('ValuesID');			
+			return $ValuesID;
+	}
+	
+	static function getResolvedTicketStatus(){
+		//TicketfieldsValues::WHERE
+		 $ValuesID =  TicketfieldsValues::join('tblTicketfields','tblTicketfields.TicketFieldsID','=','tblTicketfieldsValues.FieldsID')
+            ->where(['tblTicketfields.FieldType'=>Ticketfields::TICKET_SYSTEM_STATUS_FLD])->where(['tblTicketfieldsValues.FieldValueAgent'=>TicketfieldsValues::$Status_Resolved])->pluck('ValuesID');			
 			return $ValuesID;
 	}
 	
@@ -187,8 +197,8 @@ class TicketsTable extends \Eloquent
 	
 	 
 	static function CheckTicketLicense(){
-		return true;
-		//return false;
+		//return true;
+		return false;
 	}
 	
 		static function getDefaultStatus(){			
