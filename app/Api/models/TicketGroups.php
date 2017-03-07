@@ -1,5 +1,7 @@
 <?php
 namespace Api\Model;
+use Api\Model\TicketGroupAgents;
+
 
 use Illuminate\Database\Eloquent\Model;
 class TicketGroups extends \Eloquent 
