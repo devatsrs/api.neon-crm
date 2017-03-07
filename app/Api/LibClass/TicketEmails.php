@@ -144,7 +144,7 @@ class TicketEmails{
 		
 			$array_data									=		array();
 			$CompanyData								=		Company::find($this->CompanyID);
-			$site_url 									= 		CompanyConfiguration::get("WEBURL");
+			$site_url 									= 		CompanyConfiguration::get("WEB_URL");
 			$array_data['CompanyName']					=   	$CompanyData->CompanyName;
 			$array_data['CompanyVAT']					=   	$CompanyData->VAT;			
 			$array_data['CompanyAddress1']				=   	$CompanyData->Address1;
