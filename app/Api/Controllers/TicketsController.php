@@ -488,7 +488,7 @@ private $validlicense;
 	{	
 	   try
 	   {	
-	   	   $postdata 					 = 		Input::all();     Log::info(print_r($postdata,true));
+	   	   $postdata 					 = 		Input::all();    
 		   $data						 =		array();
 		   $CompanyID 					 = 		User::get_companyID(); 
 		   $data['status']	 			 =   	TicketsTable::getTicketStatus();
@@ -499,7 +499,7 @@ private $validlicense;
 		   $data['CloseStatus'] 		 =  	TicketsTable::getClosedTicketStatus();  //close status id for ticket 
 		   $data['ticketdata']			 =	    TicketsTable::find($postdata['id']);
 		   $data['ticketdetaildata']	 =	    TicketsDetails::where(["TicketID"=>$postdata['id']])->get();	
-		   							
+		   $customer 					 = 		0;	   							
 		   if(isset($postdata['LoginType']) && $postdata['LoginType']=='customer'){		
 				$data['Ticketfields']	=	DB::table('tblTicketfields')->Where(['CustomerDisplay'=>1])->orderBy('FieldOrder', 'asc')->get(); 
 			}else{
@@ -511,10 +511,14 @@ private $validlicense;
             ->join('tblUser', 'tblUser.UserID', '=', 'tblTicketGroupAgents.UserID')->distinct()          
             ->select('tblUser.UserID', 'tblUser.FirstName', 'tblUser.LastName')
             ->get();
+			
+			 if($postdata['LoginType']=='customer'){	
+				 $customer  = 1;
+			 }
 		   
 			if($postdata['id'])
 			{	
-				$timeline_query 				=      	"call prc_getTicketTimeline (".$CompanyID.",".$postdata['id'].")";  
+				$timeline_query 				=      	"call prc_getTicketTimeline (".$CompanyID.",".$postdata['id'].",".$customer.")";  
 				Log::info($timeline_query);
 				$data['TicketConversation']		 =		$result_array = DB::select($timeline_query); 
 				/*if($data['ticketdata']->AccountEmailLogID>0){
