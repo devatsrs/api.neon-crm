@@ -13,6 +13,7 @@ use Api\Model\TicketsTable;
 use Api\Model\TicketGroups;
 use Api\Model\TicketGroupAgents;
 use App\Http\Requests;
+use App\Imap;
 use Dingo\Api\Facade\API;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Input;
@@ -93,7 +94,7 @@ private $validlicense;
 		   $columns 	 			= 	array('GroupID','GroupName','GroupEmailAddress','TotalAgents','GroupAssignTime','AssignUser');
 		   $sort_column 			= 	$columns[$data['iSortCol_0']];
 			
-			$query 	= 	"call prc_GetTicketGroups (".$CompanyID.",'".$search."',".( ceil($data['iDisplayStart']/$data['iDisplayLength']) )." ,".$data['iDisplayLength'].",'".$sort_column."','".$data['sSortDir_0']."'";  
+			$query 	= 	"call prc_GetTicketGroups (".$CompanyID.",'".$search."',".( ceil($data['iDisplayStart']/$data['iDisplayLength']) )." ,".$data['iDisplayLength'].",'".$sort_column."','".$data['sSortDir_0']."'";  Log::info($query);
 	
 			if(isset($data['Export']) && $data['Export'] == 1) {
 				$result = DB::select($query . ',1)');
@@ -387,6 +388,32 @@ private $validlicense;
 		  }catch (Exception $ex){
 			 return generateResponse($ex->getMessage(),true,true);
          }
+	}
+	
+	function validatesmtp(){
+		$data = Input::all();
+		  $rules = array(
+            'GroupEmailServer' => 'required',
+			'GroupEmailPassword' => 'required',
+			'GroupEmailAddress' => 'required',
+        );
+
+        $validator = Validator::make($data, $rules);		Log::info(print_r($data,true));
+		
+		if ($validator->fails()) {
+			 return generateResponse($validator->errors(),true);
+        }
+		try
+		{
+			$result =  Imap::CheckConnection($data['GroupEmailServer'],$data['GroupEmailAddress'],$data['GroupEmailPassword']);
+			if($result['status']){
+			 return generateResponse('Imap connected successfully.');
+			}else{
+			 return generateResponse($result['error'],true,true);			 
+			}
+		}catch (Exception $ex){
+			 return generateResponse($ex->getMessage(),true,true);
+         }	
 	}	
 	
 }

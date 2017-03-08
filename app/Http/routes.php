@@ -203,6 +203,8 @@ $api->version('v1', function ($api) {
 			$api->put('ticketgroups/update/{id}', 'TicketsGroupController@Update');
             $api->post('ticketgroups/delete/{id}', 'TicketsGroupController@Delete');			
 			$api->post('ticketgroups/send_activation_single/{id}', 'TicketsGroupController@send_activation_single');
+			$api->post('ticketgroups/validatesmtp', 'TicketsGroupController@validatesmtp');
+			
 			
 			$api->post('ticketsfields/getfields', 'TicketsFieldsController@GetFields');
 			$api->post('ticketsfields/iframeSubmits', 'TicketsFieldsController@iframeSubmits');
