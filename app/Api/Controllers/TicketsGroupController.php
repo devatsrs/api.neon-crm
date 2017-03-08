@@ -315,7 +315,7 @@ private $validlicense;
 	
 	function send_activation_single($id)
 	{
-		$data = Input::all();
+		$data = Input::all(); 
 	    try
 		{
 			if($id)
@@ -325,7 +325,8 @@ private $validlicense;
 			  if(count($email_data)>0 && $email_data->GroupEmailStatus==0)
 			  {
 					$remember_token				 = 		str_random(32); //add new
-					$user_reset_link 			 = 		$data['activate']."?remember_token=".$remember_token;
+				    $site_url 					 = 		\Api\Model\CompanyConfiguration::get("WEB_URL").'/activate_support_email';
+					$user_reset_link 			 = 		$site_url."?remember_token=".$remember_token;
 					$data 						 = 		array();
 					$data['companyID'] 			 = 		User::get_companyID();
 					$CompanyName 				 =  	Company::getName($data['companyID']);
