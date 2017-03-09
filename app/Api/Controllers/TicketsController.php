@@ -893,11 +893,12 @@ private $validlicense;
 				 
 				Note::insertGetId($NoteData);
 				if(isset($data['LoginType']) && $data['LoginType']=='customer'){		
-					$TicketEmails 	=  new TicketEmails(array("TicketID"=>$data['TicketID'],"TriggerType"=>"Noteaddedtoticket","Comment"=>$data['Note']));
+					
 				}else{
-					$TicketEmails 	=  new TicketEmails(array("TicketID"=>$data['TicketID'],"TriggerType"=>"AgentAddsCommenttoTicket","Comment"=>$data['Note']));
+		//		$TicketEmails 	=  new TicketEmails(array("TicketID"=>$data['TicketID'],"TriggerType"=>"AgentAddsCommenttoTicket","Comment"=>$data['Note']));
+					$TicketEmails 	=  new TicketEmails(array("TicketID"=>$data['TicketID'],"TriggerType"=>"Noteaddedtoticket","Comment"=>$data['Note']));
 				}
-			$TicketEmails 	=  new TicketEmails(array("TicketID"=>$data['TicketID'],"TriggerType"=>"CCNoteaddedtoticket","Comment"=>$data['Note']));
+			//$TicketEmails 	=  new TicketEmails(array("TicketID"=>$data['TicketID'],"TriggerType"=>"CCNoteaddedtoticket","Comment"=>$data['Note']));
 				Log::info("error:".$TicketEmails->GetError());
 				return generateResponse('Note Successfully Created');	
 			} catch (\Exception $ex) {

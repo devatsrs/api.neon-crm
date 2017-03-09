@@ -408,7 +408,7 @@ private $validlicense;
 		{
 			$result =  Imap::CheckConnection($data['GroupEmailServer'],$data['GroupEmailAddress'],$data['GroupEmailPassword']);
 			if($result['status']){
-			 return generateResponse('Imap connected successfully.');
+			 return generateResponse('Validated.');
 			}else{
 			 return generateResponse($result['error'],true,true);			 
 			}
