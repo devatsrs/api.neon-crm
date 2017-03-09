@@ -197,8 +197,8 @@ class TicketsTable extends \Eloquent
 	
 	 
 	static function CheckTicketLicense(){
-		//return true;
-		return false;
+		return true;
+		//return false;
 	}
 	
 		static function getDefaultStatus(){			
