@@ -8,6 +8,7 @@ use Api\Model\EmailTemplate;
 use Api\Model\Estimate;
 use Api\Model\Account;
 use Api\Model\Currency;
+use Api\Model\AccountBalance;
 use Illuminate\Support\Facades\Log;
 
 
@@ -31,6 +32,9 @@ class EmailsTemplates{
 				'{{Country}}',
 				'{{Signature}}',
 				'{{Currency}}',
+				'{{OutstandingExcludeUnbilledAmount}}',
+				'{{OutstandingIncludeUnbilledAmount}}',
+				'{{BalanceThreshold}}',
 				'{{CompanyName}}',
 				"{{CompanyVAT}}",
 				"{{CompanyAddress1}}",
@@ -38,7 +42,8 @@ class EmailsTemplates{
 				"{{CompanyAddress3}}",
 				"{{CompanyCity}}",
 				"{{CompanyPostCode}}",
-				"{{CompanyCountry}}",								
+				"{{CompanyCountry}}",
+				"{{Logo}}"								
 				);
 	
 	 public function __construct($data = array()){
@@ -47,8 +52,6 @@ class EmailsTemplates{
 		 }		 		 
 		 $this->CompanyName = Company::getName();
 	}
-	
-	
 	
 	
 	static function SendOpportunityTaskTagEmail($slug,$obj,$type="body",$data){
@@ -112,6 +115,7 @@ class EmailsTemplates{
 		return EmailTemplate::where(["SystemType"=>$slug])->pluck("Status");
 	}
 	static function setAccountFields($array,$AccountID){
+			$companyID						=	 User::get_companyID();
 			$AccoutData 					= 	 Account::find($AccountID);			
 			$array['AccountName']			=	 $AccoutData->AccountName;
 			$array['FirstName']				=	 $AccoutData->FirstName;
@@ -125,7 +129,16 @@ class EmailsTemplates{
 			$array['PostCode']				=	 $AccoutData->PostCode;
 			$array['Country']				=	 $AccoutData->Country;
 			$array['Currency']				=	 Currency::where(["CurrencyId"=>$AccoutData->CurrencyId])->pluck("Code");
-			
+			$array['OutstandingExcludeUnbilledAmount'] = AccountBalance::getOutstandingAmount($companyID,$AccountID);
+			$array['OutstandingIncludeUnbilledAmount'] = AccountBalance::getBalanceAmount($AccountID);
+			$array['BalanceThreshold'] 				   = AccountBalance::getBalanceThreshold($AccountID);		
+		   if(!empty(user::get_userID())){
+			   $UserData = user::find(user::get_userID());
+			  if(isset($UserData->EmailFooter) && trim($UserData->EmailFooter) != '')
+				{
+					$array['Signature']= $UserData->EmailFooter;	
+				}
+			}	
 			return $array;
 	}
 	
