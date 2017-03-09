@@ -124,7 +124,7 @@ class PHPMAILERIntegtration{
 		return $status;
 	}
 	
-	static function add_email_address($mail,$data,$type='EmailTo') //type add,bcc,cc
+	static function add_email_address($mail,$data,$type) //type add,bcc,cc
 	{
 		if(isset($data[$type]))
 		{
