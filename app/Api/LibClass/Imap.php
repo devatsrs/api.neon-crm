@@ -296,7 +296,7 @@ protected $server;
 			//return true;
 			return array("status"=>1,"error"=>0);
 		} catch (\Exception $e) {
-			Log::error("could not connect");
+			Log::error("Unable to validate");
 			Log::error($e);			
 			return array("status"=>0,"error"=>"could not connect");
 			//return false;
