@@ -845,7 +845,7 @@ private $validlicense;
 					$ContactData = array("Email"=>$RequesterEmail,"CompanyId"=>User::get_companyID());
 					Contact::create($ContactData);
 				}	
-				 $TicketData['In-Reply-To']	 	  = 	$email_from_data[0]->GroupEmailAddress;				
+				 $TicketData['AddReplyTo']	 	  = 	$email_from_data[0]->GroupEmailAddress;				
 				 $TicketData['email_from']	   	  = 	$email_from_data[0]->GroupReplyAddress;
 				 $TicketData['email_from_name']   = 	$email_from_data[0]->GroupName;		
 				 $TicketData['cc']				  =     isset($data['cc'])?$data['cc']:''; 
