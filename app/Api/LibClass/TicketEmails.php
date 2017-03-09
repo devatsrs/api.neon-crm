@@ -36,7 +36,7 @@ class TicketEmails{
 			 $this->$key = $value;
 		 }		 		 
 		 $this->CompanyID = User::get_companyID();
-		 $this->TriggerEmail();
+		 $this->TriggerEmail();  
 	 }
 	 
 	 public function TriggerEmail(){
