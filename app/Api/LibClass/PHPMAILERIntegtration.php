@@ -48,8 +48,8 @@ class PHPMAILERIntegtration{
 		$mail->Port = $port;                                    // TCP port to connect to
 		if(isset($data['In-Reply-To']))
 		{
-			//$mail->addCustomHeader('In-Reply-To', $data['In-Reply-To']); 
-			$mail->AddReplyTo($data['In-Reply-To'],  $from['name']);
+			$mail->addCustomHeader('In-Reply-To', $data['In-Reply-To']); 
+			//$mail->AddReplyTo($data['In-Reply-To'],  $from['name']);
 		}
 		if(isset($data['AddReplyTo']))
 		{
