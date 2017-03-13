@@ -183,7 +183,7 @@ class TicketEmails{
 			$status 					= 		sendMail($finalBody,$emailData,0);
 			
 			if($status['status']){
-				email_log_data_Ticket($emailData,'',$status);						
+				//email_log_data_Ticket($emailData,'',$status);						
 			}else{
 				$this->SetError($status['message']);
 			}			
@@ -218,7 +218,7 @@ class TicketEmails{
 			$status 					= 		sendMail($finalBody,$emailData,0);
 			
 			if($status['status']){
-				email_log_data_Ticket($emailData,'',$status);						
+			//	email_log_data_Ticket($emailData,'',$status);						
 			}else{
 				$this->SetError($status['message']);
 			}
@@ -245,7 +245,7 @@ class TicketEmails{
 		$status 					= 		sendMail($finalBody,$emailData,0);
 		
 		if($status['status']){
-			email_log_data_Ticket($emailData,'',$status);						
+			//email_log_data_Ticket($emailData,'',$status);						
 		}else{
 			$this->SetError($status['message']);
 		}		
@@ -281,7 +281,7 @@ class TicketEmails{
 			$status 					= 		sendMail($finalBody,$emailData,0);
 			
 			if($status['status']){
-				email_log_data_Ticket($emailData,'',$status);						
+				//email_log_data_Ticket($emailData,'',$status);						
 			}else{
 				$this->SetError($status['message']);
 			}
@@ -316,7 +316,7 @@ class TicketEmails{
 			$status 					= 		sendMail($finalBody,$emailData,0);
 
 			if($status['status']){
-				email_log_data_Ticket($emailData,'',$status);						
+				//email_log_data_Ticket($emailData,'',$status);						
 			}else{
 				$this->SetError($status['message']);
 			}
@@ -353,7 +353,7 @@ class TicketEmails{
 			$status 					= 		sendMail($finalBody,$emailData,0);
 
 			if($status['status']){
-				email_log_data_Ticket($emailData,'',$status);						
+				//email_log_data_Ticket($emailData,'',$status);						
 			}else{
 				$this->SetError($status['message']);
 			}
@@ -383,7 +383,7 @@ class TicketEmails{
 			$emailData['TicketID'] 		= 		$this->TicketID;
 			
 			if($status['status']){
-				email_log_data_Ticket($emailData,'',$status);						
+				//email_log_data_Ticket($emailData,'',$status);						
 			}else{
 				$this->SetError($status['message']);
 			}			
@@ -414,7 +414,7 @@ class TicketEmails{
 			$emailData['UserID']		=		User::get_userID();			
 			
 			if($status['status']){
-				email_log_data_Ticket($emailData,'',$status);						
+				//email_log_data_Ticket($emailData,'',$status);						
 			}else{
 				$this->SetError($status['message']);
 			}			

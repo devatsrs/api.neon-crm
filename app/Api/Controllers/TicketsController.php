@@ -124,6 +124,14 @@ private $validlicense;
 			
 			$email_from 		= 	'';
 			$email_from_name 	= 	'';
+			if(!isset($Ticketfields['default_group']) || $Ticketfields['default_group']==0){
+			 $ticketGroupcount = 	TicketGroups::get()->count();
+			 if($ticketGroupcount==1){
+			 	$ticketGroupDataSingle = DB::table('tblTicketGroups')->first();
+				$Ticketfields['default_group'] = $ticketGroupDataSingle->GroupID;
+			 }
+			}
+			
 			if($data['LoginType']=='user')
 			{	
 				$email_from		   =  TicketGroups::where(["GroupID"=>$Ticketfields['default_group']])->pluck('GroupEmailAddress'); 
@@ -153,6 +161,7 @@ private $validlicense;
 					"Status"=>isset($Ticketfields['default_status'])?$Ticketfields['default_status']:TicketsTable::getDefaultStatus(),
 					"Priority"=>isset($Ticketfields['default_priority'])?$Ticketfields['default_priority']:TicketPriority::getDefaultPriorityStatus(),					
 					"Description"=>isset($Ticketfields['default_description'])?$Ticketfields['default_description']:'',	 
+					"Group"=>isset($Ticketfields['default_group'])?$Ticketfields['default_group']:'',
 					"AttachmentPaths"=>$files,
 					"created_at"=>date("Y-m-d H:i:s"),
 					"created_by"=>User::get_user_full_name()
@@ -186,7 +195,7 @@ private $validlicense;
 				 $logID =  SendTicketEmail('store',$TicketID,$TicketData);
 				 TicketsTable::find($TicketID)->update(array("AccountEmailLogID"=>$logID));
 				 
-				 if($Ticketfields['default_agent']){
+				 if(isset($Ticketfields['default_agent']) && $Ticketfields['default_agent']>0){
 				 	 $TicketEmails 	=  new TicketEmails(array("TicketID"=>$TicketID,"TriggerType"=>array("TicketAssignedtoAgent","AgentAssignedGroup")));
 					  Log::info("error:".$TicketEmails->GetError());
 				 }
