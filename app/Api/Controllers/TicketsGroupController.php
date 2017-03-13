@@ -13,6 +13,7 @@ use Api\Model\TicketsTable;
 use Api\Model\TicketGroups;
 use Api\Model\TicketGroupAgents;
 use App\Http\Requests;
+use App\Imap;
 use Dingo\Api\Facade\API;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Input;
@@ -93,7 +94,7 @@ private $validlicense;
 		   $columns 	 			= 	array('GroupID','GroupName','GroupEmailAddress','TotalAgents','GroupAssignTime','AssignUser');
 		   $sort_column 			= 	$columns[$data['iSortCol_0']];
 			
-			$query 	= 	"call prc_GetTicketGroups (".$CompanyID.",'".$search."',".( ceil($data['iDisplayStart']/$data['iDisplayLength']) )." ,".$data['iDisplayLength'].",'".$sort_column."','".$data['sSortDir_0']."'";  
+			$query 	= 	"call prc_GetTicketGroups (".$CompanyID.",'".$search."',".( ceil($data['iDisplayStart']/$data['iDisplayLength']) )." ,".$data['iDisplayLength'].",'".$sort_column."','".$data['sSortDir_0']."'";  Log::info($query);
 	
 			if(isset($data['Export']) && $data['Export'] == 1) {
 				$result = DB::select($query . ',1)');
@@ -314,7 +315,7 @@ private $validlicense;
 	
 	function send_activation_single($id)
 	{
-		$data = Input::all();
+		$data = Input::all(); 
 	    try
 		{
 			if($id)
@@ -324,7 +325,8 @@ private $validlicense;
 			  if(count($email_data)>0 && $email_data->GroupEmailStatus==0)
 			  {
 					$remember_token				 = 		str_random(32); //add new
-					$user_reset_link 			 = 		$data['activate']."?remember_token=".$remember_token;
+				    $site_url 					 = 		\Api\Model\CompanyConfiguration::get("WEB_URL").'/activate_support_email';
+					$user_reset_link 			 = 		$site_url."?remember_token=".$remember_token;
 					$data 						 = 		array();
 					$data['companyID'] 			 = 		User::get_companyID();
 					$CompanyName 				 =  	Company::getName($data['companyID']);
@@ -357,23 +359,7 @@ private $validlicense;
 	function get_group_agents($id){
 		try
 		{
-			$Groupagents    =   array("Select"=>0);
-			if($id)
-			{
-				$Groupagentsdb	=	TicketGroupAgents::where(["GroupID"=>$id])->get(); 
-			}
-			else
-			{
-				$Groupagentsdb	=	TicketGroupAgents::get(); 
-			}
-			
-			foreach($Groupagentsdb as $Groupagentsdata){
-				$userdata = 	User::find($Groupagentsdata->UserID);
-				if($userdata){	
-					$Groupagents[$userdata->FirstName." ".$userdata->LastName] =$userdata->UserID; 
-				}
-				
-			} Log::info(print_r($Groupagents,true));
+			$Groupagents = TicketGroupAgents::get_group_agents($id);
 			//echo "<pre>"; print_r($Groupagents);	echo "</pre>";
 			return generateResponse('',false,false,$Groupagents);
 		
@@ -403,6 +389,32 @@ private $validlicense;
 		  }catch (Exception $ex){
 			 return generateResponse($ex->getMessage(),true,true);
          }
+	}
+	
+	function validatesmtp(){
+		$data = Input::all();
+		  $rules = array(
+            'GroupEmailServer' => 'required',
+			'GroupEmailPassword' => 'required',
+			'GroupEmailAddress' => 'required',
+        );
+
+        $validator = Validator::make($data, $rules);		Log::info(print_r($data,true));
+		
+		if ($validator->fails()) {
+			 return generateResponse($validator->errors(),true);
+        }
+		try
+		{
+			$result =  Imap::CheckConnection($data['GroupEmailServer'],$data['GroupEmailAddress'],$data['GroupEmailPassword']);
+			if($result['status']){
+			 return generateResponse('Validated.');
+			}else{
+			 return generateResponse($result['error'],true,true);			 
+			}
+		}catch (Exception $ex){
+			 return generateResponse($ex->getMessage(),true,true);
+         }	
 	}	
 	
 }

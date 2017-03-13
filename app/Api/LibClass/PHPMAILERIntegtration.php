@@ -49,7 +49,11 @@ class PHPMAILERIntegtration{
 		if(isset($data['In-Reply-To']))
 		{
 			$mail->addCustomHeader('In-Reply-To', $data['In-Reply-To']); 
-			$mail->AddReplyTo($data['In-Reply-To'],  $from['name']);
+			//$mail->AddReplyTo($data['In-Reply-To'],  $from['name']);
+		}
+		if(isset($data['AddReplyTo']))
+		{
+			$mail->AddReplyTo($data['AddReplyTo'],  $from['name']);
 		}
 		
 		$mail->SetFrom($from['address'], $from['name']);
@@ -124,7 +128,7 @@ class PHPMAILERIntegtration{
 		return $status;
 	}
 	
-	static function add_email_address($mail,$data,$type='EmailTo') //type add,bcc,cc
+	static function add_email_address($mail,$data,$type) //type add,bcc,cc
 	{
 		if(isset($data[$type]))
 		{

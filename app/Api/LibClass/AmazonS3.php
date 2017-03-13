@@ -206,7 +206,7 @@ class AmazonS3 {
         //When no amazon ;
         if($s3 == 'NoAmazon'){
 
-            $site_url = \Api\Model\CompanyConfiguration::get("WEBURL");
+            $site_url = \Api\Model\CompanyConfiguration::get("WEB_URL");
 
             return combile_url_path($site_url,$key);
 

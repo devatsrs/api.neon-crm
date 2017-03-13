@@ -1,5 +1,7 @@
 <?php
 namespace Api\Model;
+use Api\Model\TicketGroupAgents;
+
 
 use Illuminate\Database\Eloquent\Model;
 class TicketGroups extends \Eloquent 
@@ -43,4 +45,15 @@ class TicketGroups extends \Eloquent
             return FALSE;
         }
     }
+	
+	
+	static function Get_User_Groups($id)
+	{
+		$groupsArray	=	array();
+		$Groupagentsdb	=	TicketGroupAgents::where(["UserID"=>$id])->get(); 
+		foreach($Groupagentsdb as $Groupagentsdata){
+			$groupsArray[]	= $Groupagentsdata->GroupID;	
+		} 
+		return implode(",",$groupsArray);
+	}
 }
