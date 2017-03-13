@@ -156,8 +156,8 @@ class TicketEmails{
 			$array_data['TicketUrl']					=   	$site_url."/tickets/".$this->TicketID."/detail";	
 			$array_data['TicketCustomerUrl']			=   	$site_url."/customer/tickets/".$this->TicketID."/detail";	
 			$array_data['Group']						=   	$this->Group->GroupName;
-			$array_data['AgentName']					=   	$this->Agent->FirstName.' '.$this->Agent->LastName;
-			$array_data['AgentEmail']					=   	$this->Agent->EmailAddress;		
+			$array_data['AgentName']					=   	isset($this->Agent->FirstName)?$this->Agent->FirstName.' '.$this->Agent->LastName:"";
+			$array_data['AgentEmail']					=   	isset($this->Agent->EmailAddress)?$this->Agent->EmailAddress:"";		
 			return array_merge($array_data,$array);
 	}
 	
@@ -485,14 +485,14 @@ class TicketEmails{
 	protected function CheckBasicRequirments(){
 				
 		if(!isset($this->TicketData->Agent)){
-			$this->SetError("No Agent Found");				
+			//$this->SetError("No Agent Found");				
 		}
 		else
 		{
 			$agent =  User::find($this->TicketData->Agent);
 			if(!$agent)
 			{
-				$this->SetError("Invalid Agent");					
+			//	$this->SetError("Invalid Agent");					
 			}
 			$this->Agent = $agent;				
 		}

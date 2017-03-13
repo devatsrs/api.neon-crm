@@ -48,8 +48,8 @@ class PHPMAILERIntegtration{
 		$mail->Port = $port;                                    // TCP port to connect to
 		if(isset($data['In-Reply-To']))
 		{
-			$mail->addCustomHeader('In-Reply-To', $data['In-Reply-To']); 
-			//$mail->AddReplyTo($data['In-Reply-To'],  $from['name']);
+			//$mail->addCustomHeader('In-Reply-To', $data['In-Reply-To']); 
+			$mail->AddReplyTo($data['In-Reply-To'],  $from['name']);
 		}
 		if(isset($data['AddReplyTo']))
 		{
@@ -124,7 +124,7 @@ class PHPMAILERIntegtration{
 					$status['message'] = 'Email has been sent';
 					$status['body'] = $body;
 					$status['message_id']	=	$mail->getLastMessageID(); 
-		} 
+		} Log::info(print_r($mail,true));
 		return $status;
 	}
 	
@@ -141,13 +141,13 @@ class PHPMAILERIntegtration{
 			if(count($email_addresses)>0 && !empty($email_addresses)){
 				foreach($email_addresses as $email_address){
 					if(!empty($email_address)){					
-						if($type='EmailTo'){
+						if($type=='EmailTo'){ Log::info("EmailTo"); Log::info(print_r($email_address,true));
 							$mail->addAddress(trim($email_address));
 						}
-						if($type='cc'){
+						if($type=='cc'){ Log::info("CC"); Log::info(print_r($email_address,true));
 							$mail->AddCC(trim($email_address));
 						}
-						if($type='bcc'){
+						if($type=='bcc'){ Log::info("BCC"); Log::info(print_r($email_address,true));
 							$mail->AddBCC(trim($email_address));
 						}
 					}

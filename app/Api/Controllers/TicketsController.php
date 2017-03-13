@@ -562,10 +562,14 @@ private $validlicense;
 			
 			if($ticket_type=='parent'){
 				$postdata['response_data']      =     TicketsTable::find($ticket_number);
-				$postdata['AccountEmail'] 		= 	  $postdata['response_data']->Requester;	
+				$postdata['AccountEmail'] 		= 	  $postdata['response_data']->Requester;
+				$postdata['Cc'] 				= 	  AccountEmailLog::where(['AccountEmailLogID'=>$postdata['response_data']->AccountEmailLogID])->pluck("Cc");	
+				$postdata['Bcc'] 				= 	  AccountEmailLog::where(['AccountEmailLogID'=>$postdata['response_data']->AccountEmailLogID])->pluck("Bcc");	
 				$postdata['parent_id']			=	  0;
 			}else{
 				$postdata['response_data']      =     AccountEmailLog::find($ticket_number);
+				$postdata['Cc'] 				= 	  $postdata['response_data']->Cc;	
+				$postdata['Bcc'] 				= 	  $postdata['response_data']->Bcc;	
 				$postdata['AccountEmail'] 		= 	  '';
 				$postdata['parent_id']			=	  '';
 				$postdata['response_data']->Description		=	  $postdata['response_data']->Message;
@@ -631,7 +635,7 @@ private $validlicense;
 	
 	function ActionSubmit($id){
 		 $this->IsValidLicense();
-		 $data    =  Input::all();
+		 $data    =  Input::all(); 
 		if($id)
 		{
 			$ticketdata		=	 TicketsTable::find($id);
