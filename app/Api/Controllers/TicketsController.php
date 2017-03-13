@@ -161,7 +161,7 @@ private $validlicense;
 					"Status"=>isset($Ticketfields['default_status'])?$Ticketfields['default_status']:TicketsTable::getDefaultStatus(),
 					"Priority"=>isset($Ticketfields['default_priority'])?$Ticketfields['default_priority']:TicketPriority::getDefaultPriorityStatus(),					
 					"Description"=>isset($Ticketfields['default_description'])?$Ticketfields['default_description']:'',	 
-					"Group"=>isset($Ticketfields['default_group'])?$Ticketfields['default_group']:'',
+					"Group"=>isset($Ticketfields['default_group'])?$Ticketfields['default_group']:0,
 					"AttachmentPaths"=>$files,
 					"created_at"=>date("Y-m-d H:i:s"),
 					"created_by"=>User::get_user_full_name()
