@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Faker\Provider\Uuid;
 use App\AmazonS3;
+use App\TicketEmails;
 
 class AccountActivityController extends BaseController {
 
