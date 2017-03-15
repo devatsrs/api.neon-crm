@@ -1,14 +1,13 @@
 <?php
 namespace Api\Controllers;
 
-use Api\Model\Account;
-use Api\Model\DataTableSql;
 use Api\Model\TicketGroups;
 use Api\Model\TicketsTable;
 use Api\Model\User;
 use Dingo\Api\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Input;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 
 class TicketDashboard extends BaseController {
