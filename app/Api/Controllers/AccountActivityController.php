@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Faker\Provider\Uuid;
 use App\AmazonS3;
+use App\TicketEmails;
 
 class AccountActivityController extends BaseController {
 
@@ -139,6 +140,8 @@ class AccountActivityController extends BaseController {
 			} 
 			 if(isset($data['createticket']) && TicketsTable::CheckTicketLicense()){ //check and create ticket
 			 	TicketsTable::find($TicketID)->update(array("AccountEmailLogID"=>$result->AccountEmailLogID));
+				 $TicketEmails1		=  new TicketEmails(array("TicketID"=>$TicketID,"TriggerType"=>array("RequesterNewTicketCreated")));				 
+				 $TicketEmails 		=  new TicketEmails(array("TicketID"=>$TicketID,"TriggerType"=>"CCNewTicketCreated"));
 			 }
 			  DB::commit(); 
             return generateResponse('',false,false,$result);

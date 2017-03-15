@@ -124,6 +124,14 @@ private $validlicense;
 			
 			$email_from 		= 	'';
 			$email_from_name 	= 	'';
+			if(!isset($Ticketfields['default_group']) || $Ticketfields['default_group']==0){
+			 $ticketGroupcount = 	TicketGroups::get()->count();
+			 if($ticketGroupcount==1){
+			 	$ticketGroupDataSingle = DB::table('tblTicketGroups')->first();
+				$Ticketfields['default_group'] = $ticketGroupDataSingle->GroupID;
+			 }
+			}
+			
 			if($data['LoginType']=='user')
 			{	
 				$email_from		   =  TicketGroups::where(["GroupID"=>$Ticketfields['default_group']])->pluck('GroupEmailAddress'); 
@@ -153,6 +161,7 @@ private $validlicense;
 					"Status"=>isset($Ticketfields['default_status'])?$Ticketfields['default_status']:TicketsTable::getDefaultStatus(),
 					"Priority"=>isset($Ticketfields['default_priority'])?$Ticketfields['default_priority']:TicketPriority::getDefaultPriorityStatus(),					
 					"Description"=>isset($Ticketfields['default_description'])?$Ticketfields['default_description']:'',	 
+					"Group"=>isset($Ticketfields['default_group'])?$Ticketfields['default_group']:0,
 					"AttachmentPaths"=>$files,
 					"created_at"=>date("Y-m-d H:i:s"),
 					"created_by"=>User::get_user_full_name()
@@ -186,7 +195,7 @@ private $validlicense;
 				 $logID =  SendTicketEmail('store',$TicketID,$TicketData);
 				 TicketsTable::find($TicketID)->update(array("AccountEmailLogID"=>$logID));
 				 
-				 if($Ticketfields['default_agent']){
+				 if(isset($Ticketfields['default_agent']) && $Ticketfields['default_agent']>0){
 				 	 $TicketEmails 	=  new TicketEmails(array("TicketID"=>$TicketID,"TriggerType"=>array("TicketAssignedtoAgent","AgentAssignedGroup")));
 					  Log::info("error:".$TicketEmails->GetError());
 				 }
@@ -562,13 +571,20 @@ private $validlicense;
 			
 			if($ticket_type=='parent'){
 				$postdata['response_data']      =     TicketsTable::find($ticket_number);
-				$postdata['AccountEmail'] 		= 	  $postdata['response_data']->Requester;	
+				$postdata['AccountEmail'] 		= 	  $postdata['response_data']->Requester;
+				$postdata['Cc'] 				= 	  AccountEmailLog::where(['AccountEmailLogID'=>$postdata['response_data']->AccountEmailLogID])->pluck("Cc");	
+				$postdata['Bcc'] 				= 	  AccountEmailLog::where(['AccountEmailLogID'=>$postdata['response_data']->AccountEmailLogID])->pluck("Bcc");	
 				$postdata['parent_id']			=	  0;
+				$postdata['GroupEmail']			=	  TicketGroups::where(["GroupID"=>$postdata['response_data']->Group])->pluck('GroupEmailAddress');
+				
 			}else{
 				$postdata['response_data']      =     AccountEmailLog::find($ticket_number);
+				$postdata['Cc'] 				= 	  $postdata['response_data']->Cc;	
+				$postdata['Bcc'] 				= 	  $postdata['response_data']->Bcc;	
 				$postdata['AccountEmail'] 		= 	  '';
 				$postdata['parent_id']			=	  '';
 				$postdata['response_data']->Description		=	  $postdata['response_data']->Message;
+				$postdata['GroupEmail']			=	  "";
 			}
 				
 				return generateResponse('success', false, false, $postdata);
@@ -631,7 +647,7 @@ private $validlicense;
 	
 	function ActionSubmit($id){
 		 $this->IsValidLicense();
-		 $data    =  Input::all();
+		 $data    =  Input::all(); 
 		if($id)
 		{
 			$ticketdata		=	 TicketsTable::find($id);
@@ -717,6 +733,92 @@ private $validlicense;
 			 return generateResponse("invalid Ticket.",true);
 		}
 		   
+	}
+	
+	public function CustomerActionSubmit($id){
+		 $this->IsValidLicense();
+		 $data    =  Input::all();  
+		if($id)
+		{
+			$ticketdata		=	 TicketsTable::find($id);
+			if($ticketdata)
+			{
+				try
+				{				 
+				  $rules = array(
+						'email-to' =>'required',
+						'Subject'=>'required',
+						'Message'=>'required',					
+					);
+					
+				 $messages = [
+					 "email-to.required" => "The email recipient is required",
+					 "Subject.required" => "The email Subject is required",
+					 "Message.required" => "The email message field is required",				 
+				];
+		
+					$validator = Validator::make($data, $rules,$messages);
+					if ($validator->fails()) {
+						return generateResponse($validator->errors(),true);
+					}
+					
+					DB::beginTransaction();
+					
+					$email_from_data   =  TicketGroups::where(["GroupEmailAddress"=>$data['email-to']])->select('GroupEmailAddress','GroupName')->get(); 
+					
+					 $files = '';
+					 $FilesArray = array();
+					 if (isset($data['file']) && !empty($data['file'])) {
+						 $FilesArray = json_decode($data['file'],true);
+						$files = serialize(json_decode($data['file'],true));
+					}
+					 
+					 $data['EmailFrom']  		=   $data['email-from'];
+					 $data['CompanyName'] 	    =   $email_from_data[0]->GroupName;
+					 $data['EmailTo']  		  	= 	$data['email-to'];
+					 $data['AttachmentPaths'] 	= 	$FilesArray;
+					 $data['cc'] 				= 	trim($data['cc']);
+					 $data['bcc'] 				= 	trim($data['bcc']);		
+					 $data['In-Reply-To'] 		= 	AccountEmailLog::where(['AccountEmailLogID'=>$ticketdata->AccountEmailLogID])->pluck('MessageID');
+					 			 
+					 $status 					= 	sendMail('emails.tickets.ticket', $data);
+					if($status['status'] == 1)
+					{	
+						/*$message_id = isset($status['message_id'])?$status['message_id']:'';
+						
+						$logData = ['EmailFrom'=>$data['email-from'],
+						'EmailTo'=>trim($data['email-to']),
+						'Subject'=>trim($data['Subject']),
+						'Message'=>trim($data['Message']),
+						'CompanyID'=>\Api\Model\User::get_companyID(),
+						'UserID'=>\Api\Model\User::get_userID(),
+						'CreatedBy'=>\Api\Model\User::get_user_full_name(),
+						"created_at"=>date("Y-m-d H:i:s"),
+						'Cc'=>$data['cc'],
+						'Bcc'=>$data['bcc'],
+						"AttachmentPaths"=>$files,
+						"MessageID"=>$message_id,
+						"EmailParent"=>isset($ticketdata->AccountEmailLogID)?$ticketdata->AccountEmailLogID:0,
+						"EmailCall"=>Messages::Sent,
+					];
+						AccountEmailLog::create($logData);	
+						*/
+						
+						 DB::commit();	
+						return generateResponse("Successfully Updated");
+					}else{
+						 return generateResponse("Problem Sending Email",true);
+					}
+				}
+				catch (Exception $e){
+					DB::rollback();
+					return generateResponse($e->getMessage(),true);
+				}
+			}	
+			 return generateResponse("invalid Ticket.",true);
+		}
+		   
+	
 	}
 	
 	public function GetTicketAttachment($ticketID,$attachmentID){

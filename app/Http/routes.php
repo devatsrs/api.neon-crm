@@ -218,6 +218,9 @@ $api->version('v1', function ($api) {
 			$api->post('tickets/getticketdetailsdata', 'TicketsController@GetTicketDetailsData');
 			$api->post('tickets/ticketcction', 'TicketsController@TicketAction');
 			$api->post('tickets/actionsubmit/{id}', 'TicketsController@ActionSubmit');		
+			
+			$api->post('customer/tickets/actionsubmit/{id}', 'TicketsController@CustomerActionSubmit');		
+			
 			$api->post('tickets/closeticket/{id}', 'TicketsController@CloseTicket');	
 			$api->post('tickets/delete/{id}', 'TicketsController@Delete');	
 			$api->post('tickets/edit/{id}', 'TicketsController@Edit');

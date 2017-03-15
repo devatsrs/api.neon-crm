@@ -633,7 +633,7 @@ function SendTicketEmail($Type='store',$id,$data = array()){
 		$EmailData['Subject']   	  =   $data['Subject'];
 		$EmailData['EmailFrom']  	  =   $data['email_from'];
 		$EmailData['CompanyName']  	  =   $data['email_from_name'];
-		$EmailData['In-Reply-To']  	  =   $data['In-Reply-To'];
+		$EmailData['AddReplyTo']  	  =   $data['AddReplyTo'];
 		$EmailData['cc']  		 	  =   isset($data['cc'])?$data['cc']:'';
 		$EmailData['bcc']  		 	  =   isset($data['bcc'])?$data['bcc']:'';
 		$EmailData['AttachmentPaths'] =   !empty($data['files'])?unserialize($data['files']):'';

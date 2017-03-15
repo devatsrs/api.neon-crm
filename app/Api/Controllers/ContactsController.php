@@ -165,7 +165,7 @@ class ContactsController extends BaseController
 			
 			
             $columns =  ['Timeline_type','ActivityTitle','ActivityDescription','ActivityDate','ActivityType','ActivityID','Emailfrom','EmailTo','EmailSubject','EmailMessage','AccountEmailLogID','NoteID','Note','CreatedBy','created_at','updated_at'];
-            $query = "call prc_getContactTimeLine(" . $data['ContactID'] . "," . $companyID . ",".$queryTicketType.",'".$data['GUID']."'," . $data['iDisplayStart'] . "," . $data['iDisplayLength'] . ")";   
+            $query = "call prc_getContactTimeLine(" . $data['ContactID'] . "," . $companyID . ",".$queryTicketType.",'".$data['GUID']."'," . $data['iDisplayStart'] . "," . $data['iDisplayLength'] . ")";  Log::info($query);  
             $result_array = DB::select($query);
             return generateResponse('',false,false,$result_array);
        }
