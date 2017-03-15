@@ -40,9 +40,15 @@ class TicketDashboard extends BaseController {
         $data 					= 	Input::all();
         $CompanyID 				= 	User::get_companyID();
         $AccessPermission		=	isset($data['AccessPermission'])?$data['AccessPermission']:0;
-        $p_PageNumber = 1;
+        $rules['iDisplayStart']     =   'required|numeric|Min:0';
+        $rules['iDisplayLength']    =   'required|numeric';
+        $validator = Validator::make($data, $rules);
+        if ($validator->fails()) {
+            return generateResponse($validator->errors(),true);
+        }
+        $p_PageNumber = $data['iDisplayStart'];
+        $p_RowsPage = $data['iDisplayLength'];
         $Group = $agent = 0;
-        $p_RowsPage = 10;
 
         if($AccessPermission == TicketsTable::TICKETGROUPACCESS){ //group access
             $Group = TicketGroups::Get_User_Groups(User::get_userID());
