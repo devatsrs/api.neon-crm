@@ -45,8 +45,6 @@ class TicketDashboard extends BaseController {
         if ($validator->fails()) {
             return generateResponse($validator->errors(),true);
         }
-        $p_PageNumber = $data['iDisplayStart'];
-        $p_RowsPage = $data['iDisplayLength'];
         $Group = $agent = 0;
 
         if($AccessPermission == TicketsTable::TICKETGROUPACCESS){ //group access
@@ -55,7 +53,7 @@ class TicketDashboard extends BaseController {
             $agent = User::get_userID();
         }
 
-        $query 		= 	"call prc_GetTicketDashboardTimeline ('".$CompanyID."',".$Group.",".$agent.",".$p_PageNumber.",".$p_RowsPage.")";
+        $query 		= 	"call prc_GetTicketDashboardTimeline ('".$CompanyID."',".$Group.",".$agent.",'".date('Y-m-d H:i:s')."',".( ceil($data['iDisplayStart']/$data['iDisplayLength']) ).",".$data['iDisplayLength'].")";
         Log::info("query:".$query);
         $result = DB::select($query);
         return generateResponse('',false,false,$result);
