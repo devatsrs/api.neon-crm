@@ -2,13 +2,18 @@
 namespace App;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Config;
 use Api\Model\Company;
-use App\Model\User;
-use App\Model\Lead;
-use App\Model\AccountEmailLog;
-use App\Model\TicketsTable;
-use App\Model\Contact;
+use Api\Model\User;
+use Api\Model\TicketsTable;
+use Api\Model\TicketPriority;
+use Api\Model\TicketGroups;
+use Api\Model\AccountEmailLog;
+use Api\Model\EmailTemplate;
+use Api\Model\TicketGroupAgents;
+use Api\Model\Note;
+use Api\Model\CompanyConfiguration;
+use Illuminate\Support\Facades\DB;
 
 class Imap{
 
@@ -312,7 +317,6 @@ protected $server;
 		
 		//find in account(email,billing email), Email
 		$AccountSearch1  =  DB::table('tblAccount')->whereRaw("find_in_set('".$email."',Email) OR find_in_set('".$email."',BillingEmail)")->get(array("AccountID","AccountName","AccountType"));
-		$ContactSearch 	 =  DB::table('tblContact')->whereRaw("find_in_set('".$email."',Email)")->get(array("Owner","ContactID","FirstName","LastName"));		
 		
 		if(count($AccountSearch1)>0)													
 		{
@@ -328,8 +332,11 @@ protected $server;
 				$MatchID	  =	 $AccountSearch1[0]->AccountID;
 				$AccountTitle =  $AccountSearch1[0]->AccountName;
 				$AccountID	  =  $AccountSearch1[0]->AccountID;							
+				return array('MatchType'=>$MatchType,'MatchID'=>$MatchID,"AccountTitle"=>$AccountTitle,"AccountID"=>$AccountID);      
 			}		
 		}
+		
+		$ContactSearch 	 =  DB::table('tblContact')->whereRaw("find_in_set('".$email."',Email)")->get(array("Owner","ContactID","FirstName","LastName"));		
 		
 		if(count($ContactSearch)>0 || count($ContactSearch)>0)													
 		{	 
@@ -339,10 +346,19 @@ protected $server;
 				//$Accountdata  =  
 				$Accountdata  =   DB::table('tblAccount')->where(["AccountID" => $AccountID])->get(array("AccountName")); 
 				$Accountname  =   isset($Accountdata[0]->AccountName)?' ('.($Accountdata[0]->AccountName).')':'';
-				$AccountTitle =   $ContactSearch[0]->FirstName.' '.$ContactSearch[0]->LastName.$Accountname;							
+				$AccountTitle =   $ContactSearch[0]->FirstName.' '.$ContactSearch[0]->LastName.$Accountname;	
+				return array('MatchType'=>$MatchType,'MatchID'=>$MatchID,"AccountTitle"=>$AccountTitle,"AccountID"=>$AccountID);      						
 		}				
         
-		return array('MatchType'=>$MatchType,'MatchID'=>$MatchID,"AccountTitle"=>$AccountTitle,"AccountID"=>$AccountID);        
+		$UserSearch 	 =  DB::table('tblUser')->where(['EmailAddress'=>$email])->get(array("UserID","FirstName","LastName"));		
+		
+		if(count($UserSearch)>0 || count($UserSearch)>0)													
+		{	 
+				$MatchType	  =   'User';
+				$MatchID	  =	 $UserSearch[0]->UserID;					
+				$AccountTitle =  $UserSearch[0]->FirstName.' '.$UserSearch[0]->LastName;	
+				return array('MatchType'=>$MatchType,'MatchID'=>$MatchID,"AccountTitle"=>$AccountTitle,"AccountID"=>0);      						
+		}			
 	}
 	
 	function getBody($imap,$uid) {
