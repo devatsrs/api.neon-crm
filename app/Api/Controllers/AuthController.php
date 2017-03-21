@@ -57,6 +57,7 @@ class AuthController extends BaseController
 				}
 			 }
             $token = JWTAuth::fromUser($user);
+            $token = JWTAuth::refresh($token);
         } catch (JWTException $e) {
             // something went wrong whilst attempting to encode the token
             return response()->json(['error' => 'could_not_create_token'], 500);
