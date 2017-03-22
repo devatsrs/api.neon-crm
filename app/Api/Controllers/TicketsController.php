@@ -742,7 +742,8 @@ private $validlicense;
 						"MessageID"=>$message_id,
 						"EmailParent"=>isset($ticketdata->AccountEmailLogID)?$ticketdata->AccountEmailLogID:0,
 						"EmailCall"=>Messages::Sent,
-						"TicketID"=>$id
+						"TicketID"=>$id,
+						"EmailType"=>AccountEmailLog::TicketEmail
 					];
 						AccountEmailLog::create($logData);	
 						
