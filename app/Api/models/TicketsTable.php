@@ -1,9 +1,9 @@
 <?php
 namespace Api\Model;
 use Illuminate\Support\Facades\Log;
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Input;
+use \App\Imap;
 
 class TicketsTable extends \Eloquent 
 {
@@ -237,4 +237,26 @@ class TicketsTable extends \Eloquent
             ->where(['tblTicketfields.FieldType'=>Ticketfields::TICKET_SYSTEM_TYPE_FLD])->where(['tblTicketfieldsValues.ValuesID'=>$id])->pluck($fld);			
 			return $ValuesID;
 	}
+	static function	SetEmailType($email)
+	{
+		$final	=	 array();
+		$imap				  =		 new Imap();
+		$MatchArray  		  =      $imap->findEmailAddress($email);
+		
+		if(count($MatchArray)>0){
+			if($MatchArray['MatchType']=='Contact'){
+				$final = array("ContactID"=>$MatchArray['MatchID'],"AccountID"=>0,"UserID"=>0);
+			}
+			
+			if($MatchArray['MatchType']=='Account' || $MatchArray['MatchType']=='Lead'){
+				$final = array("ContactID"=>0,"AccountID"=>$MatchArray['MatchID'],"UserID"=>0);
+			}
+			
+			if($MatchArray['MatchType']=='User'){
+				$final = array("ContactID"=>0,"AccountID"=>0,"UserID"=>$MatchArray['MatchID']);
+			}
+		}
+		return $final;
+	}
+	
 }

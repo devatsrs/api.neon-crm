@@ -283,7 +283,7 @@ function email_log_data_Ticket($data,$view = '',$status){
     }
     else
     {
-        $data['AttachmentPaths'] = serialize([]);
+        $data['AttachmentPaths'] = 'a:0:{}';
     }
 
     if($view!='')
@@ -293,11 +293,11 @@ function email_log_data_Ticket($data,$view = '',$status){
     else
     {
         $body = $data['Message'];
-    } Log::info(print_r($status,true));
+    } 
 	if(!isset($status['message_id']))
 	{
 		$status['message_id'] = '';
-	} Log::info($status['message_id']);
+	} 
 	if(!isset($data['EmailCall']))
 	{
 		$data['EmailCall'] = \Api\Model\Messages::Sent;
@@ -308,6 +308,9 @@ function email_log_data_Ticket($data,$view = '',$status){
 		$data['EmailFrom'] = $data['EmailFrom'];
 	}else{
 		$data['EmailFrom'] = \Api\Model\User::get_user_email();
+	}
+	if(!isset($data['TicketID'])){ 
+		$data['TicketID']  = 0;
 	}
 	
     $logData = ['EmailFrom'=>$data['EmailFrom'],
@@ -324,8 +327,10 @@ function email_log_data_Ticket($data,$view = '',$status){
 		"MessageID"=>$status['message_id'],
 		"EmailParent"=>isset($data['EmailParent'])?$data['EmailParent']:$EmailParent,
 		"EmailCall"=>$data['EmailCall'],
+		"TicketID"=>$data['TicketID'],
+		"EmailType"=>AccountEmailLog::TicketEmail 
     ];
-	Log::info(print_r($logData,true));
+	
     $data =  \Api\Model\AccountEmailLog::insertGetId($logData);
     return $data;
 }
@@ -585,6 +590,8 @@ function SendTicketEmail($Type='store',$id,$data = array()){
 				$EmailData['CompanyName']  	  =   $data['email_from_name'];
 			}
 			
+			
+			$EmailData['TicketID']	 	  =   $id;
 			$EmailData['Message']	 	  =   $data['Description'];
 			$EmailData['Description']	  =   $data['Description'];			
 			$EmailData['Status']	 	  =   \Api\Model\TicketsTable::getTicketStatusByID($data['Status']);
@@ -593,7 +600,10 @@ function SendTicketEmail($Type='store',$id,$data = array()){
 				
 			if($status['status']==1){
 			return email_log_data_Ticket($EmailData,'emails.tickets.TicketCreated',$status);
-			}						
+			}		
+			else{
+				Log:info(print_r($status,true));
+			}				
 		}		
 		return false;		
 	}
@@ -639,13 +649,14 @@ function SendTicketEmail($Type='store',$id,$data = array()){
 		$EmailData['AttachmentPaths'] =   !empty($data['files'])?unserialize($data['files']):'';
 		$EmailData['Description']	  =   $data['Description'];			
 		$EmailData['Message']	 	  =   $data['Description'];
+		$EmailData['TicketID']	 	  =   $data['TicketID'];
 		$status       				  =   sendMail('emails.template', $EmailData);	
 		 		
 		if($status['status']==0){
 				 return generateResponse($status['message'],true,true);
 		}		
 		if($status['status']==1){
-			return email_log_data_Ticket($EmailData,'emails.template',$status);
+		//	return email_log_data_Ticket($EmailData,'emails.template',$status);
 		}
 		return false;
 	}

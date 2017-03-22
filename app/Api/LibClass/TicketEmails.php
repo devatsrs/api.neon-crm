@@ -30,6 +30,8 @@ class TicketEmails{
 	protected $Error;
 	protected $CompanyID;
 	protected $Comment;
+	protected $NoteUser;
+	
 
 	 public function __construct($data = array()){
 		 foreach($data as $key => $value){
@@ -82,6 +84,8 @@ class TicketEmails{
 			$replace_array['Date']				 = 		$Ticketdata->created_at;
 			$replace_array['helpdesk_name']		 = 		isset($Ticketdata->Group)?TicketGroups::where(['GroupID'=>$Ticketdata->Group])->pluck("GroupName"):'';
 			$replace_array['Comment']			 =		$this->Comment;
+			$replace_array['NoteUser']			 =		isset($this->NoteUser)?$this->NoteUser:0; 
+			
 		}    
 		$Signature 			= 	'';
 		$JobLoggedUser 		= 	User::find(User::get_userID());
@@ -116,7 +120,7 @@ class TicketEmails{
 			'{{AgentName}}',
 			'{{AgentEmail}}',
 			'{{helpdesk_name}}',
-			'{{Notebody}}',
+			'{{NoteUser}}',
 			'{{CompanyName}}',
 			"{{CompanyVAT}}",
 			"{{CompanyAddress1}}",
@@ -202,6 +206,10 @@ class TicketEmails{
 				$this->SetError("No Note added");
 				return;
 			}
+			if($this->Agent->UserID==User::get_userID()){
+				$this->SetError("Agent added the note");
+				return;
+			}
 			
 		 	$replace_array				= 		$this->ReplaceArray($this->TicketData);
 		    $finalBody 					= 		$this->template_var_replace($this->EmailTemplate->TemplateBody,$replace_array);
@@ -227,7 +235,7 @@ class TicketEmails{
 	protected function  RequesterNewTicketCreated(){
 		$this->slug					=		"RequesterNewTicketCreated";
 		if(!$this->CheckBasicRequirments())
-		{
+		{ 
 			return $this->Error;
 		}
 		
@@ -295,8 +303,8 @@ class TicketEmails{
 		{
 			return $this->Error;
 		} 
-		if(isset($this->TicketEmailData->Cc) && !empty($this->TicketEmailData->Cc)){
-			$emailto = explode(",",$this->TicketEmailData->Cc);
+		if(isset($this->TicketData->RequesterCC) && !empty($this->TicketData->RequesterCC)){
+			$emailto = explode(",",$this->TicketData->RequesterCC);
 		}else{
 			return;
 		}	
