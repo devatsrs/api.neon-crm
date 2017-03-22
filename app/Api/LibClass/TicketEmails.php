@@ -303,8 +303,8 @@ class TicketEmails{
 		{
 			return $this->Error;
 		} 
-		if(isset($this->TicketEmailData->Cc) && !empty($this->TicketEmailData->Cc)){
-			$emailto = explode(",",$this->TicketEmailData->Cc);
+		if(isset($this->TicketData->RequesterCC) && !empty($this->TicketData->RequesterCC)){
+			$emailto = explode(",",$this->TicketData->RequesterCC);
 		}else{
 			return;
 		}	

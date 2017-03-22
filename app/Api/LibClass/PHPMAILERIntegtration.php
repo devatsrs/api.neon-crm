@@ -141,13 +141,13 @@ class PHPMAILERIntegtration{
 			if(count($email_addresses)>0 && !empty($email_addresses)){
 				foreach($email_addresses as $email_address){
 					if(!empty($email_address)){					
-						if($type=='EmailTo'){ Log::info("EmailTo"); Log::info(print_r($email_address,true));
+						if($type=='EmailTo'){ 
 							$mail->addAddress(trim($email_address));
 						}
-						if($type=='cc'){ Log::info("CC"); Log::info(print_r($email_address,true));
+						if($type=='cc'){ 
 							$mail->AddCC(trim($email_address));
 						}
-						if($type=='bcc'){ Log::info("BCC"); Log::info(print_r($email_address,true));
+						if($type=='bcc'){
 							$mail->AddBCC(trim($email_address));
 						}
 					}
