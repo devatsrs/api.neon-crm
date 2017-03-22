@@ -5,6 +5,7 @@ namespace Api\Controllers;
 use Dingo\Api\Http\Request;
 use Api\Model\AccountBalance;
 use Api\Model\AccountBalanceHistory;
+use Api\Model\TicketLog;
 use Api\Model\DataTableSql;
 use Api\Model\User;
 use Api\Model\Account;
@@ -78,7 +79,7 @@ private $validlicense;
 
 			$resultdata   	=  DataTableSql::of($query)->getProcResult(array('ResultCurrentPage','TotalResults','GroupsData'));	
 			$resultpage  	=  DataTableSql::of($query)->make(false);				
-			$groupData = isset($resultdata->data['GroupsData'])?$resultdata->data['GroupsData']:array(); 			
+			$groupData = isset($resultdata->data['GroupsData'])?$resultdata->data['GroupsData']:array();
 			$result = ["resultpage"=>$resultpage,"iTotalRecords"=>$resultdata->iTotalRecords,"iTotalDisplayRecords"=>$resultdata->iTotalDisplayRecords,"totalcount"=>$resultdata->data['TotalResults'][0]->totalcount,"ResultCurrentPage"=>$resultdata->data['ResultCurrentPage'],"GroupsData"=>$groupData];
 			
 			 return generateResponse('success', false, false,$result);
@@ -170,8 +171,15 @@ private $validlicense;
 			
 			try{
  			    DB::beginTransaction();
-				$TicketID = TicketsTable::insertGetId($TicketData);	
-				
+
+				$TicketID = TicketsTable::insertGetId($TicketData);
+                $data = ['UserID' => User::get_userID(),
+                    'CompanyID' => User::get_companyID(),
+                    'TicketID'  => $TicketID,
+                    "created_at" => date("Y-m-d H:i:s")];
+                TicketLog::insert($data);
+
+                Log::info($data);
 				foreach($Ticketfields as $key => $TicketfieldsData)
 				{
 					if(!in_array($key,Ticketfields::$staticfields))
@@ -401,9 +409,9 @@ private $validlicense;
 			{
 				return generateResponse("Please submit required fields.",true);
 			}
-			Log::info(print_r($data,true));
+			//Log::info(print_r($data,true));
 			//Log::info(".....................................");
-			$DetailPage 		=   isset($data['Page'])?$data['Page']:'all'; Log::info($DetailPage);
+			$DetailPage 		=   isset($data['Page'])?$data['Page']:'all'; //Log::info($DetailPage);
 			if(isset($data['LoginType']) && $data['LoginType']=='customer'){
 				$RulesMessages      = 	TicketsTable::GetCustomerSubmitRules($DetailPage);       
 			}else{
@@ -889,8 +897,8 @@ private $validlicense;
 			$Ticketfields      				= 	$data['Ticket'];
 			$Ticketfields['default_group']  = 	$email_from_data[0]->GroupID;
 			$RequesterEmail	  			 	=  	trim($data['email-to']);					
-			Log::info("ticket group: ".$data['email-from']);
-			Log::info(print_r($data,true));
+			//Log::info("ticket group: ".$data['email-from']);
+			//Log::info(print_r($data,true));
 		
 			if($data['LoginType']=='user')
 			{

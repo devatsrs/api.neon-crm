@@ -23,8 +23,43 @@ class TicketsTable extends \Eloquent
 	static  $defaultSortField 		= 	'created_at';
 	static  $defaultSortType 		= 	'desc';
 	static  $Sortcolumns			=	array("created_at"=>"Date Created","subject"=>"Subject","status"=>"Status","group"=>"Group","updated_at"=>"Last Modified");
-	
-	static function GetAgentSubmitRules($page='all'){
+    static $currentObj = '';
+
+    public static function boot(){
+        parent::boot();
+
+        static::created(function($obj)
+        {
+            Log::info('i am here');
+            Log::info($obj);
+        });
+
+
+        static::updated(function($obj) {
+            $differ = array_diff($obj->attributes,$obj->original);
+            unset($differ['updated_at']);
+            if(count($differ) > 0) {
+                $UserID = User::get_userID();
+                $CompanyID = User::get_userID();
+                foreach ($differ as $index => $key) {
+                    if(array_key_exists($index,Ticketfields::$defaultTicketFields)) {
+                        $data = ['UserID' => $UserID,
+                            'CompanyID' => $CompanyID,
+                            'TicketID' => $obj->TicketID,
+                            'TicketFieldID' => Ticketfields::$defaultTicketFields[$index],
+                            'TicketFieldValueFromID' => $obj->original[$index],
+                            'TicketFieldValueToID' => $obj->attributes[$index],
+                            "created_at" => date("Y-m-d H:i:s")];
+                        TicketLog::insert($data);
+                    }
+                    //Log::info('change ' . $obj->original[$index] . ' to ' . $obj->attributes[$index] . ' ' . PHP_EOL);
+                }
+            }
+        });
+    }
+
+
+    static function GetAgentSubmitRules($page='all'){
 		 $rules 	 =  array();
 		 $messages	 =  array();
 		 $fields 	 = 	Ticketfields::where(['AgentReqSubmit'=>1])->get();
