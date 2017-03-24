@@ -36,13 +36,11 @@ class TicketsTable extends \Eloquent
 
 
         static::updated(function($obj) {
-            $differ = array_diff($obj->attributes,$obj->original);
-            unset($differ['updated_at']);
-            if(count($differ) > 0) {
-                $UserID = User::get_userID();
-                $CompanyID = User::get_userID();
-                foreach ($differ as $index => $key) {
-                    if(array_key_exists($index,Ticketfields::$defaultTicketFields)) {
+            $UserID = User::get_userID();
+            $CompanyID = User::get_userID();
+            foreach($obj->original as $index=>$value){
+                if($index != 'updated_at') {
+                    if($obj->attributes[$index] != $value){
                         $data = ['UserID' => $UserID,
                             'CompanyID' => $CompanyID,
                             'TicketID' => $obj->TicketID,
@@ -52,7 +50,6 @@ class TicketsTable extends \Eloquent
                             "created_at" => date("Y-m-d H:i:s")];
                         TicketLog::insert($data);
                     }
-                    //Log::info('change ' . $obj->original[$index] . ' to ' . $obj->attributes[$index] . ' ' . PHP_EOL);
                 }
             }
         });
