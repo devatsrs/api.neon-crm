@@ -39,7 +39,7 @@ class TicketsTable extends \Eloquent
             $UserID = User::get_userID();
             $CompanyID = User::get_userID();
             foreach($obj->original as $index=>$value){
-                if($index != 'updated_at') {
+                if(array_key_exists($index,Ticketfields::$defaultTicketFields) && $index != 'updated_at') {
                     if($obj->attributes[$index] != $value){
                         $data = ['UserID' => $UserID,
                             'CompanyID' => $CompanyID,
