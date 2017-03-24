@@ -1038,6 +1038,7 @@ private $validlicense;
 						"Note"=>$data['Note'],
 						"TicketID"=>$data['TicketID'],
 						"AccountID"=>$Account,
+                        "UserID"=>User::get_userID(),
 						"created_at"=>date("Y-m-d H:i:s"),
 						"created_by"=>User::get_user_full_name()
 					);
