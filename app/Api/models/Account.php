@@ -309,22 +309,26 @@ class Account extends Model
 	}
     public static function create_replace_array($Account,$extra_settings,$JobLoggedUser=array()){
         $replace_array = array();
-        $replace_array['FirstName'] = $Account->FirstName;
-        $replace_array['LastName'] = $Account->LastName;
-        $replace_array['Email'] = $Account->Email;
-        $replace_array['Address1'] = $Account->Address1;
-        $replace_array['Address2'] = $Account->Address2;
-        $replace_array['Address3'] = $Account->Address3;
-        $replace_array['City'] = $Account->City;
-        $replace_array['State'] = $Account->State;
-        $replace_array['PostCode'] = $Account->PostCode;
-        $replace_array['Country'] = $Account->Country;
-        $replace_array['OutStandingIncludeUnbilledAmount'] = AccountBalance::getBalanceAmount($Account->AccountID);
-        $replace_array['BalanceThreshold'] = AccountBalance::getBalanceThreshold($Account->AccountID);
-        $replace_array['Currency'] = Currency::getCurrencyCode($Account->CurrencyId);
-        $replace_array['CurrencySymbol'] = Currency::getCurrencySymbol($Account->CurrencyId);
-        $replace_array['CompanyName'] = Company::getName($Account->CompanyId);
-        $replace_array['OutStandingExcludeUnbilledAmount'] = AccountBalance::getOutstandingAmount($Account->CompanyId,$Account->AccountID);
+		if(isset($Account) && !empty($Account)){
+			$replace_array['FirstName'] = $Account->FirstName;
+			$replace_array['LastName'] = $Account->LastName;
+			$replace_array['Email'] = $Account->Email;
+			$replace_array['Address1'] = $Account->Address1;
+			$replace_array['Address2'] = $Account->Address2;
+			$replace_array['Address3'] = $Account->Address3;
+			$replace_array['City'] = $Account->City;
+			$replace_array['State'] = $Account->State;
+			$replace_array['PostCode'] = $Account->PostCode;
+			$replace_array['Country'] = $Account->Country;
+			$replace_array['OutstandingIncludeUnbilledAmount'] = AccountBalance::getBalanceAmount($Account->AccountID);
+			$replace_array['BalanceThreshold'] = AccountBalance::getBalanceThreshold($Account->AccountID);
+			$replace_array['Currency'] = Currency::getCurrencySymbol($Account->CurrencyId);
+			$replace_array['CompanyName'] = Company::getName($Account->CompanyId);
+			$replace_array['CompanyVAT'] = Company::getCompanyField($Account->CompanyId,"VAT");
+		    $replace_array['CompanyAddress'] = Company::getCompanyFullAddress($Account->CompanyId);
+			
+			$replace_array['OutstandingExcludeUnbilledAmount'] = AccountBalance::getOutstandingAmount($Account->CompanyId,$Account->AccountID);
+		}
         $Signature = '';
         if(!empty($JobLoggedUser)){
             $emaildata['EmailFrom'] = $JobLoggedUser->EmailAddress;
@@ -337,11 +341,85 @@ class Account extends Model
         $replace_array['Signature']= $Signature;
         $extra_var = array(
             'InvoiceNumber' => '',
-            'GrandTotal' => '',
-            'InvoiceOutStanding' => '',
+            'InvoiceGrandTotal' => '',
+            'InvoiceOutstanding' => '',
         );
         $replace_array = $replace_array + array_intersect_key($extra_settings, $extra_var);
 
         return $replace_array;
     }
+	
+	public static function GetAccountAllEmails($id,$ArrayReturn=false){
+	  $array			 =  array();
+	  $accountemails	 = 	Account::where(array("AccountID"=>$id))->select(array('Email', 'BillingEmail'))->get();
+	  $acccountcontact 	 =  DB::table('tblContact')->where(array("AccountID"=>$id))->get(array("Email"));	
+	  
+	  	
+		if(count($accountemails)>0){
+				foreach($accountemails as $AccountData){
+					//if($AccountData->Email!='' && !in_array($AccountData->Email,$array))
+					if($AccountData->Email!='')
+					{
+						if(!is_array($AccountData->Email))
+						{				  
+						  $email_addresses = explode(",",$AccountData->Email);				
+						}
+						else
+						{
+						  $email_addresses = $emails;
+						}
+						if(count($email_addresses)>0)
+						{
+							foreach($email_addresses as $email_addresses_data)
+							{
+								$txt = $email_addresses_data;
+								if(!in_array($txt,$array))
+								{
+									$array[] =  $txt;	
+								}
+							}
+						}
+						
+					}			
+					
+					if($AccountData->BillingEmail!='')
+					{
+						if(!is_array($AccountData->BillingEmail))
+						{				  
+						  $email_addresses = explode(",",$AccountData->BillingEmail);				
+						}
+						else
+						{
+						  $email_addresses = $emails;
+						}
+						if(count($email_addresses)>0)
+						{
+							foreach($email_addresses as $email_addresses_data)
+							{
+								$txt = $email_addresses_data;
+								if(!in_array($txt,$array))
+								{
+									//$array[] =  $email_addresses_data;	
+									$array[] =  $txt;	
+								}
+							}
+						}
+						
+					}
+				}
+		}
+		
+		if(count($acccountcontact)>0){
+				foreach($acccountcontact as $ContactData){
+					$txt = $ContactData->Email;
+					if($ContactData->Email!=''  && !in_array($txt,$array))
+					{
+						$array[] =  $txt;
+						//$array[] =  $ContactData->Email;
+					}
+				}
+		}
+	if($ArrayReturn){return $array;}		
+	  return implode(",",$array);
+	}
 }

@@ -7,6 +7,7 @@ use Api\Model\Opportunity;
 use Api\Model\CRMComments;
 use Api\Model\User;
 use App\AmazonS3;
+use App\EmailsTemplates;
 use App\Http\Requests;
 use Dingo\Api\Facade\API;
 use Faker\Provider\Uuid;
@@ -79,16 +80,26 @@ class OpportunityCommentsController extends BaseController {
             $emailData['EmailToName'] = '';
             $emailData['CreatedBy'] = User::get_user_full_name();
             $emailData['Task'] = $opportunity->OpportunityName.' Opportunity';
+			$emailData['subject'] = $opportunity->OpportunityName.' Opportunity';		
             $emailData['Logo'] = getCompanyLogo($this->request);
             //$emailData['mandrill'] =1;
-
+			$emailData['type']		 =	 'Opportunity';
             $emailData['address'] = User::get_user_email();
             $emailData['name'] = User::get_user_full_name();
+			$emailData['Comment'] = $comment_data['CommentText'];
+			$comment_data['AccountID']=	$opportunity->AccountID;
+			$emailData['User']  	=  \Api\Model\User::get_user_full_name();
 
-            if(!empty($emailTo) && count($emailTo)>0){
-                $emailData['EmailTo'] = $emailTo;
-                $status = sendMail('emails.crm.AccountUserEmailSend',$emailData);
-            }
+			$body				= 	  EmailsTemplates::SendOpportunityTaskTagEmail(Opportunity::OPPORTUNITYCOMMENTTEMPLATE,$comment_data,'body',$emailData);
+			$emailData['Subject']	= EmailsTemplates::SendOpportunityTaskTagEmail(Opportunity::OPPORTUNITYCOMMENTTEMPLATE,$comment_data,"subject",$emailData);
+			$emailData['EmailFrom']	= EmailsTemplates::GetEmailTemplateFrom(Opportunity::OPPORTUNITYCOMMENTTEMPLATE);
+			
+			
+				if(!empty($emailTo) && count($emailTo)>0){
+					$emailData['EmailTo'] = $emailTo;
+					$status = sendMail($body,$emailData,0);
+				}
+			
             if($status['status']==1){
                 if(isset($data['PrivateComment']) && $data['PrivateComment']==1) {
                     $account = Account::find($data['AccountID']);
@@ -96,14 +107,15 @@ class OpportunityCommentsController extends BaseController {
                     $emailData['EmailTo'] = $opportunity->Email;
                     $emailData['EmailToName'] = $opportunity->FirstName.' '.$opportunity->LastName;
                     $emailData['CompanyID'] = $data ["CompanyID"];
-
-                    $status = sendMail('emails.crm.AccountUserEmailSend',$emailData);
-					$emailData['message_id'] 	=  isset($status['message_id'])?$status['message_id']:"";
-                    $emailData['Message'] = $status['body'];
-                    $status = email_log($emailData);
-                    if($status['status']==0){
-                        return generateResponse($status['message'],true,true);
-                    }
+					if(EmailsTemplates::CheckEmailTemplateStatus(Opportunity::OPPORTUNITYCOMMENTTEMPLATE)){ 
+						$status = sendMail($body,$emailData,0);						
+						$emailData['message_id'] 	=  isset($status['message_id'])?$status['message_id']:"";
+						$emailData['Message'] = $status['body'];
+						$status = email_log($emailData);
+						if($status['status']==0){
+							return generateResponse($status['message'],true,true);
+						}
+					}else{$status['status'] =1;}
                 }
             }else{
                 return generateResponse($status['message'],true,true);

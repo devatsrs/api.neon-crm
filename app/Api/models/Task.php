@@ -23,7 +23,8 @@ class Task extends \Eloquent {
 
     const Open =0;
     const Close = 1;
-
+	const TASKASSIGNEDTEMPLATE = "TaskAssignedEmail";
+	const TASKCOMMENTTEMPLATE = "TaskCommentEmail";
     public static $tasks = [Task::All=>'All',Task::Overdue=>'Overdue',Task::DueSoon=>'Due Soon',
         Task::CustomDate=>'Custom Date'];
 
