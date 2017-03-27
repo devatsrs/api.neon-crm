@@ -168,6 +168,7 @@ private $validlicense;
 	    $this->IsValidLicense();
 		$data 			= 	Input::all();  
 		$TicketGroup	= 	TicketGroups::find($id);
+		$TicketGroupold	= 	TicketGroups::find($id);
         
 	    $rules = array(
             'GroupName' => 'required|min:2',
@@ -191,7 +192,9 @@ private $validlicense;
 					$grpagents 			= 	$data['GroupAgent'];
 					$GroupEmailAddress  = 	$data['GroupEmailAddress'];		
 					$activate			=	$data['activate'];								
-					$data 				= 	cleanarray($data,['GroupAgent','_wysihtml5_mode','GroupEmailAddress','activate']);									 			
+					//$data 				= 	cleanarray($data,['GroupAgent','_wysihtml5_mode','GroupEmailAddress','activate']);	
+					$data 				= 	cleanarray($data,['GroupAgent','_wysihtml5_mode','activate']);	
+							 			
 					$TicketGroup->update($data);  	 //update groups
 					TicketGroupAgents::where(["GroupID" => $TicketGroup->GroupID])->delete(); //delete old group agents
 					
@@ -202,7 +205,7 @@ private $validlicense;
 						}
 					}
 					
-					if($TicketGroup->GroupEmailAddress!=$GroupEmailAddress){						 		 		
+					if($TicketGroupold->GroupEmailAddress!=$GroupEmailAddress){						 		 		
 						$this->SendEmailActivationEmailUpdate($GroupEmailAddress,$id,$activate);
 					}
 					DB::commit();	
@@ -241,8 +244,7 @@ private $validlicense;
 	  	
 	  }
 	  
-	  function SendEmailActivationEmailUpdate($email,$groupID,$url){
-			
+	  function SendEmailActivationEmailUpdate($email,$groupID,$url){			
 		  if(!empty($email))
 	 	  {   
 			$remember_token				 = 		str_random(32); //add new
