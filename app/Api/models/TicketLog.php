@@ -12,14 +12,14 @@ class TicketLog extends \Eloquent
     public static function AddLog($TicketID,$isCustomer = 0){
         if($isCustomer == 1){
             $UserID = 0;
-            $CustomerID = User::get_userID();
+            $AccountID = User::get_userID();
         }else {
             $UserID = User::get_userID();
-            $CustomerID = 0;
+            $AccountID = 0;
         }
         $CompanyID = User::get_companyID();
         $data = ['UserID' => $UserID,
-            'CustomerID' => $CustomerID,
+            'AccountID' => $AccountID,
             'CompanyID' => $CompanyID,
             'TicketID' => $TicketID,
             'created_at' => date("Y-m-d H:i:s")];
