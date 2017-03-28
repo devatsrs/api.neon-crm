@@ -96,7 +96,21 @@ class Messages extends \Eloquent {
 						//$array[] =  $ContactData->Email;
 					}
 				}
-		}		
+		}
+		
+		$UserSearch 	 =  DB::table('tblUser')->get(array("EmailAddress","FirstName","LastName"));		
+		
+		if(count($UserSearch)>0 || count($UserSearch)>0)													
+		{	 
+				foreach($UserSearch as $UserSearch){
+					$txt =  $UserSearch->FirstName.' '.$UserSearch->LastName." <".$UserSearch->EmailAddress.">";
+					if($UserSearch->EmailAddress!=''  && !in_array($txt,$array))
+					{
+						$array[] =  $txt;
+						
+					}
+				}					
+		}							
 		//return  array_filter(array_unique($array));
 		return $array;
     }
@@ -116,6 +130,7 @@ class Messages extends \Eloquent {
 		 }
 		 
 		 $ContactSearch 	 =  DB::table('tblContact')->get(array("Email"));	
+		 
 		
 		if(count($AccountSearch)>0){
 				foreach($AccountSearch as $AccountData){
@@ -176,6 +191,23 @@ class Messages extends \Eloquent {
 					}
 				}
 		}
+		
+		$UserSearch 	 =  DB::table('tblUser')->get(array("EmailAddress"));		
+		
+		if(count($UserSearch)>0 || count($UserSearch)>0)													
+		{
+				foreach($UserSearch as $UserSearch){
+					if($UserSearch->EmailAddress!=''  && !in_array($UserSearch->EmailAddress,$array))
+					{
+						if($indexEmail){
+							$array[$UserSearch->EmailAddress] =  $UserSearch->EmailAddress;	
+						}else{
+							$array[] =  $UserSearch->EmailAddress;
+						}	
+						
+					}
+				}
+		}				
 		
 		//return  array_filter(array_unique($array));
 		return $array;
