@@ -28,7 +28,7 @@ use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use App\TicketEmails;
 use Api\Model\Company;
-
+use \App\Imap;
 
 class TicketsController extends BaseController
 {
@@ -71,12 +71,12 @@ private $validlicense;
 		   if(isset($data['LoginType']) && $data['LoginType']=='customer'){		
 				   $agent		=	'';
 				   $emails 		=	Account::GetAccountAllEmails(User::get_userID());				 
-				   $query 		= 	"call prc_GetSystemTicketCustomer ('".$CompanyID."','".$search."','".$status."','".$priority."','".$Group."','".$agent."','".$emails."','".Messages::Received."',".( ceil($data['iDisplayStart']/$data['iDisplayLength']) )." ,".$data['iDisplayLength'].",'".$sort_column."','".$data['sSortDir_0']."',0)";  
+				   $query 		= 	"call prc_GetSystemTicketCustomer ('".$CompanyID."','".$search."','".$status."','".$priority."','".$Group."','".$agent."','".$emails."','".Messages::Received."',".( ceil($data['iDisplayStart']/$data['iDisplayLength']) )." ,".$data['iDisplayLength'].",'".$sort_column."','".$data['sSortDir_0']."',".$data['Export'].")";  
 				 
 		   }else{			 	  		   			   
 			  	  $query 		= 	"call prc_GetSystemTicket ('".$CompanyID."','".$search."','".$status."','".$priority."','".$Group."','".$agent."','".Messages::Received."',".( ceil($data['iDisplayStart']/$data['iDisplayLength']) )." ,".$data['iDisplayLength'].",'".$sort_column."','".$data['sSortDir_0']."',".$data['Export'].")";  
 			}
-			
+			Log::info($query);
 			
 
 			$resultdata   	=  DataTableSql::of($query)->getProcResult(array('ResultCurrentPage','TotalResults','GroupsData'));	
@@ -141,6 +141,11 @@ private $validlicense;
 
 			$MatchArray  		  =    TicketsTable::SetEmailType($RequesterEmail);
 			
+			if(empty($RequesterName)){
+					$imap				    =	   new Imap();
+					$MatchArrayTitle  		=      $imap->findEmailAddress($RequesterEmail);
+					$RequesterName			=		isset($MatchArrayTitle['AccountTitle'])?$MatchArrayTitle['AccountTitle']:'';
+			}
 			
 			if($data['LoginType']=='user')
 			{	
@@ -295,7 +300,7 @@ private $validlicense;
 			$data['AllUsers']					=	$AllUsers;
 			$data['htmlgroupID'] 	   			= 	 '';
 			$data['htmlagentID']       			= 	 '';
-			$data['AllEmails'] 					= 	implode(",",(Messages::GetAllSystemEmailsWithName(0))); 
+			//$data['AllEmails'] 					= 	implode(",",(Messages::GetAllSystemEmailsWithName(0))); 
 			
 		   $data['agentsAll'] = DB::table('tblTicketGroupAgents')
             ->join('tblUser', 'tblUser.UserID', '=', 'tblTicketGroupAgents.UserID')->distinct()          
@@ -559,7 +564,7 @@ private $validlicense;
 			{	
 				$timeline_query 				=      	"call prc_getTicketTimeline (".$CompanyID.",".$postdata['id'].",".$customer.")";  
 				
-				$data['TicketConversation']		 =		$result_array = DB::select($timeline_query); 
+				$data['TicketConversation']		 =		$result_array = DB::select($timeline_query);  Log::info($timeline_query);
 				/*if($data['ticketdata']->AccountEmailLogID>0){
 				$data['TicketConversation'] 	 = 		AccountEmailLog::where(['EmailParent'=>$data['ticketdata']->AccountEmailLogID,'CompanyID'=>$CompanyID])->get();
 				}else{
@@ -601,6 +606,7 @@ private $validlicense;
 			
 			if($ticket_type=='parent'){
 				$postdata['response_data']      =     TicketsTable::find($ticket_number);
+				$postdata['conversation']      =      TicketsTable::GetConversation($ticket_number);
 				$postdata['AccountEmail'] 		= 	  $postdata['response_data']->Requester;
 				$postdata['Cc'] 				= 	  $postdata['response_data']->RequesterCC;	
 				//$postdata['Bcc'] 				= 	  $postdata['response_data']->RequesterBCC;	
@@ -609,6 +615,7 @@ private $validlicense;
 				
 			}else{
 				$postdata['response_data']      =     AccountEmailLog::find($ticket_number);
+				$postdata['conversation']      =      $postdata['response_data']->Message;
 				$TicketData 				    =     TicketsTable::find($postdata['response_data']->TicketID);
 				$postdata['Cc'] 				= 	  $postdata['response_data']->Cc;	
 			//	$postdata['Bcc'] 				= 	  $postdata['response_data']->Bcc;	
@@ -893,7 +900,7 @@ private $validlicense;
 	function SendMailTicket(){
 
 	    $this->IsValidLicense();
-		$data 			= 	Input::all();   Log::info(print_r($data,true));
+		$data 			= 	Input::all();  
 		if(!isset($data['Ticket'])){
 			return generateResponse("Please submit required fields.",true);
 		}

@@ -328,7 +328,7 @@ function email_log_data_Ticket($data,$view = '',$status){
 		"EmailParent"=>isset($data['EmailParent'])?$data['EmailParent']:$EmailParent,
 		"EmailCall"=>$data['EmailCall'],
 		"TicketID"=>$data['TicketID'],
-		"EmailType"=>AccountEmailLog::TicketEmail 
+		"EmailType"=>\Api\Model\AccountEmailLog::TicketEmail 
     ];
 	
     $data =  \Api\Model\AccountEmailLog::insertGetId($logData);

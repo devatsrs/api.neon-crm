@@ -291,4 +291,19 @@ class TicketsTable extends \Eloquent
 		return $final;
 	}
 	
+	static function GetConversation($ticket_number){
+		$Ticketconversation = '';
+		$ticketdata 	 =  TicketsTable::find($ticket_number);
+		$allConversation = 	AccountEmailLog::where(['TicketID'=>$ticket_number])->get();
+		
+		if($ticketdata->AccountEmailLogID){
+			$Ticketconversation = '';
+		}else{
+			$Ticketconversation = $ticketdata->Description."<br><hr><br>";
+		}
+		foreach($allConversation as $allConversationData){
+			$Ticketconversation .= $allConversationData->Message."<br><hr><br>";	
+		}
+		return $Ticketconversation;
+	}
 }
