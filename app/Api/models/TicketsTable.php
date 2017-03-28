@@ -28,7 +28,7 @@ class TicketsTable extends \Eloquent
     public static function boot(){
         parent::boot();
 
-        static::created(function($obj)
+        static::creating(function($obj)
         {
             Log::info('i am here');
             Log::info($obj);
