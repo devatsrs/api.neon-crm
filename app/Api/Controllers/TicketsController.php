@@ -2,6 +2,7 @@
 
 namespace Api\Controllers;
 
+use Api\Model\TicketLog;
 use Dingo\Api\Http\Request;
 use Api\Model\AccountBalance;
 use Api\Model\AccountBalanceHistory;
@@ -188,8 +189,8 @@ private $validlicense;
 			
 			try{
  			    DB::beginTransaction();
-				$TicketID = TicketsTable::insertGetId($TicketData);	
-				
+				$TicketID = TicketsTable::insertGetId($TicketData);
+
 				foreach($Ticketfields as $key => $TicketfieldsData)
 				{	
 					if(!in_array($key,Ticketfields::$staticfields))
@@ -198,7 +199,8 @@ private $validlicense;
 						TicketsDetails::insert(array("TicketID"=>$TicketID,"FieldID"=>$TicketFieldsID,"FieldValue"=>$TicketfieldsData));
 					}
 				}	
-				
+
+                TicketLog::AddLog($TicketID,($data['LoginType']=='user')?0:1);
 				//create contact if email not found in system
 			 	$AllEmails  =   Messages::GetAllSystemEmails();
 				if(!in_array($RequesterEmail,$AllEmails))
@@ -976,7 +978,9 @@ private $validlicense;
 			
 			try{
  			    DB::beginTransaction();
-				$TicketID = TicketsTable::insertGetId($TicketData);	
+				$TicketID = TicketsTable::insertGetId($TicketData);
+
+
 
 				foreach($Ticketfields as $key => $TicketfieldsData)
 				{
@@ -985,8 +989,9 @@ private $validlicense;
 						$TicketFieldsID =  Ticketfields::where(["FieldType"=>$key])->pluck('TicketFieldsID');
 						TicketsDetails::insert(array("TicketID"=>$TicketID,"FieldID"=>$TicketFieldsID,"FieldValue"=>$TicketfieldsData));
 					}
-				}	
-				
+				}
+
+                TicketLog::AddLog($TicketID,($data['LoginType']=='user')?0:1);
 				//create contact if email not found in system
 				$AllEmails  =   Messages::GetAllSystemEmails();
 				if(!in_array($RequesterEmail,$AllEmails))
@@ -1045,6 +1050,7 @@ private $validlicense;
 						"Note"=>$data['Note'],
 						"TicketID"=>$data['TicketID'],
 						"AccountID"=>$Account,
+                        "UserID"=>User::get_userID(),
 						"created_at"=>date("Y-m-d H:i:s"),
 						"created_by"=>User::get_user_full_name()
 					);
