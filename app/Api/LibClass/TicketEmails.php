@@ -475,7 +475,7 @@ class TicketEmails{
 		$emailData['AddReplyTo'] 	= 		isset($this->Group->GroupReplyAddress)?$this->Group->GroupReplyAddress:$this->Group->GroupEmailAddress;
 		$emailData['TicketID'] 		= 		$this->TicketID;
 		$status 					= 		sendMail($finalBody,$emailData,0);
-		$emailData['EmailParent']	=		$this->TicketData->AccountEmailLogID;
+		$emailData['EmailParent']	=		0;
 		if($status['status']){
 			email_log_data_Ticket($emailData,'',$status);						
 		}else{

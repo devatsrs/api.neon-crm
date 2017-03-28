@@ -898,7 +898,7 @@ private $validlicense;
 	function SendMailTicket(){
 
 	    $this->IsValidLicense();
-		$data 			= 	Input::all();   Log::info(print_r($data,true));
+		$data 			= 	Input::all();  
 		if(!isset($data['Ticket'])){
 			return generateResponse("Please submit required fields.",true);
 		}
