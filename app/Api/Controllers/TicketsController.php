@@ -607,7 +607,7 @@ private $validlicense;
 				$postdata['conversation']      =      TicketsTable::GetConversation($ticket_number);
 				$postdata['AccountEmail'] 		= 	  $postdata['response_data']->Requester;
 				$postdata['Cc'] 				= 	  $postdata['response_data']->RequesterCC;	
-				//$postdata['Bcc'] 				= 	  $postdata['response_data']->RequesterBCC;	
+				$postdata['Bcc'] 				= 	  $postdata['response_data']->RequesterBCC;	
 				$postdata['parent_id']			=	  0;
 				$postdata['GroupEmail']			=	  TicketGroups::where(["GroupID"=>$postdata['response_data']->Group])->pluck('GroupEmailAddress');
 				
@@ -616,7 +616,7 @@ private $validlicense;
 				$postdata['conversation']      =      $postdata['response_data']->Message;
 				$TicketData 				    =     TicketsTable::find($postdata['response_data']->TicketID);
 				$postdata['Cc'] 				= 	  $postdata['response_data']->Cc;	
-			//	$postdata['Bcc'] 				= 	  $postdata['response_data']->Bcc;	
+				$postdata['Bcc'] 				= 	  $postdata['response_data']->Bcc;	
 				$postdata['AccountEmail'] 		= 	  '';
 				$postdata['parent_id']			=	  '';
 				$postdata['response_data']->Description		=	  $postdata['response_data']->Message;
@@ -684,7 +684,7 @@ private $validlicense;
 	
 	function ActionSubmit($id){
 		 $this->IsValidLicense();
-		 $data    =  Input::all(); 
+		 $data    =  Input::all(); Log::info(print_r($data,true));
 		if($id)
 		{
 			$ticketdata		=	 TicketsTable::find($id);
@@ -722,13 +722,14 @@ private $validlicense;
 						 $FilesArray = json_decode($data['file'],true);
 						$files = serialize(json_decode($data['file'],true));
 					}
-					 
+					
+										 
 					 $data['EmailFrom']  		=   $data['email-from'];
 					 $data['CompanyName'] 	    =   isset($email_from_data[0])?$email_from_data[0]->GroupName:Company::getName();
-					 $data['EmailTo']  		  	= 	$data['email-to'];
+					 $data['EmailTo']  		  	= 	TicketsTable::filterEmailAddressFromName($data['email-to']);
 					 $data['AttachmentPaths'] 	= 	$FilesArray;
-					 $data['cc'] 				= 	trim($data['cc']);
-					 //$data['bcc'] 				= 	trim($data['bcc']);					 
+					 $data['cc'] 				= 	trim(TicketsTable::filterEmailAddressFromName($data['cc']));
+					 $data['bcc'] 				= 	trim(TicketsTable::filterEmailAddressFromName($data['bcc']));					 
 					 $status 					= 	sendMail('emails.tickets.ticket', $data);
 					 
 					if($status['status'] == 1)
@@ -744,7 +745,7 @@ private $validlicense;
 						'CreatedBy'=>\Api\Model\User::get_user_full_name(),
 						"created_at"=>date("Y-m-d H:i:s"),
 						'Cc'=>$data['cc'],
-						//'Bcc'=>$data['bcc'],
+						'Bcc'=>$data['bcc'],
 						"AttachmentPaths"=>$files,
 						"MessageID"=>$message_id,						
 						"EmailCall"=>Messages::Sent,
