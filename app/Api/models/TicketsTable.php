@@ -317,7 +317,7 @@ class TicketsTable extends \Eloquent
 				
 			if (strpos($emailsData, '<') !== false && strpos($emailsData, '>') !== false)
 			{
-				$RequesterData 	   =  explode(" <",$Ticketfields['default_requester']);
+				$RequesterData 	   =  explode(" <",$emailsData);
 				$final[] =  substr($RequesterData[1],0,strlen($RequesterData[1])-1);	
 			}else{
 				$final[]	   =  trim($emailsData);					
