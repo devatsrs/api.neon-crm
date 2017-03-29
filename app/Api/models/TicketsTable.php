@@ -294,16 +294,35 @@ class TicketsTable extends \Eloquent
 	static function GetConversation($ticket_number){
 		$Ticketconversation = '';
 		$ticketdata 	 =  TicketsTable::find($ticket_number);
-		$allConversation = 	AccountEmailLog::where(['TicketID'=>$ticket_number])->get();
+		$allConversation = 	AccountEmailLog::WhereRaw("EmailParent >0")->where(['TicketID'=>$ticket_number])->orderBy('AccountEmailLogID', 'DESC')->get();
 		
-		if($ticketdata->AccountEmailLogID){
+		/*if($ticketdata->AccountEmailLogID){
 			$Ticketconversation = '';
 		}else{
 			$Ticketconversation = $ticketdata->Description."<br><hr><br>";
-		}
+		}*/
 		foreach($allConversation as $allConversationData){
+			Log::info("Message:".$allConversationData->Message);
 			$Ticketconversation .= $allConversationData->Message."<br><hr><br>";	
-		}
+		} 
 		return $Ticketconversation;
+	}
+	
+	static function filterEmailAddressFromName($emails){
+		$final = array();
+		if(!is_array($emails)){
+			$emails = explode(",",$emails);
+		}
+		foreach($emails as $emailsData){
+				
+			if (strpos($emailsData, '<') !== false && strpos($emailsData, '>') !== false)
+			{
+				$RequesterData 	   =  explode(" <",$Ticketfields['default_requester']);
+				$final[] =  substr($RequesterData[1],0,strlen($RequesterData[1])-1);	
+			}else{
+				$final[]	   =  trim($emailsData);					
+			}
+		}
+		return implode(",",$final);
 	}
 }

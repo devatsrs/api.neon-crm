@@ -199,11 +199,7 @@ class Messages extends \Eloquent {
 				foreach($UserSearch as $UserSearch){
 					if($UserSearch->EmailAddress!=''  && !in_array($UserSearch->EmailAddress,$array))
 					{
-						if($indexEmail){
-							$array[$UserSearch->EmailAddress] =  $UserSearch->EmailAddress;	
-						}else{
-							$array[] =  $UserSearch->EmailAddress;
-						}	
+						$array[] =  $UserSearch->EmailAddress;
 						
 					}
 				}
