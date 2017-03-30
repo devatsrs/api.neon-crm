@@ -13,5 +13,40 @@ class TicketfieldsValues extends \Eloquent {
 	
 	static $Status_Closed   = 'Closed';
 	static $Status_Resolved = 'Resolved';
+
+    public static $enable_cache = true;
+
+    public static $cache = array(
+        "ticketfieldsvalues_cache"    // all records in obj
+    );
+
+    public static function getFieldValueIDLIst(){
+
+        $data = Input::all();
+        $LicenceKey = $data['LicenceKey'];
+        $CompanyName = $data['CompanyName'];
+        $TicketfieldsValues = 'TicketfieldsValues' . $LicenceKey.$CompanyName;
+
+        if (self::$enable_cache && Cache::has('ticketfieldsvalues_cache')) {
+            //check if the cache has already the ```user_defaults``` item
+            $admin_defaults = Cache::get('ticketfieldsvalues_cache');
+            //get the admin defaults
+            self::$cache['ticketfieldsvalues_cache'] = $admin_defaults['ticketfieldsvalues_cache'];
+        } else {
+            //if the cache doesn't have it yet
+            $companyID = User::get_companyID();
+            self::$cache['ticketfieldsvalues_cache'] = TicketfieldsValues::select(['FieldValueAgent','ValuesID'])->lists('FieldValueAgent','ValuesID');
+
+            $CACHE_EXPIRE = CompanyConfiguration::get('CACHE_EXPIRE');
+
+            $time = empty($CACHE_EXPIRE)?60:$CACHE_EXPIRE;
+            $minutes = \Carbon\Carbon::now()->addMinutes($time);
+
+            //cache the database results so we won't need to fetch them again for 10 minutes at least
+            \Illuminate\Support\Facades\Cache::add($TicketfieldsValues, array('ticketfieldsvalues_cache' => self::$cache['ticketfieldsvalues_cache']), $minutes);
+            //Cache::forever('ticketfieldsvalues_cache', array('ticketfieldsvalues_cache' => self::$cache['ticketfieldsvalues_cache']));
+        }
+        return self::$cache['ticketfieldsvalues_cache'];
+    }
 	
 }
