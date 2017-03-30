@@ -2,6 +2,7 @@
 
 namespace Api\Controllers;
 
+use Api\Model\TicketfieldsValues;
 use Api\Model\TicketLog;
 use Dingo\Api\Http\Request;
 use Api\Model\AccountBalance;
@@ -67,7 +68,15 @@ private $validlicense;
 		   }else if($AccessPermission == TicketsTable::TICKETRESTRICTEDACCESS){ //assigned ticket access
 			   	$agent = User::get_userID();
 		   }
-		   
+          if(!empty($status)) {
+              $statusArray	= TicketsTable::getTicketStatus(0);
+              $tempStatus = explode(',', $status);
+              if (in_array(array_search('All UnResolved', $statusArray), $tempStatus)) {
+                  unset($statusArray[array_search('Resolved', $statusArray)]);
+                  unset($statusArray[array_search('Closed', $statusArray)]);
+                  $status = implode(',',array_unique($tempStatus + array_keys($statusArray)));
+              }
+          }
 		   if(isset($data['LoginType']) && $data['LoginType']=='customer'){		
 				   $agent		=	'';
 				   $emails 		=	Account::GetAccountAllEmails(User::get_userID());				 

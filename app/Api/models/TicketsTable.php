@@ -131,12 +131,14 @@ class TicketsTable extends \Eloquent
 	}
 	
 	
-	static function getTicketStatus(){
+	static function getTicketStatus($select=1){
 		//TicketfieldsValues::WHERE
-		 $row =  TicketfieldsValues::join('tblTicketfields','tblTicketfields.TicketFieldsID','=','tblTicketfieldsValues.FieldsID')->select(array('FieldValueAgent', 'ValuesID'))->where(['tblTicketfields.FieldType'=>Ticketfields::TICKET_SYSTEM_STATUS_FLD])->lists('FieldValueAgent','ValuesID');		
-			 if(!empty($row)){
+		 $row =  TicketfieldsValues::join('tblTicketfields','tblTicketfields.TicketFieldsID','=','tblTicketfieldsValues.FieldsID')->select(array('FieldValueAgent', 'ValuesID'))->where(['tblTicketfields.FieldType'=>Ticketfields::TICKET_SYSTEM_STATUS_FLD])->lists('FieldValueAgent','ValuesID');
+			 if(!empty($row) && $select==1){
 				$row =  array("0"=> "Select")+json_decode(json_encode($row),true);
-			}	
+			}else{
+                 $row = json_decode(json_encode($row),true);
+             }
 			return $row;
 	}
 	
