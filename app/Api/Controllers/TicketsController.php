@@ -164,7 +164,7 @@ private $validlicense;
 					"CompanyID"=>User::get_companyID(),
 					"Requester"=>$RequesterEmail,
 					"RequesterName"=>$RequesterName,
-					"RequesterCC"=>$Ticketfields['cc'],
+					"RequesterCC"=>TicketsTable::filterEmailAddressFromName($Ticketfields['cc']),
 					"Subject"=>$Ticketfields['default_subject'],
 					"Type"=>$Ticketfields['default_ticket_type'],
 					"Status"=>$Ticketfields['default_status'],
@@ -618,7 +618,7 @@ private $validlicense;
 				$postdata['conversation']      =      TicketsTable::GetConversation($ticket_number);
 				$postdata['AccountEmail'] 		= 	  $postdata['response_data']->Requester;
 				$postdata['Cc'] 				= 	  $postdata['response_data']->RequesterCC;	
-				//$postdata['Bcc'] 				= 	  $postdata['response_data']->RequesterBCC;	
+				$postdata['Bcc'] 				= 	  $postdata['response_data']->RequesterBCC;	
 				$postdata['parent_id']			=	  0;
 				$postdata['GroupEmail']			=	  TicketGroups::where(["GroupID"=>$postdata['response_data']->Group])->pluck('GroupEmailAddress');
 				
@@ -627,7 +627,7 @@ private $validlicense;
 				$postdata['conversation']      =      $postdata['response_data']->Message;
 				$TicketData 				    =     TicketsTable::find($postdata['response_data']->TicketID);
 				$postdata['Cc'] 				= 	  $postdata['response_data']->Cc;	
-			//	$postdata['Bcc'] 				= 	  $postdata['response_data']->Bcc;	
+				$postdata['Bcc'] 				= 	  $postdata['response_data']->Bcc;	
 				$postdata['AccountEmail'] 		= 	  '';
 				$postdata['parent_id']			=	  '';
 				$postdata['response_data']->Description		=	  $postdata['response_data']->Message;
@@ -695,7 +695,7 @@ private $validlicense;
 	
 	function ActionSubmit($id){
 		 $this->IsValidLicense();
-		 $data    =  Input::all(); 
+		 $data    =  Input::all(); Log::info(print_r($data,true));
 		if($id)
 		{
 			$ticketdata		=	 TicketsTable::find($id);
@@ -733,13 +733,14 @@ private $validlicense;
 						 $FilesArray = json_decode($data['file'],true);
 						$files = serialize(json_decode($data['file'],true));
 					}
-					 
+					
+										 
 					 $data['EmailFrom']  		=   $data['email-from'];
 					 $data['CompanyName'] 	    =   isset($email_from_data[0])?$email_from_data[0]->GroupName:Company::getName();
-					 $data['EmailTo']  		  	= 	$data['email-to'];
+					 $data['EmailTo']  		  	= 	TicketsTable::filterEmailAddressFromName($data['email-to']);
 					 $data['AttachmentPaths'] 	= 	$FilesArray;
-					 $data['cc'] 				= 	trim($data['cc']);
-					 //$data['bcc'] 				= 	trim($data['bcc']);					 
+					 $data['cc'] 				= 	trim(TicketsTable::filterEmailAddressFromName($data['cc']));
+					 $data['bcc'] 				= 	trim(TicketsTable::filterEmailAddressFromName($data['bcc']));					 
 					 $status 					= 	sendMail('emails.tickets.ticket', $data);
 					 
 					if($status['status'] == 1)
@@ -755,15 +756,17 @@ private $validlicense;
 						'CreatedBy'=>\Api\Model\User::get_user_full_name(),
 						"created_at"=>date("Y-m-d H:i:s"),
 						'Cc'=>$data['cc'],
-						//'Bcc'=>$data['bcc'],
+						'Bcc'=>$data['bcc'],
 						"AttachmentPaths"=>$files,
-						"MessageID"=>$message_id,
-						"EmailParent"=>isset($ticketdata->AccountEmailLogID)?$ticketdata->AccountEmailLogID:0,
+						"MessageID"=>$message_id,						
 						"EmailCall"=>Messages::Sent,
 						"TicketID"=>$id,
-						"EmailType"=>AccountEmailLog::TicketEmail
+						"EmailType"=>AccountEmailLog::TicketEmail,
+						"created_at"=>date("Y-m-d H:i:s"),
+						"CreatedBy"=>User::get_user_full_name()
 					];
-						AccountEmailLog::create($logData);	
+						$logid = AccountEmailLog::insertGetId($logData);	
+						AccountEmailLog::find($logid)->update(["EmailParent"=>$logid]);
 						
 						/*if(!empty($files_array) && count($files_array)>0){	
 							foreach($files_array as $key=> $array_file_data){
@@ -916,6 +919,8 @@ private $validlicense;
 		
 		
 		Log::info(".....................................");
+		Log::info(print_r($data,true));
+		
 		//$RulesMessages      = 	TicketsTable::GetAgentSubmitRules();       
 		if(isset($data['LoginType']) && $data['LoginType']=='customer'){
 			$RulesMessages      = 	TicketsTable::GetCustomerSubmitRules();       
@@ -944,15 +949,24 @@ private $validlicense;
 				$Ticketfields['default_group']  = 	0;
 			}
 			
-			$RequesterEmail	  		=  	trim($data['email-to']);					
+			//$RequesterEmail	  		=  	trim($data['email-to']);		
+			if (strpos($Ticketfields['default_requester'], '<') !== false && strpos($Ticketfields['default_requester'], '>') !== false)
+			{
+				$RequesterData 	   =  explode(" <",$Ticketfields['default_requester']);
+				$RequesterName	   =  $RequesterData[0];
+				$RequesterEmail	   =  substr($RequesterData[1],0,strlen($RequesterData[1])-1);	
+			}else{
+				$RequesterName	   =  '';
+				$RequesterEmail	   =  trim($Ticketfields['default_requester']);					
+			}			
 			
 			if($data['LoginType']=='user')
 			{
 				$TicketData = array(
 					"CompanyID"=>User::get_companyID(),
 					"Requester"=>$RequesterEmail,
-					//"RequesterName"=>$RequesterName,
-					"RequesterCC"=>isset($Ticketfields['cc'])?$Ticketfields['cc']:'',
+					"RequesterName"=>$RequesterName,
+					"RequesterCC"=>isset($data['cc'])?TicketsTable::filterEmailAddressFromName($data['cc']):'',
 					"Subject"=>$data['Subject'],
 					"Type"=>$Ticketfields['default_ticket_type'],
 					"Status"=>$Ticketfields['default_status'],
@@ -969,6 +983,7 @@ private $validlicense;
 				$TicketData = array(
 					"CompanyID"=>User::get_companyID(),
 					"Requester"=>$RequesterEmail,
+					"RequesterCC"=>isset($data['cc'])?$data['cc']:'',
 					//"RequesterName"=>$RequesterName,
 					"Subject"=>isset($data['Subject'])?$data['Subject']:'',
 					"Type"=>isset($Ticketfields['default_ticket_type'])?$Ticketfields['default_ticket_type']:0,
