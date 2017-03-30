@@ -74,7 +74,7 @@ private $validlicense;
               if (in_array(array_search('All UnResolved', $statusArray), $tempStatus)) {
                   unset($statusArray[array_search('Resolved', $statusArray)]);
                   unset($statusArray[array_search('Closed', $statusArray)]);
-                  $status = implode(',',array_unique($tempStatus + array_keys($statusArray)));
+                  $status = implode(',',array_unique(array_merge($tempStatus,array_keys($statusArray))));
               }
           }
 		   if(isset($data['LoginType']) && $data['LoginType']=='customer'){		
