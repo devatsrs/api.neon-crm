@@ -611,7 +611,8 @@ private $validlicense;
 			$action_type   		=     $data['action_type'];
 			$ticket_number  	=     $data['ticket_number'];
 			$ticket_type		=	  $data['ticket_type'];
-			
+			Log::info("TicketAction:");
+			Log::info(print_r($data,true));
 			
 			if($ticket_type=='parent'){
 				$postdata['response_data']      =     TicketsTable::find($ticket_number);
@@ -767,7 +768,7 @@ private $validlicense;
 					];
 						$logid = AccountEmailLog::insertGetId($logData);	
 						AccountEmailLog::find($logid)->update(["EmailParent"=>$logid]);
-						
+						$TicketEmails 	=  new TicketEmails(array("TicketID"=>$id,"TriggerType"=>"CCNoteaddedtoticket","Comment"=>$data['Message'],"NoteUser"=>User::get_user_full_name()));
 						/*if(!empty($files_array) && count($files_array)>0){	
 							foreach($files_array as $key=> $array_file_data){
 							@unlink($array_file_data['filepath']);	
@@ -950,14 +951,14 @@ private $validlicense;
 			}
 			
 			//$RequesterEmail	  		=  	trim($data['email-to']);		
-			if (strpos($Ticketfields['default_requester'], '<') !== false && strpos($Ticketfields['default_requester'], '>') !== false)
+			if (strpos($data['email-to'], '<') !== false && strpos($data['email-to'], '>') !== false)
 			{
-				$RequesterData 	   =  explode(" <",$Ticketfields['default_requester']);
+				$RequesterData 	   =  explode(" <",$data['email-to']);
 				$RequesterName	   =  $RequesterData[0];
 				$RequesterEmail	   =  substr($RequesterData[1],0,strlen($RequesterData[1])-1);	
 			}else{
 				$RequesterName	   =  '';
-				$RequesterEmail	   =  trim($Ticketfields['default_requester']);					
+				$RequesterEmail	   =  trim($data['email-to']);					
 			}			
 			
 			if($data['LoginType']=='user')
@@ -1086,7 +1087,6 @@ private $validlicense;
 		//		$TicketEmails 	=  new TicketEmails(array("TicketID"=>$data['TicketID'],"TriggerType"=>"AgentAddsCommenttoTicket","Comment"=>$data['Note']));
 					$TicketEmails 	=  new TicketEmails(array("TicketID"=>$data['TicketID'],"TriggerType"=>"Noteaddedtoticket","Comment"=>$data['Note'],"NoteUser"=>User::get_user_full_name()));
 				}
-			//$TicketEmails 	=  new TicketEmails(array("TicketID"=>$data['TicketID'],"TriggerType"=>"CCNoteaddedtoticket","Comment"=>$data['Note']));
 				return generateResponse('Note Successfully Created');	
 			} catch (\Exception $ex) {
 				 return generateResponse($ex->getMessage(), true, true);			

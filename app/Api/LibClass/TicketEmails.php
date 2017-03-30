@@ -75,7 +75,21 @@ class TicketEmails{
 			$replace_array['Subject'] 			 = 		$Ticketdata->Subject;
 			$replace_array['TicketID'] 			 = 		$Ticketdata->TicketID;
 			$replace_array['Requester'] 		 = 		$Ticketdata->Requester;
-			$replace_array['RequesterName'] 	 = 		$Ticketdata->RequesterName;
+			
+			if($Ticketdata->AccountID){
+				$replace_array['RequesterName'] 	 = 		Account::where(["AccountID"=>$Ticketdata->AccountID])->pluck("AccountName");
+			}
+			else if($Ticketdata->ContactID){
+				$contactData						 =		Contact::where("ContactID",$Ticketdata->ContactID)->select(['FirstName','LastName'])->first();
+				$replace_array['RequesterName'] 	 = 	    $contactData->FirstName." ".$contactData->LastName;
+			}
+			else if($Ticketdata->UserID){
+				$UserData						 	 =		User::where("UserID",$Ticketdata->UserID)->select(['FirstName','LastName'])->first();
+				$replace_array['RequesterName'] 	 = 	    $UserData->FirstName." ".$UserData->LastName;
+			}else{
+				$replace_array['RequesterName'] 	 = 		$Ticketdata->RequesterName;	
+			}
+			
 			$replace_array['Status'] 			 = 		isset($Ticketdata->Status)?TicketsTable::getTicketStatusByID($Ticketdata->Status):TicketsTable::getDefaultStatus();
 			$replace_array['Priority']	 		 = 		TicketPriority::getPriorityStatusByID($Ticketdata->Priority);
 			$replace_array['Description'] 	 	 = 		$Ticketdata->Description;
@@ -358,6 +372,8 @@ class TicketEmails{
 			$emailData['CompanyName'] 	= 		$this->Group->GroupName;
 			$emailData['AddReplyTo'] 	= 		isset($this->Group->GroupReplyAddress)?$this->Group->GroupReplyAddress:$this->Group->GroupEmailAddress;
 			$emailData['TicketID'] 		= 		$this->TicketID;
+			$emailData['Comment'] 		= 		$this->Comment;
+			$emailData['NoteUser'] 		= 		$this->NoteUser;
 			$status 					= 		sendMail($finalBody,$emailData,0);
 
 			if($status['status']){
@@ -536,7 +552,7 @@ class TicketEmails{
 		if(!$this->EmailTemplate){
 			$this->SetError("No email template found.");				
 		}
-		if(!$this->EmailTemplate->Status){
+		if($this->EmailTemplate->Status<1){
 			$this->SetError("Email template status disabled");				
 		}
 		
