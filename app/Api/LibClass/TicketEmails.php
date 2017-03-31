@@ -5,12 +5,14 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Config;
 use Api\Model\Company;
 use Api\Model\User;
+use Api\Model\Account;
 use Api\Model\TicketsTable;
 use Api\Model\TicketPriority;
 use Api\Model\TicketGroups;
 use Api\Model\AccountEmailLog;
 use Api\Model\EmailTemplate;
 use Api\Model\TicketGroupAgents;
+use Api\Model\Contact;
 use Api\Model\Note;
 use Api\Model\CompanyConfiguration;
 
