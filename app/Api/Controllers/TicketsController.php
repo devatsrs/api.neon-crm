@@ -749,7 +749,7 @@ private $validlicense;
 						$message_id = isset($status['message_id'])?$status['message_id']:'';
 						
 						$logData = ['EmailFrom'=>$data['email-from'],
-						'EmailTo'=>trim($data['email-to']),
+						'EmailTo'=>trim($data['EmailTo']),
 						'Subject'=>trim($data['Subject']),
 						'Message'=>trim($data['Message']),
 						'CompanyID'=>\Api\Model\User::get_companyID(),
