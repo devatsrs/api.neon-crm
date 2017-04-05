@@ -1104,4 +1104,64 @@ private $validlicense;
 			$TicketEmails 	=  new TicketEmails(array("TicketID"=>$id,"TriggerType"=>"AgentSolvestheTicket"));	
 		}
 	}
+
+    function BulkAction(){
+        $data = Input::all();
+        if(isset($data['Type']) && ($data['Type'] == 0) &&
+            isset($data['Status']) && $data['Status'] == 0 &&
+            isset($data['Priority']) && $data['Priority'] == 0 &&
+            isset($data['Group']) && $data['Group'] == 0 &&
+            isset($data['Agent']) && $data['Agent'] == 0){
+            return generateResponse('Please select atleast one option.',true,true);
+        }elseif(!isset($data['selectedIDs']) || empty($data['selectedIDs'])){
+            return generateResponse('Please select atleast one ticket.',true,true);
+        }
+        $update = [];
+        if(isset($data['Type']) && ($data['Type'] != 0)){
+            $update['Type'] = $data['Type'];
+        }
+        if(isset($data['Status']) && ($data['Status'] != 0)){
+            $update['Status'] = $data['Status'];
+        }
+        if(isset($data['Priority']) && ($data['Priority'] != 0)){
+            $update['Priority'] = $data['Priority'];
+        }
+        if(isset($data['Group']) && ($data['Group'] != 0)){
+            $update['Group'] = $data['Group'];
+        }
+        if(isset($data['Agent']) && ($data['Agent'] != 0)){
+            $update['Agent'] = $data['Agent'];
+        }
+        $selectedIDs = explode(',',$data['selectedIDs']);
+        try {
+            DB::beginTransaction();
+            //Implement loop because boot is triggering for each updated record to log the changes.
+            foreach ($selectedIDs as $id) {
+                Ticket::find($id)->update($update);
+            }
+            DB::commit();
+            return generateResponse('Tickets updated successfully.');
+        }catch (Exception $e) {
+            DB::rollback();
+            return generateResponse($e->getMessage(), true, true);
+        }
+    }
+
+    function BulkDelete(){
+        $data = Input::all();
+        if(isset($data['SelectedIDs']) && empty($data['SelectedIDs'])){
+            return generateResponse('Please select atleast one ticket.',true,true);
+        }
+        try {
+            DB::beginTransaction();
+            TicketLog::whereIn('TicketID', explode(',',$data['SelectedIDs']))->delete();
+            TicketsDetails::whereIn('TicketID', explode(',',$data['SelectedIDs']))->delete();
+            Ticket::whereIn('TicketID', explode(',',$data['SelectedIDs']))->delete();
+            DB::commit();
+            return generateResponse('Tickets deleted successfully.');
+        }catch (Exception $e) {
+            DB::rollback();
+            return generateResponse($e->getMessage(), true, true);
+        }
+    }
 }
