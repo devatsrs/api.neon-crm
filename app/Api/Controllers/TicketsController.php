@@ -1137,7 +1137,7 @@ private $validlicense;
             DB::beginTransaction();
             //Implement loop because boot is triggering for each updated record to log the changes.
             foreach ($selectedIDs as $id) {
-                Ticket::find($id)->update($update);
+                TicketsTable::find($id)->update($update);
             }
             DB::commit();
             return generateResponse('Tickets updated successfully.');
@@ -1156,7 +1156,7 @@ private $validlicense;
             DB::beginTransaction();
             TicketLog::whereIn('TicketID', explode(',',$data['SelectedIDs']))->delete();
             TicketsDetails::whereIn('TicketID', explode(',',$data['SelectedIDs']))->delete();
-            Ticket::whereIn('TicketID', explode(',',$data['SelectedIDs']))->delete();
+            TicketsTable::whereIn('TicketID', explode(',',$data['SelectedIDs']))->delete();
             DB::commit();
             return generateResponse('Tickets deleted successfully.');
         }catch (Exception $e) {
