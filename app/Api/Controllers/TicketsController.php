@@ -241,7 +241,7 @@ private $validlicense;
 				  $TicketEmails 	=  new TicketEmails(array("TicketID"=>$TicketID,"TriggerType"=>array("RequesterNewTicketCreated")));
 				  $TicketEmails 	=  new TicketEmails(array("TicketID"=>$TicketID,"TriggerType"=>"CCNewTicketCreated"));
 				  
-				 $this->CheckTicketStatus('',$Ticketfields['default_status'],$TicketID);
+				 TicketsTable::CheckTicketStatus('',$Ticketfields['default_status'],$TicketID);
 				 DB::commit();
 				 return generateResponse('Ticket Successfully Created');
       		 }catch (Exception $ex){ 	
@@ -417,7 +417,7 @@ private $validlicense;
 					 $TicketData['email_from']  	= 	$email_from;
 					 $TicketData['email_from_name'] = 	$email_from_name;				
 					 SendTicketEmail('update',$ticketdata,$TicketData);
-					 $this->CheckTicketStatus($ticketdata->Status,$Ticketfields['default_status'],$id);
+					 TicketsTable::CheckTicketStatus($ticketdata->Status,$Ticketfields['default_status'],$id);
 					 DB::commit();
 					 return generateResponse('Ticket Successfully Updated');
 				 }catch (Exception $ex){ 	
@@ -508,7 +508,7 @@ private $validlicense;
 							$TicketEmails 	=  new TicketEmails(array("TicketID"=>$id,"TriggerType"=>array("TicketAssignedtoAgent")));
 							Log::info("error:".$TicketEmails->GetError());
 						}
-						$this->CheckTicketStatus($ticketdata->Status,$Ticketfields['default_status'],$id);					
+						TicketsTable::CheckTicketStatus($ticketdata->Status,$Ticketfields['default_status'],$id);
 					 return generateResponse('Ticket Successfully Updated');
 				 }catch (Exception $ex){ 	
 					  DB::rollback();
@@ -685,7 +685,7 @@ private $validlicense;
 							"updated_by"=>User::get_user_full_name()
 						);
 				   }
-				 $this->CheckTicketStatus($ticketdata->Status,$data['status'],$id);	
+				 TicketsTable::CheckTicketStatus($ticketdata->Status,$data['status'],$id);
 						
 				return generateResponse("Ticket Successfully Updated");
 			}			
@@ -1092,18 +1092,6 @@ private $validlicense;
 				 return generateResponse($ex->getMessage(), true, true);			
 			}
 	}
-	
-	function CheckTicketStatus($OldStatus,$NewStatus,$id){
-		if(($NewStatus == TicketsTable::getClosedTicketStatus()) && ($OldStatus!==TicketsTable::getClosedTicketStatus()))
-		{
-			$TicketEmails 	=  new TicketEmails(array("TicketID"=>$id,"TriggerType"=>"AgentClosestheTicket"));	
-		}
-		
-		if(($NewStatus == TicketsTable::getResolvedTicketStatus()) && ($OldStatus!==TicketsTable::getResolvedTicketStatus()))
-		{
-			$TicketEmails 	=  new TicketEmails(array("TicketID"=>$id,"TriggerType"=>"AgentSolvestheTicket"));	
-		}
-	}
 
     function BulkAction(){
         $data = Input::all();
@@ -1137,7 +1125,11 @@ private $validlicense;
             DB::beginTransaction();
             //Implement loop because boot is triggering for each updated record to log the changes.
             foreach ($selectedIDs as $id) {
-                TicketsTable::find($id)->update($update);
+                $ticket = TicketsTable::find($id);
+                if(isset($update['Status']) && ($update['Status'] != 0) && $data['isSendEmail'] == 1){
+                    TicketsTable::CheckTicketStatus($ticket->Status,$update['Status'],$id);
+                }
+                $ticket->update($update);
             }
             DB::commit();
             return generateResponse('Tickets updated successfully.');

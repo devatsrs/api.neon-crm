@@ -327,4 +327,14 @@ class TicketsTable extends \Eloquent
 		}
 		return implode(",",$final);
 	}
+
+   public static function CheckTicketStatus($OldStatus,$NewStatus,$id){
+        if(($NewStatus == TicketsTable::getClosedTicketStatus()) && ($OldStatus!==TicketsTable::getClosedTicketStatus())) {
+            $TicketEmails 	=  new TicketEmails(array("TicketID"=>$id,"TriggerType"=>"AgentClosestheTicket"));
+        }
+
+        if(($NewStatus == TicketsTable::getResolvedTicketStatus()) && ($OldStatus!==TicketsTable::getResolvedTicketStatus())) {
+            $TicketEmails 	=  new TicketEmails(array("TicketID"=>$id,"TriggerType"=>"AgentSolvestheTicket"));
+        }
+    }
 }
