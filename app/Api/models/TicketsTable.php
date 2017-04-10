@@ -1,5 +1,6 @@
 <?php
 namespace Api\Model;
+use App\TicketEmails;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Input;
