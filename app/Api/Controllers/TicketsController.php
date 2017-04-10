@@ -1095,29 +1095,29 @@ private $validlicense;
 
     function BulkAction(){
         $data = Input::all();
-        if(isset($data['Type']) && ($data['Type'] == 0) &&
-            isset($data['Status']) && $data['Status'] == 0 &&
-            isset($data['Priority']) && $data['Priority'] == 0 &&
-            isset($data['Group']) && $data['Group'] == 0 &&
-            isset($data['Agent']) && $data['Agent'] == 0){
+        if((isset($data['Type']) && $data['Type'] == 0 && isset($data['TypeCheck'])) &&
+            (isset($data['Status']) && $data['Status'] == 0 && isset($data['TypeStatus'])) &&
+            (isset($data['Priority']) && $data['Priority'] == 0 && isset($data['TypePriority'])) &&
+            (isset($data['Group']) && $data['Group'] == 0 && isset($data['TypeGroup'])) &&
+            (isset($data['Agent']) && $data['Agent'] == 0 && isset($data['TypeAgent']))){
             return generateResponse('Please select atleast one option.',true,true);
         }elseif(!isset($data['selectedIDs']) || empty($data['selectedIDs'])){
             return generateResponse('Please select atleast one ticket.',true,true);
         }
         $update = [];
-        if(isset($data['Type']) && ($data['Type'] != 0)){
+        if(isset($data['Type']) && $data['Type'] != 0 && isset($data['TypeCheck'])){
             $update['Type'] = $data['Type'];
         }
-        if(isset($data['Status']) && ($data['Status'] != 0)){
+        if(isset($data['Status']) && $data['Status'] != 0 && isset($data['TypeStatus'])){
             $update['Status'] = $data['Status'];
         }
-        if(isset($data['Priority']) && ($data['Priority'] != 0)){
+        if(isset($data['Priority']) && $data['Priority'] != 0 && isset($data['TypePriority'])){
             $update['Priority'] = $data['Priority'];
         }
-        if(isset($data['Group']) && ($data['Group'] != 0)){
+        if(isset($data['Group']) && $data['Group'] != 0 && isset($data['TypeGroup'])){
             $update['Group'] = $data['Group'];
         }
-        if(isset($data['Agent']) && ($data['Agent'] != 0)){
+        if(isset($data['Agent']) && $data['Agent'] != 0 && isset($data['TypeAgent'])){
             $update['Agent'] = $data['Agent'];
         }
         $selectedIDs = explode(',',$data['selectedIDs']);
