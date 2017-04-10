@@ -1096,10 +1096,10 @@ private $validlicense;
     function BulkAction(){
         $data = Input::all();
         if((isset($data['Type']) && $data['Type'] == 0 && isset($data['TypeCheck'])) &&
-            (isset($data['Status']) && $data['Status'] == 0 && isset($data['TypeStatus'])) &&
-            (isset($data['Priority']) && $data['Priority'] == 0 && isset($data['TypePriority'])) &&
-            (isset($data['Group']) && $data['Group'] == 0 && isset($data['TypeGroup'])) &&
-            (isset($data['Agent']) && $data['Agent'] == 0 && isset($data['TypeAgent']))){
+            (isset($data['Status']) && $data['Status'] == 0 && isset($data['StatusCheck'])) &&
+            (isset($data['Priority']) && $data['Priority'] == 0 && isset($data['PriorityCheck'])) &&
+            (isset($data['Group']) && $data['Group'] == 0 && isset($data['GroupCheck'])) &&
+            (isset($data['Agent']) && $data['Agent'] == 0 && isset($data['AgentCheck']))){
             return generateResponse('Please select atleast one option.',true,true);
         }elseif(!isset($data['selectedIDs']) || empty($data['selectedIDs'])){
             return generateResponse('Please select atleast one ticket.',true,true);
