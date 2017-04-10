@@ -1108,16 +1108,16 @@ private $validlicense;
         if(isset($data['Type']) && $data['Type'] != 0 && isset($data['TypeCheck'])){
             $update['Type'] = $data['Type'];
         }
-        if(isset($data['Status']) && $data['Status'] != 0 && isset($data['TypeStatus'])){
+        if(isset($data['Status']) && $data['Status'] != 0 && isset($data['StatusCheck'])){
             $update['Status'] = $data['Status'];
         }
-        if(isset($data['Priority']) && $data['Priority'] != 0 && isset($data['TypePriority'])){
+        if(isset($data['Priority']) && $data['Priority'] != 0 && isset($data['PriorityCheck'])){
             $update['Priority'] = $data['Priority'];
         }
-        if(isset($data['Group']) && $data['Group'] != 0 && isset($data['TypeGroup'])){
+        if(isset($data['Group']) && $data['Group'] != 0 && isset($data['GroupCheck'])){
             $update['Group'] = $data['Group'];
         }
-        if(isset($data['Agent']) && $data['Agent'] != 0 && isset($data['TypeAgent'])){
+        if(isset($data['Agent']) && $data['Agent'] != 0 && isset($data['AgentCheck'])){
             $update['Agent'] = $data['Agent'];
         }
         $selectedIDs = explode(',',$data['selectedIDs']);
