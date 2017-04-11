@@ -23,8 +23,40 @@ class TicketsTable extends \Eloquent
 	static  $defaultSortField 		= 	'created_at';
 	static  $defaultSortType 		= 	'desc';
 	static  $Sortcolumns			=	array("created_at"=>"Date Created","subject"=>"Subject","status"=>"Status","group"=>"Group","updated_at"=>"Last Modified");
-	
-	static function GetAgentSubmitRules($page='all'){
+    static $currentObj = '';
+
+    public static function boot(){
+        parent::boot();
+
+        static::creating(function($obj)
+        {
+            Log::info('i am here');
+            Log::info($obj);
+        });
+
+
+        static::updated(function($obj) {
+            $UserID = User::get_userID();
+            $CompanyID = User::get_userID();
+            foreach($obj->original as $index=>$value){
+                if(array_key_exists($index,Ticketfields::$defaultTicketFields) && $index != 'updated_at') {
+                    if($obj->attributes[$index] != $value){
+                        $data = ['UserID' => $UserID,
+                            'CompanyID' => $CompanyID,
+                            'TicketID' => $obj->TicketID,
+                            'TicketFieldID' => Ticketfields::$defaultTicketFields[$index],
+                            'TicketFieldValueFromID' => $obj->original[$index],
+                            'TicketFieldValueToID' => $obj->attributes[$index],
+                            "created_at" => date("Y-m-d H:i:s")];
+                        TicketLog::insert($data);
+                    }
+                }
+            }
+        });
+    }
+
+
+    static function GetAgentSubmitRules($page='all'){
 		 $rules 	 =  array();
 		 $messages	 =  array();
 		 $fields 	 = 	Ticketfields::where(['AgentReqSubmit'=>1])->get();
@@ -99,12 +131,14 @@ class TicketsTable extends \Eloquent
 	}
 	
 	
-	static function getTicketStatus(){
+	static function getTicketStatus($select=1){
 		//TicketfieldsValues::WHERE
-		 $row =  TicketfieldsValues::join('tblTicketfields','tblTicketfields.TicketFieldsID','=','tblTicketfieldsValues.FieldsID')->select(array('FieldValueAgent', 'ValuesID'))->where(['tblTicketfields.FieldType'=>Ticketfields::TICKET_SYSTEM_STATUS_FLD])->lists('FieldValueAgent','ValuesID');		
-			 if(!empty($row)){
+		 $row =  TicketfieldsValues::join('tblTicketfields','tblTicketfields.TicketFieldsID','=','tblTicketfieldsValues.FieldsID')->select(array('FieldValueAgent', 'ValuesID'))->where(['tblTicketfields.FieldType'=>Ticketfields::TICKET_SYSTEM_STATUS_FLD])->lists('FieldValueAgent','ValuesID');
+			 if(!empty($row) && $select==1){
 				$row =  array("0"=> "Select")+json_decode(json_encode($row),true);
-			}	
+			}else{
+                 $row = json_decode(json_encode($row),true);
+             }
 			return $row;
 	}
 	
@@ -259,4 +293,38 @@ class TicketsTable extends \Eloquent
 		return $final;
 	}
 	
+	static function GetConversation($ticket_number){
+		$Ticketconversation = '';
+		$ticketdata 	 =  TicketsTable::find($ticket_number);
+		$allConversation = 	AccountEmailLog::WhereRaw("EmailParent >0")->where(['TicketID'=>$ticket_number])->orderBy('AccountEmailLogID', 'DESC')->get();
+		
+		/*if($ticketdata->AccountEmailLogID){
+			$Ticketconversation = '';
+		}else{
+			$Ticketconversation = $ticketdata->Description."<br><hr><br>";
+		}*/
+		foreach($allConversation as $allConversationData){
+			Log::info("Message:".$allConversationData->Message);
+			$Ticketconversation .= $allConversationData->Message."<br><hr><br>";	
+		} 
+		return $Ticketconversation;
+	}
+	
+	static function filterEmailAddressFromName($emails){
+		$final = array();
+		if(!is_array($emails)){
+			$emails = explode(",",$emails);
+		}
+		foreach($emails as $emailsData){
+				
+			if (strpos($emailsData, '<') !== false && strpos($emailsData, '>') !== false)
+			{
+				$RequesterData 	   =  explode(" <",$emailsData);
+				$final[] =  substr($RequesterData[1],0,strlen($RequesterData[1])-1);	
+			}else{
+				$final[]	   =  trim($emailsData);					
+			}
+		}
+		return implode(",",$final);
+	}
 }
