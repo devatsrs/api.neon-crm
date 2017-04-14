@@ -29,6 +29,7 @@ use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use App\TicketEmails;
 use Api\Model\Company;
+use Api\Model\TicketGroupAgents;
 use \App\Imap;
 
 class TicketsController extends BaseController
@@ -256,7 +257,7 @@ private $validlicense;
 			
 			if ($id > 0){           
 				try {
-					$ticketdata = TicketsTable::findOrFail($id);
+					$ticketdata = TicketsTable::find($id);
 				} catch (\Exception $e) {
 					Log::info($e);
 					return generateResponse('Ticket not found.',true,true);
@@ -696,7 +697,7 @@ private $validlicense;
 	
 	function ActionSubmit($id){
 		 $this->IsValidLicense();
-		 $data    =  Input::all(); Log::info(print_r($data,true));
+		 $data    =  Input::all(); 
 		if($id)
 		{
 			$ticketdata		=	 TicketsTable::find($id);
@@ -774,6 +775,15 @@ private $validlicense;
 							@unlink($array_file_data['filepath']);	
 							}
 						}*/
+						
+						//if not agent in ticket then assign current agent to ticket if exits in group
+						if($ticketdata->Group){
+							$AgentExists =  TicketGroupAgents::where(['GroupID'=>$ticketdata->Group,"UserID"=>User::get_userID()])->count();							
+							if($AgentExists>0){
+								$ticketdata->update(["Agent"=>User::get_userID()]);
+							}
+						}
+						
 						 DB::commit();	
 						return generateResponse("Successfully Updated");
 					}else{
