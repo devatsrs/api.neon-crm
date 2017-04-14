@@ -14,7 +14,7 @@ class TicketSlaTarget extends Model {
 	
 	static function ProcessTargets($id){
 		
-			$targets 		= 	TicketSlaTarget::where(['SlaPolicyID'=>$id])->get();
+			$targets 		= 	TicketSlaTarget::where(['TicketSlaID'=>$id])->get();
 			$targets_array	= 	array();
 			
 			foreach($targets as $targetsData)	
