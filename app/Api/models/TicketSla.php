@@ -45,5 +45,11 @@ class TicketSla extends Model {
 		'2 Week'=>"After 2 Weeks",
 		'1 Month'=>"After 1 Month",		
 	);
-}
+	
+	  public static function assignSlaToTicket($CompanyID,$TicketID){
 
+        $query 				=      	"call prc_AssignSlaToTicket (".$CompanyID.",".$TicketID.")";
+        DB::select($query);
+
+    }
+}
