@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Log;
 
 class TicketBusinessHours extends Model {
 
-    protected $table 		= 	"TblTicketBusinessHours";
+    protected $table 		= 	"tblTicketBusinessHours";
     protected $primaryKey 	= 	"ID";
 	protected $guarded 		=	 array("ID");
 

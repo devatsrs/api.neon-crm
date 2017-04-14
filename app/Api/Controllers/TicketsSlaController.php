@@ -302,7 +302,7 @@ class TicketsSlaController extends BaseController {
 		 }
 			 
 			 DB::commit();
-			 return generateResponse('Ticket Group Successfully Deleted');	
+			 return generateResponse('Successfully updated');	
 		}catch (Exception $ex){
 			 DB::rollback();
              return generateResponse($ex->getMessage(),true,true);
@@ -320,7 +320,7 @@ class TicketsSlaController extends BaseController {
 				TicketSlaPolicyApplyTo::where(['SlaPolicyID'=>$id])->delete(); 
 				TicketSlaPolicyViolation::where(['SlaPolicyID'=>$id])->delete(); 
 				DB::commit();
-				return generateResponse('Ticket Group Successfully Deleted');		 
+				return generateResponse('Successfully Deleted');		 
 			}
 			else{
 				return generateResponse("Cannot delete default data",true,true);

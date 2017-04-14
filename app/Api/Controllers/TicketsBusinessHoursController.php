@@ -84,7 +84,7 @@ private $validlicense;
 		$messages 	=  	array("custom_hours_day.required"=>"Please select atleast one weekday.");
 
 		$rules = array(
-			'Title' =>  'required|unique:TblTicketBusinessHours,Name,NULL,ID,CompanyID,'. $companyID,
+			'Title' =>  'required|unique:tblTicketBusinessHours,Name,NULL,ID,CompanyID,'. $companyID,
 			'Description' => 'required',
 			//'Timezone' => 'required',
     	);
@@ -181,7 +181,7 @@ private $validlicense;
 				TicketsWorkingDays::where(["BusinessHoursID"=>$id])->delete();
 				TicketBusinessHolidays::where(["BusinessHoursID"=>$id])->delete();
 				DB::commit();			
-				return generateResponse('Ticket Group Successfully Deleted');
+				return generateResponse('Successfully Deleted');
 			}
 			else{
 				 return generateResponse("Cannot delete default data",true,true);
@@ -204,7 +204,7 @@ private $validlicense;
 		$messages 		=  	array("custom_hours_day.required"=>"Please select atleast one weekday.");   
 		
 		$rules = array(
-			'Title' =>  'required|unique:TblTicketBusinessHours,Name,' . $id . ',ID,CompanyID,'. $companyID,
+			'Title' =>  'required|unique:tblTicketBusinessHours,Name,' . $id . ',ID,CompanyID,'. $companyID,
 			'Description' => 'required',
 			//'Timezone' => 'required',
     	);
