@@ -263,26 +263,26 @@ class TicketsSlaController extends BaseController {
 				{	
 						$violations		=	 $data['violated'];	
 						
+						TicketSlaPolicyViolation::where(['TicketSlaID'=>$id,"VoilationType"=>TicketSlaPolicyViolation::$ResolvedVoilationType])->delete(); //delete old
+						TicketSlaPolicyViolation::where(['TicketSlaID'=>$id,"VoilationType"=>TicketSlaPolicyViolation::$RespondedVoilationType])->delete(); //delete old
 						foreach($violations as $key => $violationsData)
 						{
-							if($key == 'NotResponded'){
 							
-							TicketSlaPolicyViolation::where(['TicketSlaID'=>$id,"VoilationType"=>TicketSlaPolicyViolation::$RespondedVoilationType])->delete(); //delete old
-							
-							$NotRespondedSave = array(
-								 "TicketSlaID"=>$id,
-								 "Time"=>$violationsData['EscalateTime'],
-								 "Value"=>implode(",",$violationsData['Agents']),
-								 "VoilationType"=>TicketSlaPolicyViolation::$RespondedVoilationType
-							 );
-							 
-							 TicketSlaPolicyViolation::create($NotRespondedSave);			
-							 continue;
+							if($key == 'NotResponded')
+							{							
+								$NotRespondedSave = array(
+									 "TicketSlaID"=>$id,
+									 "Time"=>$violationsData['EscalateTime'],
+									 "Value"=>implode(",",$violationsData['Agents']),
+									 "VoilationType"=>TicketSlaPolicyViolation::$RespondedVoilationType
+								 );
+								 
+								 TicketSlaPolicyViolation::create($NotRespondedSave);			
+								 continue;
 							}
-							
+
 							if($key == 'NotResolved')
 							{	
-								TicketSlaPolicyViolation::where(['TicketSlaID'=>$id,"VoilationType"=>TicketSlaPolicyViolation::$ResolvedVoilationType])->delete(); //delete old
 								foreach($violationsData as $violationsDataLoop)
 								{
 									if($violationsDataLoop['Enabled'])
