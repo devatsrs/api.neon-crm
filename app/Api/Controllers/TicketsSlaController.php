@@ -139,8 +139,8 @@ class TicketsSlaController extends BaseController {
 									
 								$NotRespondedSave = array(
 									 "TicketSlaID"=>$ID,
-									 "RespondedTime"=>$violationsData['EscalateTime'],
-									 "RespondedValue"=>implode(",",$violationsData['Agents']),
+									 "Time"=>$violationsData['EscalateTime'],
+									 "Value"=>implode(",",$violationsData['Agents']),
 									 "VoilationType"=>TicketSlaPolicyViolation::$RespondedVoilationType
 								 );
 								 
@@ -156,8 +156,8 @@ class TicketsSlaController extends BaseController {
 										{
 											$NotResolveSave = array(
 												 "TicketSlaID"=>$ID,
-												 "ResolvedTime"=>$violationsDataLoop['EscalateTime'],
-												 "ResolvedValue"=>implode(",",$violationsDataLoop['Agents']),
+												 "Time"=>$violationsDataLoop['EscalateTime'],
+												 "Value"=>implode(",",$violationsDataLoop['Agents']),
 												 "VoilationType"=>TicketSlaPolicyViolation::$ResolvedVoilationType
 											 );			
 											TicketSlaPolicyViolation::create($NotResolveSave);	 				
@@ -178,8 +178,8 @@ class TicketsSlaController extends BaseController {
 	
 
 	function update($id)
-	{
-		$data 			= 	Input::all(); 	
+	{	
+		$data 			= 	Input::all(); 	 Log::info(print_r($data,true));
 		$companyID 		=   User::get_companyID();    
 		$TicketSla  	= 	TicketSla::find($id);// Log::info(print_r($data,true));  exit;
 		
@@ -271,8 +271,8 @@ class TicketsSlaController extends BaseController {
 							
 							$NotRespondedSave = array(
 								 "TicketSlaID"=>$id,
-								 "RespondedTime"=>$violationsData['EscalateTime'],
-								 "RespondedValue"=>implode(",",$violationsData['Agents']),
+								 "Time"=>$violationsData['EscalateTime'],
+								 "Value"=>implode(",",$violationsData['Agents']),
 								 "VoilationType"=>TicketSlaPolicyViolation::$RespondedVoilationType
 							 );
 							 
@@ -289,8 +289,8 @@ class TicketsSlaController extends BaseController {
 									{
 										$NotResolveSave = array(
 											 "TicketSlaID"=>$id,
-											 "ResolvedTime"=>$violationsDataLoop['EscalateTime'],
-											 "ResolvedValue"=>implode(",",$violationsDataLoop['Agents']),
+											 "Time"=>$violationsDataLoop['EscalateTime'],
+											 "Value"=>implode(",",$violationsDataLoop['Agents']),
 											 "VoilationType"=>TicketSlaPolicyViolation::$ResolvedVoilationType
 										 );			
 										TicketSlaPolicyViolation::create($NotResolveSave);	 				
