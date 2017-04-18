@@ -4,6 +4,7 @@ namespace Api\Controllers;
 
 use Api\Model\TicketfieldsValues;
 use Api\Model\TicketLog;
+use Api\Model\TicketSla;
 use Dingo\Api\Http\Request;
 use Api\Model\AccountBalance;
 use Api\Model\AccountBalanceHistory;
@@ -102,9 +103,10 @@ private $validlicense;
 	  
 	  function Store(){
 	    $this->IsValidLicense();
-		$data 			= 	Input::all();  
+		$data 			= 	Input::all();
+		$CompanyID 				= 	User::get_companyID();
 
-		if(!isset($data['Ticket'])){
+		  if(!isset($data['Ticket'])){
 			return generateResponse("Please submit required fields.",true);
 		}
 		
@@ -161,7 +163,7 @@ private $validlicense;
 				$email_from		   =  TicketGroups::where(["GroupID"=>$Ticketfields['default_group']])->pluck('GroupEmailAddress'); 
 				$email_from_name   =  TicketGroups::where(["GroupID"=>$Ticketfields['default_group']])->pluck('GroupName'); 
 				$TicketData = array(
-					"CompanyID"=>User::get_companyID(),
+					"CompanyID"=>$CompanyID,
 					"Requester"=>$RequesterEmail,
 					"RequesterName"=>$RequesterName,
 					"RequesterCC"=>TicketsTable::filterEmailAddressFromName($Ticketfields['cc']),
@@ -178,7 +180,7 @@ private $validlicense;
 				);
 			}else{
 				$TicketData = array(
-					"CompanyID"=>User::get_companyID(),
+					"CompanyID"=>$CompanyID,
 					"Requester"=>$RequesterEmail,
 					"RequesterName"=>$RequesterName,
 					"RequesterCC"=>isset($Ticketfields['cc'])?$Ticketfields['cc']:'',
@@ -214,7 +216,7 @@ private $validlicense;
 			 	$AllEmails  =   Messages::GetAllSystemEmails();
 				if(!in_array($RequesterEmail,$AllEmails))
 				{
-					$ContactData = array("Email"=>$RequesterEmail,"CompanyId"=>User::get_companyID());
+					$ContactData = array("Email"=>$RequesterEmail,"CompanyId"=>$CompanyID);
 					Contact::create($ContactData);
 				}	 
 				 $TicketData['email_from']  	= 	$email_from;
@@ -243,7 +245,13 @@ private $validlicense;
 				  
 				 $this->CheckTicketStatus('',$Ticketfields['default_status'],$TicketID);
 				 DB::commit();
-				 return generateResponse('Ticket Successfully Created');
+				try {
+					TicketSla::assignSlaToTicket($CompanyID,$TicketID);
+				}catch (Exception $ex){
+					Log::info("fail TicketSla::assignSlaToTicket");
+					Log::info($ex);
+				}
+				return generateResponse('Ticket Successfully Created');
       		 }catch (Exception $ex){ 	
 			      DB::rollback();
 				  return generateResponse($ex->getMessage(), true, true);
@@ -326,9 +334,11 @@ private $validlicense;
 	}
 	  
 	  function Update($id){
-	  
-	    $this->IsValidLicense();
-		$data 			= 	Input::all();  
+		$this->IsValidLicense();
+
+		$TicketID = $id;
+		$CompanyID 				= 	User::get_companyID();
+		$data 			= 	Input::all();
 		$ticketdata		=	 TicketsTable::find($id);
 	    if($ticketdata)
 		{
@@ -419,6 +429,12 @@ private $validlicense;
 					 SendTicketEmail('update',$ticketdata,$TicketData);
 					 $this->CheckTicketStatus($ticketdata->Status,$Ticketfields['default_status'],$id);
 					 DB::commit();
+					try {
+						TicketSla::assignSlaToTicket($CompanyID,$TicketID);
+					} catch (Exception $ex) {
+						Log::info("fail TicketSla::assignSlaToTicket");
+						Log::info($ex);
+					}
 					 return generateResponse('Ticket Successfully Updated');
 				 }catch (Exception $ex){ 	
 					  DB::rollback();
@@ -913,7 +929,9 @@ private $validlicense;
 	function SendMailTicket(){
 
 	    $this->IsValidLicense();
-		$data 			= 	Input::all();  
+		$data 			= 	Input::all();
+		$CompanyID 					 = 		User::get_companyID();
+
 		if(!isset($data['Ticket'])){
 			return generateResponse("Please submit required fields.",true);
 		}
@@ -964,7 +982,7 @@ private $validlicense;
 			if($data['LoginType']=='user')
 			{
 				$TicketData = array(
-					"CompanyID"=>User::get_companyID(),
+					"CompanyID"=>$CompanyID,
 					"Requester"=>$RequesterEmail,
 					"RequesterName"=>$RequesterName,
 					"RequesterCC"=>isset($data['cc'])?TicketsTable::filterEmailAddressFromName($data['cc']):'',
@@ -982,7 +1000,7 @@ private $validlicense;
 				);
 			}else{
 				$TicketData = array(
-					"CompanyID"=>User::get_companyID(),
+					"CompanyID"=>$CompanyID,
 					"Requester"=>$RequesterEmail,
 					"RequesterCC"=>isset($data['cc'])?$data['cc']:'',
 					//"RequesterName"=>$RequesterName,
@@ -1021,7 +1039,7 @@ private $validlicense;
 				$AllEmails  =   Messages::GetAllSystemEmails();
 				if(!in_array($RequesterEmail,$AllEmails))
 				{
-					$ContactData = array("Email"=>$RequesterEmail,"CompanyId"=>User::get_companyID());
+					$ContactData = array("Email"=>$RequesterEmail,"CompanyId"=>$CompanyID);
 					Contact::create($ContactData);
 				}	
 				
@@ -1048,7 +1066,13 @@ private $validlicense;
 				 }
 				 $TicketEmails1		=  new TicketEmails(array("TicketID"=>$TicketID,"TriggerType"=>array("RequesterNewTicketCreated")));				 
 				 $TicketEmails 		=  new TicketEmails(array("TicketID"=>$TicketID,"TriggerType"=>"CCNewTicketCreated"));
-				 DB::commit();		
+				 DB::commit();
+				try {
+					TicketSla::assignSlaToTicket($CompanyID,$TicketID);
+				} catch (Exception $ex) {
+					Log::info("fail TicketSla::assignSlaToTicket");
+					Log::info($ex);
+				}
 				 return generateResponse('Ticket Successfully Created');
       		 }catch (Exception $ex){ 	
 			      DB::rollback();
@@ -1103,5 +1127,10 @@ private $validlicense;
 		{
 			$TicketEmails 	=  new TicketEmails(array("TicketID"=>$id,"TriggerType"=>"AgentSolvestheTicket"));	
 		}
+	}
+
+	public function get_priorities(){
+		$row =  TicketPriority::orderBy('PriorityID')->lists('PriorityValue', 'PriorityID');
+		return $row;
 	}
 }
