@@ -84,7 +84,7 @@ class PHPMAILERIntegtration{
 			$data['Subject'] = 'Test Mail '.$data['Subject'];
 		}
 		
-		$mail->Body = $body;
+		$mail->Body = $mail->msgHTML($body);
 		$mail->Subject = $data['Subject'];
 		if(!is_array($data['EmailTo']) && strpos($data['EmailTo'],',') !== false){
 			$data['EmailTo']  = explode(',',$data['EmailTo']);

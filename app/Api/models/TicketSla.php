@@ -46,7 +46,10 @@ class TicketSla extends Model {
 		'1 Month'=>"After 1 Month",		
 	);
 	
-	  public static function assignSlaToTicket($CompanyID,$TicketID){
+	  /**
+     * Assign SLA policy to ticket
+     */
+    public static function assignSlaToTicket($CompanyID,$TicketID){
 
         $query 				=      	"call prc_AssignSlaToTicket (".$CompanyID.",".$TicketID.")";
         DB::select($query);
