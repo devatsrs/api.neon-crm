@@ -53,7 +53,7 @@ class TicketsSlaController extends BaseController {
     }
 		
 	function store(){
-		    $data 			= 	Input::all(); 	Log::info(print_r($data,true));
+		    $data 			= 	Input::all(); 	
 		    $companyID 		=   User::get_companyID();    
 			
 			$rules = array(
@@ -80,6 +80,7 @@ class TicketsSlaController extends BaseController {
 			 	 "CompanyID"=>$companyID,
 				 "Name"=>$data['Name'],
 				 "Description"=>$data['Description'],
+				 "Status"=>isset($data['Status'])?1:0, 
 				 "created_at"=>date('Y-m-d H:i:s'),
 				 "created_by"=>User::get_user_full_name()
 			 );
@@ -97,10 +98,10 @@ class TicketsSlaController extends BaseController {
 						 $SaveTargetsData = array(
 							 "TicketSlaID"=>$ID,
 							 "PritiryID"=>TicketPriority::getPriorityIDByStatus($key),
-							 "RespondWithinTimeValue"=>$TargetsData["RespondTime"],
-							 "RespondWithinTimeType"=>$TargetsData["RespondType"],
-							 "ResolveWithinTimeValue"=>$TargetsData["ResolveTime"],
-							 "ResolveWithinTimeType"=>$TargetsData["ResolveType"],
+							 "RespondValue"=>$TargetsData["RespondTime"],
+							 "RespondType"=>$TargetsData["RespondType"],
+							 "ResolveValue"=>$TargetsData["ResolveTime"],
+							 "ResolveType"=>$TargetsData["ResolveType"],
 							 "OperationalHrs"=>$TargetsData["SlaOperationalHours"],
 							 "EscalationEmail"=>isset($TargetsData["Escalationemail"])?1:0,
 						 );
@@ -129,43 +130,49 @@ class TicketsSlaController extends BaseController {
 					}
 					
 					//saving violations
-					if(isset($data["violated"]) && count($data["violated"])>0)
-					{	
-							$violations		=	 $data['violated'];	
-							
-							foreach($violations as $key => $violationsData)
-							{
-								if($key == 'NotResponded'){
-									
-								$NotRespondedSave = array(
-									 "TicketSlaID"=>$ID,
-									 "Time"=>$violationsData['EscalateTime'],
-									 "Value"=>implode(",",$violationsData['Agents']),
-									 "VoilationType"=>TicketSlaPolicyViolation::$RespondedVoilationType
-								 );
-								 
-								 TicketSlaPolicyViolation::create($NotRespondedSave);			
-								 continue;
-								}
+					if(isset($data["NotrespondOnTime"]) || isset($data["NotresolveOnTime"]))
+					{
+						if(isset($data["violated"]) && count($data["violated"])>0)
+						{	
+								$violations		=	 $data['violated'];	
 								
-								if($key == 'NotResolved')
-								{	
-									foreach($violationsData as $violationsDataLoop)
+								foreach($violations as $key => $violationsData)
+								{
+									if($key == 'NotResponded')
 									{
-										if($violationsDataLoop['Enabled'])
-										{
-											$NotResolveSave = array(
-												 "TicketSlaID"=>$ID,
-												 "Time"=>$violationsDataLoop['EscalateTime'],
-												 "Value"=>implode(",",$violationsDataLoop['Agents']),
-												 "VoilationType"=>TicketSlaPolicyViolation::$ResolvedVoilationType
-											 );			
-											TicketSlaPolicyViolation::create($NotResolveSave);	 				
+										$NotRespondedSave = array(
+											 "TicketSlaID"=>$ID,
+											 "Time"=>$violationsData['EscalateTime'],
+											 "Value"=>implode(",",$violationsData['Agents']),
+											 "VoilationType"=>TicketSlaPolicyViolation::$RespondedVoilationType
+										 );
+										 
+										 TicketSlaPolicyViolation::create($NotRespondedSave);			
+										 continue;
+									}
+									
+									if(isset($data["NotresolveOnTime"]))
+									{
+										if($key == 'NotResolved')
+										{	
+											foreach($violationsData as $violationsDataLoop)
+											{
+												if($violationsDataLoop['Enabled'])
+												{
+													$NotResolveSave = array(
+														 "TicketSlaID"=>$ID,
+														 "Time"=>$violationsDataLoop['EscalateTime'],
+														 "Value"=>implode(",",$violationsDataLoop['Agents']),
+														 "VoilationType"=>TicketSlaPolicyViolation::$ResolvedVoilationType
+													 );			
+													TicketSlaPolicyViolation::create($NotResolveSave);	 				
+												}
+											}								
 										}
-									}								
+									 }
 								}
-							}
-					}				
+						}				
+					}
 			 }
 			 
 			 DB::commit();
@@ -179,9 +186,9 @@ class TicketsSlaController extends BaseController {
 
 	function update($id)
 	{	
-		$data 			= 	Input::all(); 	 Log::info(print_r($data,true));
-		$companyID 		=   User::get_companyID();    
-		$TicketSla  	= 	TicketSla::find($id);// Log::info(print_r($data,true));  exit;
+		$data 			= 	Input::all();
+		$companyID 		=   User::get_companyID();    Log::info(print_r($data,true));
+		$TicketSla  	= 	TicketSla::find($id);
 		
 		$rules = array(
 				'Name' =>  'required|unique:tblTicketSla,Name,'.$id.',TicketSlaID,CompanyID,'. $companyID,
@@ -207,6 +214,7 @@ class TicketsSlaController extends BaseController {
 		 $UpdateData = array(
 			 "Name"=>$data['Name'],
 			 "Description"=>$data['Description'],
+			 "Status"=>isset($data['Status'])?1:0,
 			 "updated_at"=>date('Y-m-d H:i:s'),
 			 "updated_by"=>User::get_user_full_name()
 		 );
@@ -226,10 +234,10 @@ class TicketsSlaController extends BaseController {
 					 $SaveTargetsData = array(
 					 	 "TicketSlaID"=>$id,
 						 "PritiryID"=>TicketPriority::getPriorityIDByStatus($key),
-						 "RespondWithinTimeValue"=>$TargetsData["RespondTime"],
-						 "RespondWithinTimeType"=>$TargetsData["RespondType"],
-						 "ResolveWithinTimeValue"=>$TargetsData["ResolveTime"],
-						 "ResolveWithinTimeType"=>$TargetsData["ResolveType"],
+						 "RespondValue"=>$TargetsData["RespondTime"],
+						 "RespondType"=>$TargetsData["RespondType"],
+						 "ResolveValue"=>$TargetsData["ResolveTime"],
+						 "ResolveType"=>$TargetsData["ResolveType"],
 						 "OperationalHrs"=>$TargetsData["SlaOperationalHours"],
 						 "EscalationEmail"=>isset($TargetsData["Escalationemail"])?1:0,
 					 );
@@ -259,46 +267,53 @@ class TicketsSlaController extends BaseController {
 				}
 				
 				//saving violations
-				if(isset($data["violated"]) && count($data["violated"])>0)
-				{	
-						$violations		=	 $data['violated'];	
-						
-						TicketSlaPolicyViolation::where(['TicketSlaID'=>$id,"VoilationType"=>TicketSlaPolicyViolation::$ResolvedVoilationType])->delete(); //delete old
-						TicketSlaPolicyViolation::where(['TicketSlaID'=>$id,"VoilationType"=>TicketSlaPolicyViolation::$RespondedVoilationType])->delete(); //delete old
-						foreach($violations as $key => $violationsData)
-						{
+				TicketSlaPolicyViolation::where(['TicketSlaID'=>$id,"VoilationType"=>TicketSlaPolicyViolation::$ResolvedVoilationType])->delete(); //delete old
+				TicketSlaPolicyViolation::where(['TicketSlaID'=>$id,"VoilationType"=>TicketSlaPolicyViolation::$RespondedVoilationType])->delete(); //delete old
+				if(isset($data["NotrespondOnTime"]) || isset($data["NotresolveOnTime"]))
+				{
+					if(isset($data["violated"]) && count($data["violated"])>0)
+					{	
+							$violations		=	 $data['violated'];	
 							
-							if($key == 'NotResponded')
-							{							
-								$NotRespondedSave = array(
-									 "TicketSlaID"=>$id,
-									 "Time"=>$violationsData['EscalateTime'],
-									 "Value"=>implode(",",$violationsData['Agents']),
-									 "VoilationType"=>TicketSlaPolicyViolation::$RespondedVoilationType
-								 );
-								 
-								 TicketSlaPolicyViolation::create($NotRespondedSave);			
-								 continue;
-							}
-
-							if($key == 'NotResolved')
-							{	
-								foreach($violationsData as $violationsDataLoop)
+							foreach($violations as $key => $violationsData)
+							{
+								
+								if($key == 'NotResponded')
+								{							
+									$NotRespondedSave = array(
+										 "TicketSlaID"=>$id,
+										 "Time"=>$violationsData['EscalateTime'],
+										 "Value"=>implode(",",$violationsData['Agents']),
+										 "VoilationType"=>TicketSlaPolicyViolation::$RespondedVoilationType
+									 );
+									 
+									 TicketSlaPolicyViolation::create($NotRespondedSave);			
+									 continue;
+								}
+								
+								if(isset($data["NotresolveOnTime"]))
 								{
-									if($violationsDataLoop['Enabled'])
-									{
-										$NotResolveSave = array(
-											 "TicketSlaID"=>$id,
-											 "Time"=>$violationsDataLoop['EscalateTime'],
-											 "Value"=>implode(",",$violationsDataLoop['Agents']),
-											 "VoilationType"=>TicketSlaPolicyViolation::$ResolvedVoilationType
-										 );			
-										TicketSlaPolicyViolation::create($NotResolveSave);	 				
+									if($key == 'NotResolved')
+									{	
+										foreach($violationsData as $violationsDataLoop)
+										{
+											if($violationsDataLoop['Enabled'])
+											{
+												$NotResolveSave = array(
+													 "TicketSlaID"=>$id,
+													 "Time"=>$violationsDataLoop['EscalateTime'],
+													 "Value"=>implode(",",$violationsDataLoop['Agents']),
+													 "VoilationType"=>TicketSlaPolicyViolation::$ResolvedVoilationType
+												 );			
+												TicketSlaPolicyViolation::create($NotResolveSave);	 				
+											}
+										}								
 									}
-								}								
+								}
 							}
-						}
-				}				
+					 }
+				
+			   }				
 		 }
 			 
 			 DB::commit();

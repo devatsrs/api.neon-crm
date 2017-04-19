@@ -82,12 +82,12 @@ private $validlicense;
 		   if(isset($data['LoginType']) && $data['LoginType']=='customer'){		
 				   $agent		=	'';
 				   $emails 		=	Account::GetAccountAllEmails(User::get_userID());				 
-				   $query 		= 	"call prc_GetSystemTicketCustomer ('".$CompanyID."','".$search."','".$status."','".$priority."','".$Group."','".$agent."','".$emails."','".Messages::Received."',".( ceil($data['iDisplayStart']/$data['iDisplayLength']) )." ,".$data['iDisplayLength'].",'".$sort_column."','".$data['sSortDir_0']."',".$data['Export'].")";  
+				   $query 		= 	"call prc_GetSystemTicketCustomer ('".$CompanyID."','".$search."','".$status."','".$priority."','".$Group."','".$agent."','".$emails."',".( ceil($data['iDisplayStart']/$data['iDisplayLength']) )." ,".$data['iDisplayLength'].",'".$sort_column."','".$data['sSortDir_0']."',".$data['Export'].")";  
 				 
 		   }else{			 	  		   			   
-			  	  $query 		= 	"call prc_GetSystemTicket ('".$CompanyID."','".$search."','".$status."','".$priority."','".$Group."','".$agent."','".Messages::Received."',".( ceil($data['iDisplayStart']/$data['iDisplayLength']) )." ,".$data['iDisplayLength'].",'".$sort_column."','".$data['sSortDir_0']."',".$data['Export'].")";  
+			  	  $query 		= 	"call prc_GetSystemTicket ('".$CompanyID."','".$search."','".$status."','".$priority."','".$Group."','".$agent."',".( ceil($data['iDisplayStart']/$data['iDisplayLength']) )." ,".$data['iDisplayLength'].",'".$sort_column."','".$data['sSortDir_0']."',".$data['Export'].")";  
 			}
-			Log::info($query);
+			
 			
 
 			$resultdata   	=  DataTableSql::of($query)->getProcResult(array('ResultCurrentPage','TotalResults','GroupsData'));	
@@ -104,8 +104,8 @@ private $validlicense;
 	  
 	  function Store(){
 	    $this->IsValidLicense();
-		$data 			= 	Input::all();
-		$CompanyID 				= 	User::get_companyID();
+		$data 			= 	Input::all(); 
+		$CompanyID 		= 	User::get_companyID();
 
 		  if(!isset($data['Ticket'])){
 			return generateResponse("Please submit required fields.",true);
@@ -590,7 +590,7 @@ private $validlicense;
 			{	
 				$timeline_query 				=      	"call prc_getTicketTimeline (".$CompanyID.",".$postdata['id'].",".$customer.")";  
 				
-				$data['TicketConversation']		 =		$result_array = DB::select($timeline_query);  Log::info($timeline_query);
+				$data['TicketConversation']		 =		$result_array = DB::select($timeline_query);  
 				/*if($data['ticketdata']->AccountEmailLogID>0){
 				$data['TicketConversation'] 	 = 		AccountEmailLog::where(['EmailParent'=>$data['ticketdata']->AccountEmailLogID,'CompanyID'=>$CompanyID])->get();
 				}else{
@@ -628,8 +628,6 @@ private $validlicense;
 			$action_type   		=     $data['action_type'];
 			$ticket_number  	=     $data['ticket_number'];
 			$ticket_type		=	  $data['ticket_type'];
-			Log::info("TicketAction:");
-			Log::info(print_r($data,true));
 			
 			if($ticket_type=='parent'){
 				$postdata['response_data']      =     TicketsTable::find($ticket_number);
@@ -742,8 +740,6 @@ private $validlicense;
 					
 					$email_from_data   =  TicketGroups::where(["GroupEmailAddress"=>$data['email-from']])->select('GroupEmailAddress','GroupName')->get(); 
 					//$email_from_name   =  TicketGroups::where(["GroupID"=>$ticketdata->Group])->pluck('GroupName'); 
-					//Log::info(print_r($data,true));
-					//Log::info('email_from_data');
 					
 					 $files = '';
 					 $FilesArray = array();
@@ -945,10 +941,6 @@ private $validlicense;
 		if(!isset($data['Ticket'])){
 			return generateResponse("Please submit required fields.",true);
 		}
-		
-		
-		Log::info(".....................................");
-		Log::info(print_r($data,true));
 		
 		//$RulesMessages      = 	TicketsTable::GetAgentSubmitRules();       
 		if(isset($data['LoginType']) && $data['LoginType']=='customer'){

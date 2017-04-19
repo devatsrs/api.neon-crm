@@ -21,10 +21,10 @@ class TicketSlaTarget extends Model {
 			{
 				$targets_array[TicketPriority::getPriorityStatusByID($targetsData['PritiryID'])]	 = 
 				array(
-					"RespondTime"=>$targetsData['RespondWithinTimeValue'],
-					"RespondType"=>$targetsData['RespondWithinTimeType'],
-					"ResolveTime"=>$targetsData['ResolveWithinTimeValue'],
-					"ResolveType"=>$targetsData['ResolveWithinTimeType'],
+					"RespondTime"=>$targetsData['RespondValue'],
+					"RespondType"=>$targetsData['RespondType'],
+					"ResolveTime"=>$targetsData['ResolveValue'],
+					"ResolveType"=>$targetsData['ResolveType'],
 					"SlaOperationalHours"=>$targetsData['OperationalHrs'],
 					"Escalationemail"=>$targetsData['EscalationEmail'],
 				);
