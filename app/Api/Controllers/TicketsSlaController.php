@@ -97,7 +97,7 @@ class TicketsSlaController extends BaseController {
 					{ 
 						 $SaveTargetsData = array(
 							 "TicketSlaID"=>$ID,
-							 "PritiryID"=>TicketPriority::getPriorityIDByStatus($key),
+							 "PriorityID"=>TicketPriority::getPriorityIDByStatus($key),
 							 "RespondValue"=>$TargetsData["RespondTime"],
 							 "RespondType"=>$TargetsData["RespondType"],
 							 "ResolveValue"=>$TargetsData["ResolveTime"],
@@ -233,7 +233,7 @@ class TicketsSlaController extends BaseController {
 					
 					 $SaveTargetsData = array(
 					 	 "TicketSlaID"=>$id,
-						 "PritiryID"=>TicketPriority::getPriorityIDByStatus($key),
+						 "PriorityID"=>TicketPriority::getPriorityIDByStatus($key),
 						 "RespondValue"=>$TargetsData["RespondTime"],
 						 "RespondType"=>$TargetsData["RespondType"],
 						 "ResolveValue"=>$TargetsData["ResolveTime"],
