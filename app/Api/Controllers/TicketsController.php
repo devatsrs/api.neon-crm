@@ -86,10 +86,7 @@ private $validlicense;
 				 
 		   }else{			 	  		   			   
 			  	  $query 		= 	"call prc_GetSystemTicket ('".$CompanyID."','".$search."','".$status."','".$priority."','".$Group."','".$agent."',".( ceil($data['iDisplayStart']/$data['iDisplayLength']) )." ,".$data['iDisplayLength'].",'".$sort_column."','".$data['sSortDir_0']."',".$data['Export'].")";  
-			}
-			
-			
-
+			} 		
 			$resultdata   	=  DataTableSql::of($query)->getProcResult(array('ResultCurrentPage','TotalResults','GroupsData'));	
 			$resultpage  	=  DataTableSql::of($query)->make(false);				
 			$groupData = isset($resultdata->data['GroupsData'])?$resultdata->data['GroupsData']:array(); 			
@@ -589,7 +586,7 @@ private $validlicense;
 			if($postdata['id'])
 			{	
 				$timeline_query 				=      	"call prc_getTicketTimeline (".$CompanyID.",".$postdata['id'].",".$customer.")";  
-				
+					
 				$data['TicketConversation']		 =		$result_array = DB::select($timeline_query);  
 				/*if($data['ticketdata']->AccountEmailLogID>0){
 				$data['TicketConversation'] 	 = 		AccountEmailLog::where(['EmailParent'=>$data['ticketdata']->AccountEmailLogID,'CompanyID'=>$CompanyID])->get();
@@ -612,7 +609,7 @@ private $validlicense;
 					 $data['PrevTicket'] 				 =	TicketsTable::WhereRaw("TicketID < ".$postdata['id'])->where(array("Agent"=>user::get_userID()))->orderby('created_at','desc')->pluck('TicketID'); 
 					}
 				}
-			} 
+			}  
 			return generateResponse('success', false, false, $data);
 		}catch (Exception $e){
 				return generateResponse($e->getMessage(), true);
@@ -1134,5 +1131,10 @@ private $validlicense;
 	public function get_priorities(){
 		$row =  TicketPriority::orderBy('PriorityID')->lists('PriorityValue', 'PriorityID');
 		return $row;
+	}
+	
+	function UpdateTicketDueTime(){
+		$data 		= 	Input::all();  
+		return generateResponse('Successfully Updated');			
 	}
 }
