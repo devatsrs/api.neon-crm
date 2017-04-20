@@ -1,6 +1,6 @@
 <?php
 namespace Api\Model;
-
+use Api\Model\TicketsTable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -50,9 +50,23 @@ class TicketSla extends Model {
      * Assign SLA policy to ticket
      */
     public static function assignSlaToTicket($CompanyID,$TicketID){
-
         $query 				=      	"call prc_AssignSlaToTicket (".$CompanyID.",".$TicketID.")";
         DB::select($query);
+    }
+	
+	 static public function checkForeignKeyById($id) {
+        /*
+         * Tables To Check Foreign Key before Delete.
+         * */
+
+        $hasInTickets = TicketsTable::where("TicketSlaID",$id)->count();
+
+        if( intval($hasInTickets) > 0 ){
+            return true;
+        }else{
+            return false;
+        }
 
     }
+	
 }
