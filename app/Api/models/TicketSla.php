@@ -54,6 +54,16 @@ class TicketSla extends Model {
         DB::select($query);
     }
 	
+	/**
+     * Update DueDate when Ticket Status changed
+     */
+    public static function updateTicketSLADueDate($TicketID,$PrevStatusID,$NewStatusID){
+
+        $query 				=      	"call prc_UpdateTicketSLADueDate (".$TicketID.",".$PrevStatusID.",".$NewStatusID.")";
+        DB::query($query);
+
+    }
+	
 	 static public function checkForeignKeyById($id) {
         /*
          * Tables To Check Foreign Key before Delete.
