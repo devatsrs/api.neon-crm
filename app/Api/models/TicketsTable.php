@@ -305,13 +305,11 @@ class TicketsTable extends \Eloquent
 		$ticketdata 	 =  TicketsTable::find($ticket_number);
 		$allConversation = 	AccountEmailLog::WhereRaw("EmailParent >0")->where(['TicketID'=>$ticket_number])->orderBy('AccountEmailLogID', 'DESC')->get();
 		
-		/*if($ticketdata->AccountEmailLogID){
-			$Ticketconversation = '';
-		}else{
+		if(count($allConversation)<1){
 			$Ticketconversation = $ticketdata->Description."<br><hr><br>";
-		}*/
+		}
 		foreach($allConversation as $allConversationData){
-			Log::info("Message:".$allConversationData->Message);
+			
 			$Ticketconversation .= $allConversationData->Message."<br><hr><br>";	
 		} 
 		return $Ticketconversation;

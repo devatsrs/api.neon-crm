@@ -19,7 +19,7 @@ class TicketSlaTarget extends Model {
 			
 			foreach($targets as $targetsData)	
 			{
-				$targets_array[TicketPriority::getPriorityStatusByID($targetsData['PritiryID'])]	 = 
+				$targets_array[TicketPriority::getPriorityStatusByID($targetsData['PriorityID'])]	 = 
 				array(
 					"RespondTime"=>$targetsData['RespondValue'],
 					"RespondType"=>$targetsData['RespondType'],
