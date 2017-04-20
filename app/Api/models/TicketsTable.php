@@ -49,6 +49,13 @@ class TicketsTable extends \Eloquent
                             'TicketFieldValueToID' => $obj->attributes[$index],
                             "created_at" => date("Y-m-d H:i:s")];
                         TicketLog::insert($data);
+
+						$TicketID = $obj->TicketID;
+						$PrevStatusID = $obj->original[$index];
+						$NewStatusID = $obj->attributes[$index];
+
+						TicketSla::updateTicketSLADueDate($TicketID,$PrevStatusID,$NewStatusID);
+
                     }
                 }
             }

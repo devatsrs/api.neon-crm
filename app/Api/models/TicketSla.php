@@ -52,7 +52,18 @@ class TicketSla extends Model {
     public static function assignSlaToTicket($CompanyID,$TicketID){
 
         $query 				=      	"call prc_AssignSlaToTicket (".$CompanyID.",".$TicketID.")";
-        DB::select($query);
+        DB::query($query);
+    }
+
+	/**
+     * Update DueDate when Ticket Status changed
+     */
+    public static function updateTicketSLADueDate($TicketID,$PrevStatusID,$NewStatusID){
+
+        $query 				=      	"call prc_UpdateTicketSLADueDate (".$TicketID.",".$PrevStatusID.",".$NewStatusID.")";
+        DB::query($query);
 
     }
+
+
 }
