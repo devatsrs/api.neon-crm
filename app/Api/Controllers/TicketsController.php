@@ -1134,7 +1134,27 @@ private $validlicense;
 	}
 	
 	function UpdateTicketDueTime(){
-		$data 		= 	Input::all();  
-		return generateResponse('Successfully Updated');			
+		$data 		= 	Input::all();
+
+		$rules['TicketID'] = 'required';
+		$rules['DueDate'] = 'required';
+		$rules['DueTime'] = 'required';
+
+		$validator = Validator::make($data, $rules);
+
+		if ($validator->fails()) {
+			return generateResponse($validator->errors(),true);
+		}
+
+		$TicketID = $data["TicketID"];
+		$due_date  = date( "Y-m-d H:i:s", strtotime($data["DueDate"] . ' ' . $data["DueTime"]));
+
+		if($TicketID > 0){
+			if(TicketsTable::find($TicketID)->update(["DueDate"=>$due_date])){
+				return generateResponse('Successfully Updated');
+			}
+		}
+		return generateResponse('Failed To Updated Due Date.');
+
 	}
 }
