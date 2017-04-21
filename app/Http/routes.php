@@ -225,7 +225,8 @@ $api->version('v1', function ($api) {
 			$api->post('tickets/delete/{id}', 'TicketsController@Delete');	
 			$api->post('tickets/edit/{id}', 'TicketsController@Edit');
 			$api->post('tickets/update/{id}', 'TicketsController@Update');
-			$api->post('tickets/updatedetailpage/{id}', 'TicketsController@UpdateDetailPage');			
+			$api->post('tickets/updatedetailpage/{id}', 'TicketsController@UpdateDetailPage');				
+			$api->post('tickets/updateticketduetime/{id}', 'TicketsController@UpdateTicketDueTime');			
 			$api->post('tickets/SendMailTicket', 'TicketsController@SendMailTicket');
 			$api->post('tickets/updateticketattributes/{id}', 'TicketsController@UpdateTicketAttributes');									
 			$api->post('tickets/add_note', 'TicketsController@add_note');
@@ -234,6 +235,27 @@ $api->version('v1', function ($api) {
 
             $api->post('tickets/get_ticket_dashboard_summary', 'TicketDashboard@ticketSummaryWidget');
             $api->post('tickets/get_ticket_dashboard_timeline_widget', 'TicketDashboard@ticketTimeLineWidget');
+			
+			
+			
+			$api->post('tickets/sla_policies', "TicketsSlaController@index");
+			$api->post('tickets/sla_policies/{id}/edit', "TicketsSlaController@index");
+			$api->post('tickets/sla_policies/ajax_datagrid', "TicketsSlaController@ajax_datagrid");
+			$api->post('tickets/sla_policies/exports/{type}', 'TicketsSlaController@exports');
+			$api->post('tickets/sla_policies/add', "TicketsSlaController@add");
+			$api->post('tickets/sla_policies/store', "TicketsSlaController@store");
+			$api->post('tickets/sla_policies/delete/{id}', 'TicketsSlaController@delete');
+			$api->post('tickets/sla_policies/edit/{id}', 'TicketsSlaController@edit');
+			$api->post('tickets/sla_policies/update/{id}', "TicketsSlaController@update");				
+			
+			$api->post('tickets/businesshours', 'TicketsBusinessHoursController@index');
+			$api->post('tickets/businesshours/ajax_datagrid', 'TicketsBusinessHoursController@ajax_datagrid');
+			$api->post('tickets/businesshours/exports', 'TicketsBusinessHoursController@exports');
+			$api->post('tickets/businesshours/create', "TicketsBusinessHoursController@create");
+			$api->post('tickets/businesshours/store','TicketsBusinessHoursController@store');
+			$api->post('tickets/businesshours/delete/{id}', 'TicketsBusinessHoursController@delete');
+			$api->post('tickets/businesshours/{id}/edit', 'TicketsBusinessHoursController@edit');
+			$api->post('tickets/businesshours/update/{id}', "TicketsBusinessHoursController@update");	
 
 		});
 
