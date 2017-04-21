@@ -30,6 +30,7 @@ use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use App\TicketEmails;
 use Api\Model\Company;
+use Api\Model\TicketGroupAgents;
 use \App\Imap;
 
 class TicketsController extends BaseController
@@ -81,14 +82,11 @@ private $validlicense;
 		   if(isset($data['LoginType']) && $data['LoginType']=='customer'){		
 				   $agent		=	'';
 				   $emails 		=	Account::GetAccountAllEmails(User::get_userID());				 
-				   $query 		= 	"call prc_GetSystemTicketCustomer ('".$CompanyID."','".$search."','".$status."','".$priority."','".$Group."','".$agent."','".$emails."','".Messages::Received."',".( ceil($data['iDisplayStart']/$data['iDisplayLength']) )." ,".$data['iDisplayLength'].",'".$sort_column."','".$data['sSortDir_0']."',".$data['Export'].")";  
+				   $query 		= 	"call prc_GetSystemTicketCustomer ('".$CompanyID."','".$search."','".$status."','".$priority."','".$Group."','".$agent."','".$emails."',".( ceil($data['iDisplayStart']/$data['iDisplayLength']) )." ,".$data['iDisplayLength'].",'".$sort_column."','".$data['sSortDir_0']."',".$data['Export'].")";  
 				 
 		   }else{			 	  		   			   
-			  	  $query 		= 	"call prc_GetSystemTicket ('".$CompanyID."','".$search."','".$status."','".$priority."','".$Group."','".$agent."','".Messages::Received."',".( ceil($data['iDisplayStart']/$data['iDisplayLength']) )." ,".$data['iDisplayLength'].",'".$sort_column."','".$data['sSortDir_0']."',".$data['Export'].")";  
-			}
-			Log::info($query);
-			
-
+			  	  $query 		= 	"call prc_GetSystemTicket ('".$CompanyID."','".$search."','".$status."','".$priority."','".$Group."','".$agent."',".( ceil($data['iDisplayStart']/$data['iDisplayLength']) )." ,".$data['iDisplayLength'].",'".$sort_column."','".$data['sSortDir_0']."',".$data['Export'].")";  
+			} 		
 			$resultdata   	=  DataTableSql::of($query)->getProcResult(array('ResultCurrentPage','TotalResults','GroupsData'));	
 			$resultpage  	=  DataTableSql::of($query)->make(false);				
 			$groupData = isset($resultdata->data['GroupsData'])?$resultdata->data['GroupsData']:array(); 			
@@ -103,8 +101,8 @@ private $validlicense;
 	  
 	  function Store(){
 	    $this->IsValidLicense();
-		$data 			= 	Input::all();
-		$CompanyID 				= 	User::get_companyID();
+		$data 			= 	Input::all(); 
+		$CompanyID 		= 	User::get_companyID();
 
 		  if(!isset($data['Ticket'])){
 			return generateResponse("Please submit required fields.",true);
@@ -264,7 +262,7 @@ private $validlicense;
 			
 			if ($id > 0){           
 				try {
-					$ticketdata = TicketsTable::findOrFail($id);
+					$ticketdata = TicketsTable::find($id);
 				} catch (\Exception $e) {
 					Log::info($e);
 					return generateResponse('Ticket not found.',true,true);
@@ -588,8 +586,8 @@ private $validlicense;
 			if($postdata['id'])
 			{	
 				$timeline_query 				=      	"call prc_getTicketTimeline (".$CompanyID.",".$postdata['id'].",".$customer.")";  
-				
-				$data['TicketConversation']		 =		$result_array = DB::select($timeline_query);  Log::info($timeline_query);
+					
+				$data['TicketConversation']		 =		$result_array = DB::select($timeline_query);  
 				/*if($data['ticketdata']->AccountEmailLogID>0){
 				$data['TicketConversation'] 	 = 		AccountEmailLog::where(['EmailParent'=>$data['ticketdata']->AccountEmailLogID,'CompanyID'=>$CompanyID])->get();
 				}else{
@@ -611,7 +609,7 @@ private $validlicense;
 					 $data['PrevTicket'] 				 =	TicketsTable::WhereRaw("TicketID < ".$postdata['id'])->where(array("Agent"=>user::get_userID()))->orderby('created_at','desc')->pluck('TicketID'); 
 					}
 				}
-			} 
+			}  
 			return generateResponse('success', false, false, $data);
 		}catch (Exception $e){
 				return generateResponse($e->getMessage(), true);
@@ -627,7 +625,6 @@ private $validlicense;
 			$action_type   		=     $data['action_type'];
 			$ticket_number  	=     $data['ticket_number'];
 			$ticket_type		=	  $data['ticket_type'];
-			
 			
 			if($ticket_type=='parent'){
 				$postdata['response_data']      =     TicketsTable::find($ticket_number);
@@ -711,7 +708,7 @@ private $validlicense;
 	
 	function ActionSubmit($id){
 		 $this->IsValidLicense();
-		 $data    =  Input::all(); Log::info(print_r($data,true));
+		 $data    =  Input::all(); 
 		if($id)
 		{
 			$ticketdata		=	 TicketsTable::find($id);
@@ -740,8 +737,6 @@ private $validlicense;
 					
 					$email_from_data   =  TicketGroups::where(["GroupEmailAddress"=>$data['email-from']])->select('GroupEmailAddress','GroupName')->get(); 
 					//$email_from_name   =  TicketGroups::where(["GroupID"=>$ticketdata->Group])->pluck('GroupName'); 
-					//Log::info(print_r($data,true));
-					//Log::info('email_from_data');
 					
 					 $files = '';
 					 $FilesArray = array();
@@ -789,6 +784,15 @@ private $validlicense;
 							@unlink($array_file_data['filepath']);	
 							}
 						}*/
+						
+						//if not agent in ticket then assign current agent to ticket if exits in group
+						if($ticketdata->Group){
+							$AgentExists =  TicketGroupAgents::where(['GroupID'=>$ticketdata->Group,"UserID"=>User::get_userID()])->count();							
+							if($AgentExists>0){
+								$ticketdata->update(["Agent"=>User::get_userID()]);
+							}
+						}
+						
 						 DB::commit();	
 						return generateResponse("Successfully Updated");
 					}else{
@@ -934,10 +938,6 @@ private $validlicense;
 		if(!isset($data['Ticket'])){
 			return generateResponse("Please submit required fields.",true);
 		}
-		
-		
-		Log::info(".....................................");
-		Log::info(print_r($data,true));
 		
 		//$RulesMessages      = 	TicketsTable::GetAgentSubmitRules();       
 		if(isset($data['LoginType']) && $data['LoginType']=='customer'){
@@ -1196,5 +1196,30 @@ private $validlicense;
 	public function get_priorities(){
 		$row =  TicketPriority::orderBy('PriorityID')->lists('PriorityValue', 'PriorityID');
 		return $row;
+	}
+	
+	function UpdateTicketDueTime(){
+		$data 		= 	Input::all();
+
+		$rules['TicketID'] = 'required';
+		$rules['DueDate'] = 'required';
+		$rules['DueTime'] = 'required';
+
+		$validator = Validator::make($data, $rules);
+
+		if ($validator->fails()) {
+			return generateResponse($validator->errors(),true);
+		}
+
+		$TicketID = $data["TicketID"];
+		$due_date  = date( "Y-m-d H:i:s", strtotime($data["DueDate"] . ' ' . $data["DueTime"]));
+
+		if($TicketID > 0){
+			if(TicketsTable::find($TicketID)->update(["DueDate"=>$due_date])){
+				return generateResponse('Successfully Updated');
+			}
+		}
+		return generateResponse('Failed To Updated Due Date.');
+
 	}
 }
