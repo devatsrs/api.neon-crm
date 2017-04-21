@@ -46,15 +46,7 @@ private $validlicense;
         return View::make('ticketgroups.groups', compact('data','EscalationTimes_json'));   
 	  }		
 	  
-	  function add(){	  
-		$this->IsValidLicense();		
-		$Agents			= 	User::getUserIDListAll(0);
-		$AllUsers		= 	User::getUserIDListAll(0); 
-		$AllUsers[0] 	= 	'None';	
-		ksort($AllUsers);			
-		$data 			= 	array();		
-        return View::make('ticketgroups.group_create', compact('data','AllUsers','Agents'));  
-	  }	
+	  
 	  
 	   public function get($id){
         $post_data = Input::all();
@@ -134,6 +126,7 @@ private $validlicense;
 				"CompanyID"=>User::get_companyID(),
 				"GroupName"=>$data['GroupName'],
 				"GroupDescription"=>$data['GroupDescription'],
+				"GroupBusinessHours"=>$data["GroupBusinessHours"],
 				"GroupAssignTime"=>$data['GroupAssignTime'],
 				"GroupAssignEmail"=>$data['GroupAssignEmail'],
 				"GroupReplyAddress"=>$data['GroupReplyAddress'],				

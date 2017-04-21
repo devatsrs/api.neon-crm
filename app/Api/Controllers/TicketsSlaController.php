@@ -330,12 +330,20 @@ class TicketsSlaController extends BaseController {
 			
 			$IsDefault = TicketSla::find($id)->IsDefault;
 			if($IsDefault==0){
-				TicketSla::destroy($id);
-				TicketSlaTarget::where(['TicketSlaID'=>$id])->delete();
-				TicketSlaPolicyApplyTo::where(['TicketSlaID'=>$id])->delete(); 
-				TicketSlaPolicyViolation::where(['TicketSlaID'=>$id])->delete(); 
-				DB::commit();
-				return generateResponse('Successfully Deleted');		 
+				
+				if(!TicketSla::checkForeignKeyById($id))
+				{
+					TicketSla::destroy($id);
+					TicketSlaTarget::where(['TicketSlaID'=>$id])->delete();
+					TicketSlaPolicyApplyTo::where(['TicketSlaID'=>$id])->delete(); 
+					TicketSlaPolicyViolation::where(['TicketSlaID'=>$id])->delete(); 
+					DB::commit();
+					return generateResponse('Successfully Deleted');		 
+				}
+				else
+				{
+					return generateResponse("Sla policy is in Use, You cant delete this.",true,true);
+            	}				
 			}
 			else{
 				return generateResponse("Cannot delete default data",true,true);
