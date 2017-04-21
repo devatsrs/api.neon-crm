@@ -9,6 +9,16 @@ class TicketLog extends \Eloquent
 
     protected $primaryKey = "TicketLogID";
 
+
+    static  $defaultTicketLogFields = [
+        'Type'=>Ticketfields::default_ticket_type,
+        'Status'=>Ticketfields::default_status,
+        'Priority'=>Ticketfields::default_priority,
+        'Group'=>Ticketfields::default_group,
+        'Agent'=>Ticketfields::default_agent
+    ];
+
+
     public static function AddLog($TicketID,$isCustomer = 0){
         if($isCustomer == 1){
             $UserID = 0;

@@ -1,7 +1,6 @@
 <?php
 
 namespace Api\Controllers;
-
 use Illuminate\Support\Facades\DB; 
 use Api\Model\CompanyConfiguration;
 use Api\Model\User;
@@ -39,7 +38,7 @@ class AuthController extends BaseController
         Log::info("license ". print_r($license,true));*/
         try { 
 			 if(!empty($LoginType) && $LoginType['LoginType']=='customer') {
-				//$user = Account::where(['BillingEmail'=>$credentials['LoggedEmailAddress']])->first();
+				//$user = Account::where(['BillingEmail'=>$credentials['LoggedEmailAddress']])->first(); 
 				$user = Account::whereRaw("FIND_IN_SET('".$credentials['LoggedEmailAddress']."',BillingEmail) !=0")->first();   
 				$user->CompanyID = $user->CompanyId;
 				Config::set('auth.providers.users.model', \Api\Model\Customer::class);			   
