@@ -1,5 +1,6 @@
 <?php
 namespace Api\Model;
+use App\TicketEmails;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Input;
@@ -37,9 +38,9 @@ class TicketsTable extends \Eloquent
 
         static::updated(function($obj) {
             $UserID = User::get_userID();
-            $CompanyID = User::get_userID();
+            $CompanyID = User::get_companyID();
             foreach($obj->original as $index=>$value){
-                if(array_key_exists($index,Ticketfields::$defaultTicketFields) && $index != 'updated_at') {
+                if(array_key_exists($index,TicketLog::$defaultTicketLogFields)) {
                     if($obj->attributes[$index] != $value){
                         $data = ['UserID' => $UserID,
                             'CompanyID' => $CompanyID,
@@ -332,4 +333,14 @@ class TicketsTable extends \Eloquent
 		}
 		return implode(",",$final);
 	}
+
+   public static function CheckTicketStatus($OldStatus,$NewStatus,$id){
+        if(($NewStatus == TicketsTable::getClosedTicketStatus()) && ($OldStatus!==TicketsTable::getClosedTicketStatus())) {
+            $TicketEmails 	=  new TicketEmails(array("TicketID"=>$id,"TriggerType"=>"AgentClosestheTicket"));
+        }
+
+        if(($NewStatus == TicketsTable::getResolvedTicketStatus()) && ($OldStatus!==TicketsTable::getResolvedTicketStatus())) {
+            $TicketEmails 	=  new TicketEmails(array("TicketID"=>$id,"TriggerType"=>"AgentSolvestheTicket"));
+        }
+    }
 }

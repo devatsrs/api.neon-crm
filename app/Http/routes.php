@@ -230,6 +230,8 @@ $api->version('v1', function ($api) {
 			$api->post('tickets/SendMailTicket', 'TicketsController@SendMailTicket');
 			$api->post('tickets/updateticketattributes/{id}', 'TicketsController@UpdateTicketAttributes');									
 			$api->post('tickets/add_note', 'TicketsController@add_note');
+            $api->post('tickets/bulkactions', 'TicketsController@BulkAction');
+            $api->post('tickets/bulkdelete', 'TicketsController@BulkDelete');
 
             $api->post('tickets/get_ticket_dashboard_summary', 'TicketDashboard@ticketSummaryWidget');
             $api->post('tickets/get_ticket_dashboard_timeline_widget', 'TicketDashboard@ticketTimeLineWidget');
