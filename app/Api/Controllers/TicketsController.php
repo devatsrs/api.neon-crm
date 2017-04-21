@@ -243,7 +243,7 @@ private $validlicense;
 				  $TicketEmails 	=  new TicketEmails(array("TicketID"=>$TicketID,"TriggerType"=>array("RequesterNewTicketCreated")));
 				  $TicketEmails 	=  new TicketEmails(array("TicketID"=>$TicketID,"TriggerType"=>"CCNewTicketCreated"));
 				  
-				 $this->CheckTicketStatus('',$Ticketfields['default_status'],$TicketID);
+				 TicketsTable::CheckTicketStatus('',$Ticketfields['default_status'],$TicketID);
 				 DB::commit();
 				try {
 					TicketSla::assignSlaToTicket($CompanyID,$TicketID);
@@ -427,7 +427,7 @@ private $validlicense;
 					 $TicketData['email_from']  	= 	$email_from;
 					 $TicketData['email_from_name'] = 	$email_from_name;				
 					 SendTicketEmail('update',$ticketdata,$TicketData);
-					 $this->CheckTicketStatus($ticketdata->Status,$Ticketfields['default_status'],$id);
+					 TicketsTable::CheckTicketStatus($ticketdata->Status,$Ticketfields['default_status'],$id);
 					 DB::commit();
 					try {
 						TicketSla::assignSlaToTicket($CompanyID,$TicketID);
@@ -524,7 +524,7 @@ private $validlicense;
 							$TicketEmails 	=  new TicketEmails(array("TicketID"=>$id,"TriggerType"=>array("TicketAssignedtoAgent")));
 							Log::info("error:".$TicketEmails->GetError());
 						}
-						$this->CheckTicketStatus($ticketdata->Status,$Ticketfields['default_status'],$id);					
+						TicketsTable::CheckTicketStatus($ticketdata->Status,$Ticketfields['default_status'],$id);
 					 return generateResponse('Ticket Successfully Updated');
 				 }catch (Exception $ex){ 	
 					  DB::rollback();
@@ -627,8 +627,7 @@ private $validlicense;
 			$action_type   		=     $data['action_type'];
 			$ticket_number  	=     $data['ticket_number'];
 			$ticket_type		=	  $data['ticket_type'];
-			Log::info("TicketAction:");
-			Log::info(print_r($data,true));
+			
 			
 			if($ticket_type=='parent'){
 				$postdata['response_data']      =     TicketsTable::find($ticket_number);
@@ -702,7 +701,7 @@ private $validlicense;
 							"updated_by"=>User::get_user_full_name()
 						);
 				   }
-				 $this->CheckTicketStatus($ticketdata->Status,$data['status'],$id);	
+				 TicketsTable::CheckTicketStatus($ticketdata->Status,$data['status'],$id);
 						
 				return generateResponse("Ticket Successfully Updated");
 			}			
@@ -1116,6 +1115,71 @@ private $validlicense;
 				 return generateResponse($ex->getMessage(), true, true);			
 			}
 	}
+
+    function BulkAction(){
+        $data = Input::all();
+        if((isset($data['Type']) && $data['Type'] == 0 && isset($data['TypeCheck'])) &&
+            (isset($data['Status']) && $data['Status'] == 0 && isset($data['StatusCheck'])) &&
+            (isset($data['Priority']) && $data['Priority'] == 0 && isset($data['PriorityCheck'])) &&
+            (isset($data['Group']) && $data['Group'] == 0 && isset($data['GroupCheck'])) &&
+            (isset($data['Agent']) && $data['Agent'] == 0 && isset($data['AgentCheck']))){
+            return generateResponse('Please select atleast one option.',true,true);
+        }elseif(!isset($data['selectedIDs']) || empty($data['selectedIDs'])){
+            return generateResponse('Please select atleast one ticket.',true,true);
+        }
+        $update = [];
+        if(isset($data['Type']) && $data['Type'] != 0 && isset($data['TypeCheck'])){
+            $update['Type'] = $data['Type'];
+        }
+        if(isset($data['Status']) && $data['Status'] != 0 && isset($data['StatusCheck'])){
+            $update['Status'] = $data['Status'];
+        }
+        if(isset($data['Priority']) && $data['Priority'] != 0 && isset($data['PriorityCheck'])){
+            $update['Priority'] = $data['Priority'];
+        }
+        if(isset($data['Group']) && $data['Group'] != 0 && isset($data['GroupCheck'])){
+            $update['Group'] = $data['Group'];
+        }
+        if(isset($data['Agent']) && $data['Agent'] != 0 && isset($data['AgentCheck'])){
+            $update['Agent'] = $data['Agent'];
+        }
+        $selectedIDs = explode(',',$data['selectedIDs']);
+        try {
+            DB::beginTransaction();
+            //Implement loop because boot is triggering for each updated record to log the changes.
+            foreach ($selectedIDs as $id) {
+                $ticket = TicketsTable::find($id);
+                if(isset($update['Status']) && ($update['Status'] != 0) && $data['isSendEmail'] == 1){
+                    TicketsTable::CheckTicketStatus($ticket->Status,$update['Status'],$id);
+                }
+                TicketsTable::where(['TicketID'=>$id])->update($update);
+                //$ticket->update($update);
+            }
+            DB::commit();
+            return generateResponse('Tickets updated successfully.');
+        }catch (Exception $e) {
+            DB::rollback();
+            return generateResponse($e->getMessage(), true, true);
+        }
+    }
+
+    function BulkDelete(){
+        $data = Input::all();
+        if(isset($data['SelectedIDs']) && empty($data['SelectedIDs'])){
+            return generateResponse('Please select atleast one ticket.',true,true);
+        }
+        try {
+            DB::beginTransaction();
+            TicketLog::whereIn('TicketID', explode(',',$data['SelectedIDs']))->delete();
+            TicketsDetails::whereIn('TicketID', explode(',',$data['SelectedIDs']))->delete();
+            TicketsTable::whereIn('TicketID', explode(',',$data['SelectedIDs']))->delete();
+            DB::commit();
+            return generateResponse('Tickets deleted successfully.');
+        }catch (Exception $e) {
+            DB::rollback();
+            return generateResponse($e->getMessage(), true, true);
+        }
+    }
 	
 	function CheckTicketStatus($OldStatus,$NewStatus,$id){
 		if(($NewStatus == TicketsTable::getClosedTicketStatus()) && ($OldStatus!==TicketsTable::getClosedTicketStatus()))
