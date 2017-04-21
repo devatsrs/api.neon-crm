@@ -36,7 +36,7 @@ class AuthController extends BaseController
         Log::info("UserID ". print_r($UserID,true));
         Log::info("credentials ". print_r($credentials,true));
         Log::info("license ". print_r($license,true));*/
-        try {
+        try { 
 			 if(!empty($LoginType) && $LoginType['LoginType']=='customer') {
 				//$user = Account::where(['BillingEmail'=>$credentials['LoggedEmailAddress']])->first(); 
 				$user = Account::whereRaw("FIND_IN_SET('".$credentials['LoggedEmailAddress']."',BillingEmail) !=0")->first();   
@@ -57,7 +57,6 @@ class AuthController extends BaseController
 				}
 			 }
             $token = JWTAuth::fromUser($user);
-            $token = JWTAuth::refresh($token);
         } catch (JWTException $e) {
             // something went wrong whilst attempting to encode the token
             return response()->json(['error' => 'could_not_create_token'], 500);
