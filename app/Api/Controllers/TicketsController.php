@@ -241,7 +241,7 @@ private $validlicense;
 				  $TicketEmails 	=  new TicketEmails(array("TicketID"=>$TicketID,"TriggerType"=>array("RequesterNewTicketCreated")));
 				  $TicketEmails 	=  new TicketEmails(array("TicketID"=>$TicketID,"TriggerType"=>"CCNewTicketCreated"));
 				  
-				 TicketsTable::CheckTicketStatus('',$Ticketfields['default_status'],$TicketID);
+				 TicketsTable::CheckTicketStatus('',isset($Ticketfields['default_status'])?$Ticketfields['default_status']:TicketsTable::getDefaultStatus(),$TicketID);
 				 DB::commit();
 				try {
 					TicketSla::assignSlaToTicket($CompanyID,$TicketID);
