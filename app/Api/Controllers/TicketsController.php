@@ -654,7 +654,7 @@ private $validlicense;
        }
 		
 	}
-	
+	//not in used
 	function UpdateTicketAttributes($id)
 	{
 		 $this->IsValidLicense();
@@ -1181,7 +1181,7 @@ private $validlicense;
         }
     }
 	
-	function CheckTicketStatus($OldStatus,$NewStatus,$id){
+	/*function CheckTicketStatus($OldStatus,$NewStatus,$id){
 		if(($NewStatus == TicketsTable::getClosedTicketStatus()) && ($OldStatus!==TicketsTable::getClosedTicketStatus()))
 		{
 			$TicketEmails 	=  new TicketEmails(array("TicketID"=>$id,"TriggerType"=>"AgentClosestheTicket"));	
@@ -1191,7 +1191,7 @@ private $validlicense;
 		{
 			$TicketEmails 	=  new TicketEmails(array("TicketID"=>$id,"TriggerType"=>"AgentSolvestheTicket"));	
 		}
-	}
+	}*/
 
 	public function get_priorities(){
 		$row =  TicketPriority::orderBy('PriorityID')->lists('PriorityValue', 'PriorityID');
