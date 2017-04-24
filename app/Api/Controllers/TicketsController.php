@@ -450,6 +450,7 @@ private $validlicense;
 	    $this->IsValidLicense();
 		$data 			= 	Input::all();  
 		$ticketdata		=	 TicketsTable::find($id);
+		$TicketID 		= $id;
 	    if($ticketdata)
 		{
 			$agent = $ticketdata->Agent;
@@ -523,6 +524,12 @@ private $validlicense;
 							Log::info("error:".$TicketEmails->GetError());
 						}
 						TicketsTable::CheckTicketStatus($ticketdata->Status,$Ticketfields['default_status'],$id);
+						try {
+							TicketSla::assignSlaToTicket($ticketdata->CompanyID,$TicketID);
+						} catch (Exception $ex) {
+							Log::info("fail TicketSla::assignSlaToTicket");
+							Log::info($ex);
+						}
 					 return generateResponse('Ticket Successfully Updated');
 				 }catch (Exception $ex){ 	
 					  DB::rollback();
@@ -654,7 +661,7 @@ private $validlicense;
        }
 		
 	}
-	
+
 	function UpdateTicketAttributes($id)
 	{
 		 $this->IsValidLicense();
@@ -1145,17 +1152,24 @@ private $validlicense;
         }
         $selectedIDs = explode(',',$data['selectedIDs']);
         try {
-            DB::beginTransaction();
+
             //Implement loop because boot is triggering for each updated record to log the changes.
             foreach ($selectedIDs as $id) {
                 $ticket = TicketsTable::find($id);
+				DB::beginTransaction();
                 if(isset($update['Status']) && ($update['Status'] != 0) && $data['isSendEmail'] == 1){
                     TicketsTable::CheckTicketStatus($ticket->Status,$update['Status'],$id);
                 }
                 TicketsTable::where(['TicketID'=>$id])->update($update);
-                //$ticket->update($update);
+				DB::commit();
+				try {
+					$TicketID=$id;
+					TicketSla::assignSlaToTicket($ticket->CompanyID,$TicketID);
+				} catch (Exception $ex) {
+					Log::info("fail TicketSla::assignSlaToTicket");
+					Log::info($ex);
+				}
             }
-            DB::commit();
             return generateResponse('Tickets updated successfully.');
         }catch (Exception $e) {
             DB::rollback();
