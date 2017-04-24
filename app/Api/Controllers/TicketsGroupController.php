@@ -126,7 +126,7 @@ private $validlicense;
 				"CompanyID"=>User::get_companyID(),
 				"GroupName"=>$data['GroupName'],
 				"GroupDescription"=>$data['GroupDescription'],
-				"GroupBusinessHours"=>$data["GroupBusinessHours"],
+				"GroupBusinessHours"=>isset($data["GroupBusinessHours"])?$data["GroupBusinessHours"]:0,
 				"GroupAssignTime"=>$data['GroupAssignTime'],
 				"GroupAssignEmail"=>$data['GroupAssignEmail'],
 				"GroupReplyAddress"=>$data['GroupReplyAddress'],				
@@ -182,11 +182,12 @@ private $validlicense;
 				 DB::beginTransaction();
 				if(isset($TicketGroup->GroupID)){
 					
-					$grpagents 			= 	$data['GroupAgent'];
-					$GroupEmailAddress  = 	$data['GroupEmailAddress'];		
-					$activate			=	$data['activate'];								
-					//$data 				= 	cleanarray($data,['GroupAgent','_wysihtml5_mode','GroupEmailAddress','activate']);	
-					$data 				= 	cleanarray($data,['GroupAgent','_wysihtml5_mode','activate']);	
+					$grpagents 					= 	$data['GroupAgent'];
+					$GroupEmailAddress  		= 	$data['GroupEmailAddress'];		
+					$activate					=	$data['activate'];								
+					$data["GroupBusinessHours"] =	isset($data["GroupBusinessHours"])?$data["GroupBusinessHours"]:0;
+					//$data 					= 	cleanarray($data,['GroupAgent','_wysihtml5_mode','GroupEmailAddress','activate']);	
+					$data 						= 	cleanarray($data,['GroupAgent','_wysihtml5_mode','activate']);	
 							 			
 					$TicketGroup->update($data);  	 //update groups
 					TicketGroupAgents::where(["GroupID" => $TicketGroup->GroupID])->delete(); //delete old group agents
