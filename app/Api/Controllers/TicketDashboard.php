@@ -30,8 +30,12 @@ class TicketDashboard extends BaseController {
         }
 
         $query 		= 	"call prc_GetTicketDashboardSummary ('".$CompanyID."','".$Group."','".$agent."')";
-        $result = DB::select($query);
         Log::info("query:".$query);
+        $result1 = DB::select($query);
+        $query 		= 	"call prc_CheckDueTickets (".$CompanyID.",'".date('Y-m-d H:i:s')."','".$Group."','".$agent."')";
+        Log::info("query:".$query);
+        $result2 = DB::select($query);
+        $result = (object) array_merge((array) $result1, (array) $result2);
         return generateResponse('',false,false,$result);
     }
 

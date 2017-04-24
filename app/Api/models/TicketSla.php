@@ -64,7 +64,7 @@ class TicketSla extends Model {
 
     }
 	
-	 static public function checkForeignKeyById($id) {
+	static public function checkForeignKeyById($id) {
         /*
          * Tables To Check Foreign Key before Delete.
          * */
@@ -78,5 +78,5 @@ class TicketSla extends Model {
         }
 
     }
-	
+
 }
