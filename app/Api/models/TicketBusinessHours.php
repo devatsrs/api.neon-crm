@@ -43,7 +43,8 @@ class TicketBusinessHours extends Model {
 	static $DefaultTicketHoursTypeTo      	=   "pm";
 	static $HelpdeskHours247				=	1;
 	static $HelpdeskHoursCustom				=	2;
-	static $CustomDays						=	array(1=>"Monday",2=>"Tuesday",3=>"Wednesday",4=>"Thursday",5=>"Friday",6=>"Saturday",7=>"Sunday");	
+	//static $CustomDays						=	array(1=>"Monday",2=>"Tuesday",3=>"Wednesday",4=>"Thursday",5=>"Friday",6=>"Saturday",7=>"Sunday");	
+	static $CustomDays						=	array(2=>"Monday",3=>"Tuesday",4=>"Wednesday",5=>"Thursday",6=>"Friday",7=>"Saturday",1=>"Sunday");	
 	static $HolidaysMonths  		    	=   array(1=>"Jan",2=>"Feb",3=>"Mar",4=>"Apr",5=>"May",6=>"Jun",7=>"Jul",8=>"Aug",9=>"Sep",10=>"Oct",11=>"Nov",12=>"Dec");
 	static $HolidaysDays  		    		=   array(1=>1,2=>2,3=>3,4=>4,5=>5,6=>6,7=>7,8=>8,9=>9,10=>10,11=>11,12=>12,13=>13,14=>14,15=>15,16=>16,17=>17,18=>18,19=>19,20=>20,21=>21,22=>22,23=>23,24=>24,25=>25,26=>26,27=>27,28=>28,29=>29,30=>30,31=>31);
 }
