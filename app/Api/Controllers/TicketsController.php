@@ -56,6 +56,7 @@ private $validlicense;
 		   $priority				=	isset($data['priority'])?is_array($data['priority'])?implode(",",$data['priority']):'':'';
 		   $Group					=	isset($data['group'])?is_array($data['group'])?implode(",",$data['group']):'':'';		  
 		   $agent					=	isset($data['agent'])?$data['agent']:'';	
+		   $DueBy					=	isset($data['DueBy'])?is_array($data['DueBy'])?implode(",",$data['DueBy']):'':'';		
 		   $columns 	 			= 	array('TicketID','Subject','Requester','Type','Status','Priority','Group','Agent','created_at');		
 		   $sort_column 			= 	$data['iSortCol_0'];
 		   $AccessPermission		=	isset($data['AccessPermission'])?$data['AccessPermission']:0;
@@ -85,7 +86,7 @@ private $validlicense;
 				   $query 		= 	"call prc_GetSystemTicketCustomer ('".$CompanyID."','".$search."','".$status."','".$priority."','".$Group."','".$agent."','".$emails."',".( ceil($data['iDisplayStart']/$data['iDisplayLength']) )." ,".$data['iDisplayLength'].",'".$sort_column."','".$data['sSortDir_0']."',".$data['Export'].")";  
 				 
 		   }else{			 	  		   			   
-			  	  $query 		= 	"call prc_GetSystemTicket ('".$CompanyID."','".$search."','".$status."','".$priority."','".$Group."','".$agent."',".( ceil($data['iDisplayStart']/$data['iDisplayLength']) )." ,".$data['iDisplayLength'].",'".$sort_column."','".$data['sSortDir_0']."',".$data['Export'].")";  
+			  	  $query 		= 	"call prc_GetSystemTicket ('".$CompanyID."','".$search."','".$status."','".$priority."','".$Group."','".$agent."','".$DueBy."','".date('Y-m-d H:i')."',".( ceil($data['iDisplayStart']/$data['iDisplayLength']) )." ,".$data['iDisplayLength'].",'".$sort_column."','".$data['sSortDir_0']."',".$data['Export'].")";  Log::info($query);
 			} 		
 			$resultdata   	=  DataTableSql::of($query)->getProcResult(array('ResultCurrentPage','TotalResults','GroupsData'));	
 			$resultpage  	=  DataTableSql::of($query)->make(false);				
@@ -1181,18 +1182,6 @@ private $validlicense;
         }
     }
 	
-	/*function CheckTicketStatus($OldStatus,$NewStatus,$id){
-		if(($NewStatus == TicketsTable::getClosedTicketStatus()) && ($OldStatus!==TicketsTable::getClosedTicketStatus()))
-		{
-			$TicketEmails 	=  new TicketEmails(array("TicketID"=>$id,"TriggerType"=>"AgentClosestheTicket"));	
-		}
-		
-		if(($NewStatus == TicketsTable::getResolvedTicketStatus()) && ($OldStatus!==TicketsTable::getResolvedTicketStatus()))
-		{
-			$TicketEmails 	=  new TicketEmails(array("TicketID"=>$id,"TriggerType"=>"AgentSolvestheTicket"));	
-		}
-	}*/
-
 	public function get_priorities(){
 		$row =  TicketPriority::orderBy('PriorityID')->lists('PriorityValue', 'PriorityID');
 		return $row;
