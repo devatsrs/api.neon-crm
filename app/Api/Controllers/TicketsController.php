@@ -56,6 +56,7 @@ private $validlicense;
 		   $priority				=	isset($data['priority'])?is_array($data['priority'])?implode(",",$data['priority']):'':'';
 		   $Group					=	isset($data['group'])?is_array($data['group'])?implode(",",$data['group']):'':'';		  
 		   $agent					=	isset($data['agent'])?$data['agent']:'';	
+		   $DueBy					=	isset($data['DueBy'])?is_array($data['DueBy'])?implode(",",$data['DueBy']):'':'';		
 		   $columns 	 			= 	array('TicketID','Subject','Requester','Type','Status','Priority','Group','Agent','created_at');		
 		   $sort_column 			= 	$data['iSortCol_0'];
 		   $AccessPermission		=	isset($data['AccessPermission'])?$data['AccessPermission']:0;
@@ -85,7 +86,7 @@ private $validlicense;
 				   $query 		= 	"call prc_GetSystemTicketCustomer ('".$CompanyID."','".$search."','".$status."','".$priority."','".$Group."','".$agent."','".$emails."',".( ceil($data['iDisplayStart']/$data['iDisplayLength']) )." ,".$data['iDisplayLength'].",'".$sort_column."','".$data['sSortDir_0']."',".$data['Export'].")";  
 				 
 		   }else{			 	  		   			   
-			  	  $query 		= 	"call prc_GetSystemTicket ('".$CompanyID."','".$search."','".$status."','".$priority."','".$Group."','".$agent."',".( ceil($data['iDisplayStart']/$data['iDisplayLength']) )." ,".$data['iDisplayLength'].",'".$sort_column."','".$data['sSortDir_0']."',".$data['Export'].")";  
+			  	  $query 		= 	"call prc_GetSystemTicket ('".$CompanyID."','".$search."','".$status."','".$priority."','".$Group."','".$agent."','".$DueBy."','".date('Y-m-d H:i')."',".( ceil($data['iDisplayStart']/$data['iDisplayLength']) )." ,".$data['iDisplayLength'].",'".$sort_column."','".$data['sSortDir_0']."',".$data['Export'].")";  Log::info($query);
 			} 		
 			$resultdata   	=  DataTableSql::of($query)->getProcResult(array('ResultCurrentPage','TotalResults','GroupsData'));	
 			$resultpage  	=  DataTableSql::of($query)->make(false);				
@@ -241,7 +242,7 @@ private $validlicense;
 				  $TicketEmails 	=  new TicketEmails(array("TicketID"=>$TicketID,"TriggerType"=>array("RequesterNewTicketCreated")));
 				  $TicketEmails 	=  new TicketEmails(array("TicketID"=>$TicketID,"TriggerType"=>"CCNewTicketCreated"));
 				  
-				 TicketsTable::CheckTicketStatus('',$Ticketfields['default_status'],$TicketID);
+				 TicketsTable::CheckTicketStatus('',isset($Ticketfields['default_status'])?$Ticketfields['default_status']:TicketsTable::getDefaultStatus(),$TicketID);
 				 DB::commit();
 				try {
 					TicketSla::assignSlaToTicket($CompanyID,$TicketID);
@@ -450,6 +451,7 @@ private $validlicense;
 	    $this->IsValidLicense();
 		$data 			= 	Input::all();  
 		$ticketdata		=	 TicketsTable::find($id);
+		$TicketID 		= $id;
 	    if($ticketdata)
 		{
 			$agent = $ticketdata->Agent;
@@ -523,6 +525,12 @@ private $validlicense;
 							Log::info("error:".$TicketEmails->GetError());
 						}
 						TicketsTable::CheckTicketStatus($ticketdata->Status,$Ticketfields['default_status'],$id);
+						try {
+							TicketSla::assignSlaToTicket($ticketdata->CompanyID,$TicketID);
+						} catch (Exception $ex) {
+							Log::info("fail TicketSla::assignSlaToTicket");
+							Log::info($ex);
+						}
 					 return generateResponse('Ticket Successfully Updated');
 				 }catch (Exception $ex){ 	
 					  DB::rollback();
@@ -654,7 +662,7 @@ private $validlicense;
        }
 		
 	}
-	
+
 	function UpdateTicketAttributes($id)
 	{
 		 $this->IsValidLicense();
@@ -1145,17 +1153,24 @@ private $validlicense;
         }
         $selectedIDs = explode(',',$data['selectedIDs']);
         try {
-            DB::beginTransaction();
+
             //Implement loop because boot is triggering for each updated record to log the changes.
             foreach ($selectedIDs as $id) {
                 $ticket = TicketsTable::find($id);
+				DB::beginTransaction();
                 if(isset($update['Status']) && ($update['Status'] != 0) && $data['isSendEmail'] == 1){
                     TicketsTable::CheckTicketStatus($ticket->Status,$update['Status'],$id);
                 }
                 TicketsTable::where(['TicketID'=>$id])->update($update);
-                //$ticket->update($update);
+				DB::commit();
+				try {
+					$TicketID=$id;
+					TicketSla::assignSlaToTicket($ticket->CompanyID,$TicketID);
+				} catch (Exception $ex) {
+					Log::info("fail TicketSla::assignSlaToTicket");
+					Log::info($ex);
+				}
             }
-            DB::commit();
             return generateResponse('Tickets updated successfully.');
         }catch (Exception $e) {
             DB::rollback();
@@ -1181,18 +1196,6 @@ private $validlicense;
         }
     }
 	
-	function CheckTicketStatus($OldStatus,$NewStatus,$id){
-		if(($NewStatus == TicketsTable::getClosedTicketStatus()) && ($OldStatus!==TicketsTable::getClosedTicketStatus()))
-		{
-			$TicketEmails 	=  new TicketEmails(array("TicketID"=>$id,"TriggerType"=>"AgentClosestheTicket"));	
-		}
-		
-		if(($NewStatus == TicketsTable::getResolvedTicketStatus()) && ($OldStatus!==TicketsTable::getResolvedTicketStatus()))
-		{
-			$TicketEmails 	=  new TicketEmails(array("TicketID"=>$id,"TriggerType"=>"AgentSolvestheTicket"));	
-		}
-	}
-
 	public function get_priorities(){
 		$row =  TicketPriority::orderBy('PriorityID')->lists('PriorityValue', 'PriorityID');
 		return $row;
@@ -1215,7 +1218,7 @@ private $validlicense;
 		$due_date  = date( "Y-m-d H:i:s", strtotime($data["DueDate"] . ' ' . $data["DueTime"]));
 
 		if($TicketID > 0){
-			if(TicketsTable::find($TicketID)->update(["DueDate"=>$due_date])){
+			if(TicketsTable::find($TicketID)->update(["DueDate"=>$due_date,"CustomDueDate"=>1])){
 				return generateResponse('Successfully Updated');
 			}
 		}

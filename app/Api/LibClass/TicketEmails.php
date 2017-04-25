@@ -423,7 +423,7 @@ class TicketEmails{
 				return $this->Error;
 			}			
 			
-			$this->EmailTemplate  		=		EmailTemplate::where(["SystemType"=>$slug])->first();									
+			$this->EmailTemplate  		=		EmailTemplate::where(["SystemType"=>$slug,"CompanyID"=>User::get_companyID()])->first();									
 		 	$replace_array				= 		$this->ReplaceArray($this->TicketData);
 		    $finalBody 					= 		$this->template_var_replace($this->EmailTemplate->TemplateBody,$replace_array);
 			$finalSubject				= 		$this->template_var_replace($this->EmailTemplate->Subject,$replace_array);				
@@ -550,7 +550,7 @@ class TicketEmails{
 			$this->Group = $group;
 		}
 		
-		$this->EmailTemplate  		=		EmailTemplate::where(["SystemType"=>$this->slug])->first();									
+		$this->EmailTemplate  		=		EmailTemplate::where(["SystemType"=>$this->slug,"CompanyID"=>User::get_companyID()])->first();									
 		if(!$this->EmailTemplate){
 			$this->SetError("No email template found.");				
 		}
