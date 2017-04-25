@@ -1229,7 +1229,7 @@ private $validlicense;
 		$due_date  = date( "Y-m-d H:i:s", strtotime($data["DueDate"] . ' ' . $data["DueTime"]));
 
 		if($TicketID > 0){
-			if(TicketsTable::find($TicketID)->update(["DueDate"=>$due_date])){
+			if(TicketsTable::find($TicketID)->update(["DueDate"=>$due_date,"CustomDueDate"=>1])){
 				return generateResponse('Successfully Updated');
 			}
 		}
