@@ -1131,9 +1131,9 @@ private $validlicense;
             (isset($data['Priority']) && $data['Priority'] == 0 && isset($data['PriorityCheck'])) &&
             (isset($data['Group']) && $data['Group'] == 0 && isset($data['GroupCheck'])) &&
             (isset($data['Agent']) && $data['Agent'] == 0 && isset($data['AgentCheck']))){
-            return generateResponse('Please select atleast one option.',true,true);
+            return generateResponse('Please select at least one option.',true,true);
         }elseif(!isset($data['selectedIDs']) || empty($data['selectedIDs'])){
-            return generateResponse('Please select atleast one ticket.',true,true);
+            return generateResponse('Please select at least one ticket.',true,true);
         }
         $update = [];
         if(isset($data['Type']) && $data['Type'] != 0 && isset($data['TypeCheck'])){
@@ -1181,7 +1181,7 @@ private $validlicense;
     function BulkDelete(){
         $data = Input::all();
         if(isset($data['SelectedIDs']) && empty($data['SelectedIDs'])){
-            return generateResponse('Please select atleast one ticket.',true,true);
+            return generateResponse('Please select at least one ticket.',true,true);
         }
         try {
             DB::beginTransaction();
