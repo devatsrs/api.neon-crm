@@ -25,13 +25,11 @@ class DefaultSettingLoad
 
 	 
     public function handle($request, Closure $next){
-        Log::info(date('Y-m-d H:i:s'));
         $Timezone = Company::getCompanyTimeZone(User::get_companyID());
         if (isset($Timezone) && $Timezone != '') {
             date_default_timezone_set($Timezone);
             Config::set('app.timezone',$Timezone);
         }
-        Log::info(date('Y-m-d H:i:s'));
 		 $response = $next($request);
         return $response;
 
