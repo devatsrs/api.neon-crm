@@ -555,8 +555,8 @@ class TaskController extends BaseController {
      */
     public function add_edit_calendar_event( $options = array() ){
 
-        Log::info("Calendar Event Options");
-        Log::info($options);
+       // Log::info("Calendar Event Options");
+       // Log::info($options);
 
         $calendar_request = new CalendarAPI();
 
@@ -570,8 +570,8 @@ class TaskController extends BaseController {
 
         if(isset($response["event_id"]) && isset($response["change_key"]) && !empty($response["event_id"]) && !empty($response["change_key"]) ) {
 
-            Log::info("Calendar Response");
-            Log::info(print_r($response,true));
+            //Log::info("Calendar Response");
+           // Log::info(print_r($response,true));
         }
 
         return $response;
@@ -583,8 +583,8 @@ class TaskController extends BaseController {
      */
     public function delete_calendar_event( $options = array() ){
 
-        Log::info("Calendar Event Options");
-        Log::info($options);
+       // Log::info("Calendar Event Options");
+      //  Log::info($options);
 
         $calendar_request = new CalendarAPI();
 
@@ -598,8 +598,8 @@ class TaskController extends BaseController {
 
         if(isset($response["event_id"]) && isset($response["change_key"]) && !empty($response["event_id"]) && !empty($response["change_key"]) ) {
 
-            Log::info("Calendar Response");
-            Log::info(print_r($response,true));
+          //  Log::info("Calendar Response");
+          //  Log::info(print_r($response,true));
         }
 
         return $response;

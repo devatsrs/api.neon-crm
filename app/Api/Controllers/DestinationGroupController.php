@@ -56,7 +56,6 @@ class DestinationGroupController extends BaseController
                 $query .= ',0)';
                 $result = DataTableSql::of($query)->make();
             }
-            Log::info($query);
             return generateResponse('',false,false,$result);
         } catch (\Exception $e) {
             Log::info($e);
@@ -104,7 +103,6 @@ class DestinationGroupController extends BaseController
             $query = "call prc_getDestinationCode(" . intval($post_data['DestinationGroupSetID']) . "," . intval($DestinationGroupID) . ",'".$CountryID."','".$Code."','".$Selected."','".$Description."','".(ceil($post_data['iDisplayStart'] / $post_data['iDisplayLength']))."','".$post_data['iDisplayLength']."')";
             $result = DataTableSql::of($query)->make();
 
-            Log::info($query);
             return generateResponse('',false,false,$result);
         } catch (\Exception $e) {
             Log::info($e);
@@ -234,7 +232,6 @@ class DestinationGroupController extends BaseController
                 }
                 $DestinationGroup->update($updatedata);
                 $insert_query = "call prc_insertUpdateDestinationCode(?,?,?,?,?,?)";
-                Log::info($insert_query);
                 DB::statement($insert_query,array(intval($DestinationGroup->DestinationGroupID),$RateID,$CountryID,$Code,$Description,$Action));
                 return generateResponse('Destination Group updated successfully');
             } catch (\Exception $e) {
