@@ -15,16 +15,7 @@ class BaseController extends Controller
     protected $request='';
 
     public function __Construct(Request $request){
-        $this->request = $request;
-
-
-        if(isset(Auth::user()->CompanyID)){
-
-            $Timezone = Company::getCompanyTimeZone(0);
-            if (isset($Timezone) && $Timezone != '') {
-                date_default_timezone_set($Timezone);
-                Config::set('app.timezone',$Timezone);
-            }
-        }
+        $this->middleware('jwt.auth');
+        $this->middleware('DefaultSettingLoad');
     }
 }
