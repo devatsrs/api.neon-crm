@@ -187,7 +187,7 @@ class TicketsSlaController extends BaseController {
 	function update($id)
 	{	
 		$data 			= 	Input::all();
-		$companyID 		=   User::get_companyID();    Log::info(print_r($data,true));
+		$companyID 		=   User::get_companyID();    
 		$TicketSla  	= 	TicketSla::find($id);
 		
 		$rules = array(
