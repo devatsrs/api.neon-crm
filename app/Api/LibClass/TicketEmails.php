@@ -148,6 +148,7 @@ class TicketEmails{
 			"{{TicketCustomerUrl}}",
 			"{{TicketUrl}}",
 			'{{Comment}}',
+			'{{NoteUser}}'
 			
 		];
 	
