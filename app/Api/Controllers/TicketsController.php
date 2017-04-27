@@ -1198,8 +1198,9 @@ private $validlicense;
         try {
             DB::beginTransaction();
             TicketLog::whereIn('TicketID', explode(',',$data['SelectedIDs']))->delete();
+			TicketDashboardTimeline::whereIn('TicketID', explode(',',$data['SelectedIDs']))->delete();
             TicketsDetails::whereIn('TicketID', explode(',',$data['SelectedIDs']))->delete();
-            TicketsTable::whereIn('TicketID', explode(',',$data['SelectedIDs']))->delete();
+            TicketsTable::whereIn('TicketID', explode(',',$data['SelectedIDs']))->delete();			
             DB::commit();
             return generateResponse('Tickets deleted successfully.');
         }catch (Exception $e) {
