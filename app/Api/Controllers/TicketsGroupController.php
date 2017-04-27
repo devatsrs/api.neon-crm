@@ -12,6 +12,7 @@ use Api\Model\Company;
 use Api\Model\TicketsTable;
 use Api\Model\TicketGroups;
 use Api\Model\TicketGroupAgents;
+use Api\Model\TicketLog;
 use App\Http\Requests;
 use App\Imap;
 use Dingo\Api\Facade\API;
@@ -295,9 +296,9 @@ private $validlicense;
         if( intval($id) > 0)
 		{
                try{
-				   TicketGroups::find($id)->delete();
 				   TicketGroupAgents::where(['GroupID'=>$id])->delete();
 				   TicketLog::where(['GroupID'=>$id])->delete();
+			       TicketGroups::find($id)->delete();
 				   return generateResponse('Ticket Group Successfully Deleted');
                 }catch (Exception $ex){
 					return generateResponse('Problem Deleting. Exception:'.$ex->getMessage(), true, true);
