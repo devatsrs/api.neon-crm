@@ -806,6 +806,11 @@ private $validlicense;
 							}
 						}
 						
+						$ticketdataAll		=	 TicketsTable::find($id);
+						if($ticketdata->Agent==User::get_userID()){
+							$ticketdataAll->update(["AgentRepliedDate"=>date('Y-m-d H:i:s')]);
+						}
+						
 						 DB::commit();	
 						return generateResponse("Successfully Updated");
 					}else{
@@ -890,6 +895,8 @@ private $validlicense;
 					];
 						AccountEmailLog::create($logData);	
 						*/
+						
+						$ticketdata->update(["CustomerRepliedDate"=>date('Y-m-d H:i:s')]);
 						
 						 DB::commit();	
 						return generateResponse("Successfully Updated");
