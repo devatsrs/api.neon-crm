@@ -297,7 +297,8 @@ private $validlicense;
 		{
                try{
 				   TicketGroupAgents::where(['GroupID'=>$id])->delete();
-				   TicketLog::where(['GroupID'=>$id])->delete();
+				   TicketLog::where(['TicketFieldValueFromID'=>$id])->delete();
+				   TicketLog::where(['TicketFieldValueToID'=>$id])->delete();
 			       TicketGroups::find($id)->delete();
 				   return generateResponse('Ticket Group Successfully Deleted');
                 }catch (Exception $ex){
