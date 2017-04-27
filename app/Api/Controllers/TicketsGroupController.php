@@ -297,8 +297,12 @@ private $validlicense;
 		{
                try{
 				   TicketGroupAgents::where(['GroupID'=>$id])->delete();
-				   TicketLog::where(['TicketFieldValueFromID'=>$id])->delete();
-				   TicketLog::where(['TicketFieldValueToID'=>$id])->delete();
+				   //log deleted
+				  // TicketLog::where(['TicketFieldValueFromID'=>$id])->delete();
+				  // TicketLog::where(['TicketFieldValueToID'=>$id])->delete();				   
+				   //TicketDashboardTimeline::where(['TicketFieldValueFromID'=>$id])->delete();
+				   //TicketDashboardTimeline::where(['TicketFieldValueToID'=>$id])->delete();
+				   
 			       TicketGroups::find($id)->delete();
 				   return generateResponse('Ticket Group Successfully Deleted');
                 }catch (Exception $ex){
