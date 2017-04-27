@@ -49,7 +49,11 @@ class PHPMAILERIntegtration{
 		if(isset($data['In-Reply-To']))
 		{
 			$mail->addCustomHeader('In-Reply-To', $data['In-Reply-To']); 
-			$mail->AddReplyTo($data['In-Reply-To'],  $from['name']);
+			//$mail->AddReplyTo($data['In-Reply-To'],  $from['name']);
+		}
+		if(isset($data['AddReplyTo']))
+		{
+			$mail->AddReplyTo($data['AddReplyTo'],  $from['name']);
 		}
 		
 		$mail->SetFrom($from['address'], $from['name']);
@@ -80,7 +84,7 @@ class PHPMAILERIntegtration{
 			$data['Subject'] = 'Test Mail '.$data['Subject'];
 		}
 		
-		$mail->Body = $body;
+		$mail->Body = $mail->msgHTML($body);
 		$mail->Subject = $data['Subject'];
 		if(!is_array($data['EmailTo']) && strpos($data['EmailTo'],',') !== false){
 			$data['EmailTo']  = explode(',',$data['EmailTo']);
@@ -120,11 +124,11 @@ class PHPMAILERIntegtration{
 					$status['message'] = 'Email has been sent';
 					$status['body'] = $body;
 					$status['message_id']	=	$mail->getLastMessageID(); 
-		} Log::info(print_r($mail,true));
+		} 
 		return $status;
 	}
 	
-	static function add_email_address($mail,$data,$type='EmailTo') //type add,bcc,cc
+	static function add_email_address($mail,$data,$type) //type add,bcc,cc
 	{
 		if(isset($data[$type]))
 		{
@@ -137,13 +141,13 @@ class PHPMAILERIntegtration{
 			if(count($email_addresses)>0 && !empty($email_addresses)){
 				foreach($email_addresses as $email_address){
 					if(!empty($email_address)){					
-						if($type='EmailTo'){
+						if($type=='EmailTo'){ 
 							$mail->addAddress(trim($email_address));
 						}
-						if($type='cc'){
+						if($type=='cc'){ 
 							$mail->AddCC(trim($email_address));
 						}
-						if($type='bcc'){
+						if($type=='bcc'){
 							$mail->AddBCC(trim($email_address));
 						}
 					}

@@ -12,7 +12,9 @@ use Api\Model\Company;
 use Api\Model\TicketsTable;
 use Api\Model\TicketGroups;
 use Api\Model\TicketGroupAgents;
+use Api\Model\TicketLog;
 use App\Http\Requests;
+use App\Imap;
 use Dingo\Api\Facade\API;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Input;
@@ -45,15 +47,7 @@ private $validlicense;
         return View::make('ticketgroups.groups', compact('data','EscalationTimes_json'));   
 	  }		
 	  
-	  function add(){	  
-		$this->IsValidLicense();		
-		$Agents			= 	User::getUserIDListAll(0);
-		$AllUsers		= 	User::getUserIDListAll(0); 
-		$AllUsers[0] 	= 	'None';	
-		ksort($AllUsers);			
-		$data 			= 	array();		
-        return View::make('ticketgroups.group_create', compact('data','AllUsers','Agents'));  
-	  }	
+	  
 	  
 	   public function get($id){
         $post_data = Input::all();
@@ -133,6 +127,7 @@ private $validlicense;
 				"CompanyID"=>User::get_companyID(),
 				"GroupName"=>$data['GroupName'],
 				"GroupDescription"=>$data['GroupDescription'],
+				"GroupBusinessHours"=>isset($data["GroupBusinessHours"])?$data["GroupBusinessHours"]:0,
 				"GroupAssignTime"=>$data['GroupAssignTime'],
 				"GroupAssignEmail"=>$data['GroupAssignEmail'],
 				"GroupReplyAddress"=>$data['GroupReplyAddress'],				
@@ -167,6 +162,7 @@ private $validlicense;
 	    $this->IsValidLicense();
 		$data 			= 	Input::all();  
 		$TicketGroup	= 	TicketGroups::find($id);
+		$TicketGroupold	= 	TicketGroups::find($id);
         
 	    $rules = array(
             'GroupName' => 'required|min:2',
@@ -187,10 +183,13 @@ private $validlicense;
 				 DB::beginTransaction();
 				if(isset($TicketGroup->GroupID)){
 					
-					$grpagents 			= 	$data['GroupAgent'];
-					$GroupEmailAddress  = 	$data['GroupEmailAddress'];		
-					$activate			=	$data['activate'];								
-					$data 				= 	cleanarray($data,['GroupAgent','_wysihtml5_mode','GroupEmailAddress','activate']);									 			
+					$grpagents 					= 	$data['GroupAgent'];
+					$GroupEmailAddress  		= 	$data['GroupEmailAddress'];		
+					$activate					=	$data['activate'];								
+					$data["GroupBusinessHours"] =	isset($data["GroupBusinessHours"])?$data["GroupBusinessHours"]:0;
+					//$data 					= 	cleanarray($data,['GroupAgent','_wysihtml5_mode','GroupEmailAddress','activate']);	
+					$data 						= 	cleanarray($data,['GroupAgent','_wysihtml5_mode','activate']);	
+							 			
 					$TicketGroup->update($data);  	 //update groups
 					TicketGroupAgents::where(["GroupID" => $TicketGroup->GroupID])->delete(); //delete old group agents
 					
@@ -201,7 +200,7 @@ private $validlicense;
 						}
 					}
 					
-					if($TicketGroup->GroupEmailAddress!=$GroupEmailAddress){						 		 		
+					if($TicketGroupold->GroupEmailAddress!=$GroupEmailAddress){						 		 		
 						$this->SendEmailActivationEmailUpdate($GroupEmailAddress,$id,$activate);
 					}
 					DB::commit();	
@@ -240,8 +239,7 @@ private $validlicense;
 	  	
 	  }
 	  
-	  function SendEmailActivationEmailUpdate($email,$groupID,$url){
-			
+	  function SendEmailActivationEmailUpdate($email,$groupID,$url){			
 		  if(!empty($email))
 	 	  {   
 			$remember_token				 = 		str_random(32); //add new
@@ -298,8 +296,10 @@ private $validlicense;
         if( intval($id) > 0)
 		{
                try{
-				   TicketGroups::find($id)->delete();
 				   TicketGroupAgents::where(['GroupID'=>$id])->delete();
+				   TicketLog::where(['TicketFieldValueFromID'=>$id])->delete();
+				   TicketLog::where(['TicketFieldValueToID'=>$id])->delete();
+			       TicketGroups::find($id)->delete();
 				   return generateResponse('Ticket Group Successfully Deleted');
                 }catch (Exception $ex){
 					return generateResponse('Problem Deleting. Exception:'.$ex->getMessage(), true, true);
@@ -314,7 +314,7 @@ private $validlicense;
 	
 	function send_activation_single($id)
 	{
-		$data = Input::all();
+		$data = Input::all(); 
 	    try
 		{
 			if($id)
@@ -324,7 +324,8 @@ private $validlicense;
 			  if(count($email_data)>0 && $email_data->GroupEmailStatus==0)
 			  {
 					$remember_token				 = 		str_random(32); //add new
-					$user_reset_link 			 = 		$data['activate']."?remember_token=".$remember_token;
+				    $site_url 					 = 		\Api\Model\CompanyConfiguration::get("WEB_URL").'/activate_support_email';
+					$user_reset_link 			 = 		$site_url."?remember_token=".$remember_token;
 					$data 						 = 		array();
 					$data['companyID'] 			 = 		User::get_companyID();
 					$CompanyName 				 =  	Company::getName($data['companyID']);
@@ -357,23 +358,7 @@ private $validlicense;
 	function get_group_agents($id){
 		try
 		{
-			$Groupagents    =   array("Select"=>0);
-			if($id)
-			{
-				$Groupagentsdb	=	TicketGroupAgents::where(["GroupID"=>$id])->get(); 
-			}
-			else
-			{
-				$Groupagentsdb	=	TicketGroupAgents::get(); 
-			}
-			
-			foreach($Groupagentsdb as $Groupagentsdata){
-				$userdata = 	User::find($Groupagentsdata->UserID);
-				if($userdata){	
-					$Groupagents[$userdata->FirstName." ".$userdata->LastName] =$userdata->UserID; 
-				}
-				
-			} Log::info(print_r($Groupagents,true));
+			$Groupagents = TicketGroupAgents::get_group_agents($id);
 			//echo "<pre>"; print_r($Groupagents);	echo "</pre>";
 			return generateResponse('',false,false,$Groupagents);
 		
@@ -403,6 +388,32 @@ private $validlicense;
 		  }catch (Exception $ex){
 			 return generateResponse($ex->getMessage(),true,true);
          }
+	}
+	
+	function validatesmtp(){
+		$data = Input::all();
+		  $rules = array(
+            'GroupEmailServer' => 'required',
+			'GroupEmailPassword' => 'required',
+			'GroupEmailAddress' => 'required',
+        );
+
+        $validator = Validator::make($data, $rules);		
+		
+		if ($validator->fails()) {
+			 return generateResponse($validator->errors(),true);
+        }
+		try
+		{
+			$result =  Imap::CheckConnection($data['GroupEmailServer'],$data['GroupEmailAddress'],$data['GroupEmailPassword']);
+			if($result['status']){
+			 return generateResponse('Validated.');
+			}else{
+			 return generateResponse($result['error'],true,true);			 
+			}
+		}catch (Exception $ex){
+			 return generateResponse($ex->getMessage(),true,true);
+         }	
 	}	
 	
 }

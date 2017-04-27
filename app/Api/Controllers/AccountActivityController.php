@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Faker\Provider\Uuid;
 use App\AmazonS3;
+use App\TicketEmails;
 
 class AccountActivityController extends BaseController {
 
@@ -94,13 +95,13 @@ class AccountActivityController extends BaseController {
 			 Contact::CheckEmailContact($data['bcc'],isset($data['AccountID'])?$data['AccountID']:0);		
 			 
 			 if(isset($data['createticket']) && TicketsTable::CheckTicketLicense()){ //check and create ticket
-			 	$email_from_data   	= 	TicketGroups::where(["GroupEmailAddress"=>$data['email-from']])->select('GroupEmailAddress','GroupName','GroupID','GroupReplyAddress')->get(); 
+			 	$email_from_data   	= 	TicketGroups::where(["GroupEmailAddress"=>$data['email-from']])->select('GroupEmailAddress','GroupName','GroupID','GroupReplyAddress')->get();  
 				$TicketData = array(
 					"CompanyID"=>User::get_companyID(),
 					"Requester"=>$data['EmailTo'],
 					"Subject"=>isset($data['Subject'])?$data['Subject']:'',
 					"Type"=>0,
-					"Group"=>isset($email_from_data[0]->GroupID)?$email_from_data[0]->GroupID:0,
+					"Group"=>isset($email_from_data[0])?$email_from_data[0]->GroupID:0,
 					"Status"=>TicketsTable::getDefaultStatus(),
 					"Priority"=>TicketPriority::getDefaultPriorityStatus(),					
 					"Description"=>isset($data['Message'])?$data['Message']:'',	 
@@ -109,14 +110,21 @@ class AccountActivityController extends BaseController {
 					"created_at"=>date("Y-m-d H:i:s"),
 					"created_by"=>User::get_user_full_name()
 				);
+			
+				$MatchArray  		  =     TicketsTable::SetEmailType($data['EmailTo']);
+				$TicketData 		  = 	array_merge($TicketData,$MatchArray);
+				
 				$TicketID = TicketsTable::insertGetId($TicketData);	
-				 $data['In-Reply-To']	  = 	$email_from_data[0]->GroupEmailAddress;				
-				 $data['EmailFrom']	   	  = 	$email_from_data[0]->GroupReplyAddress;
-				 $data['CompanyName']  	  = 	$email_from_data[0]->GroupName;		
+				if(count($email_from_data)>0){
+				 	$data['In-Reply-To']	  = 	$email_from_data[0]->GroupEmailAddress;				
+				 	$data['EmailFrom']	   	  = 	$email_from_data[0]->GroupReplyAddress;
+				 	$data['CompanyName']  	  = 	$email_from_data[0]->GroupName;		
+				}else{
+				 	$data['EmailFrom']	   	  = 	$data['email-from'];
+				}
 			 }else{
 				 $data['EmailFrom']	   = 	$data['email-from'];
 			 }
-			 
 			 
 			if(isset($data['email_send'])&& $data['email_send']==1) {
 					  
@@ -139,6 +147,12 @@ class AccountActivityController extends BaseController {
 			} 
 			 if(isset($data['createticket']) && TicketsTable::CheckTicketLicense()){ //check and create ticket
 			 	TicketsTable::find($TicketID)->update(array("AccountEmailLogID"=>$result->AccountEmailLogID));
+				 $TicketEmails1		=  new TicketEmails(array("TicketID"=>$TicketID,"TriggerType"=>array("RequesterNewTicketCreated")));				 
+				 $TicketEmails 		=  new TicketEmails(array("TicketID"=>$TicketID,"TriggerType"=>"CCNewTicketCreated"));
+				if(isset($email_from_data[0])){
+				  $TicketEmails 	=  new TicketEmails(array("TicketID"=>$TicketID,"TriggerType"=>array("AgentAssignedGroup")));					
+				}
+				 
 			 }
 			  DB::commit(); 
             return generateResponse('',false,false,$result);

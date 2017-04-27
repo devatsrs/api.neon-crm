@@ -243,9 +243,11 @@ function email_log($data){
 }
 
 function email_log_data_Ticket($data,$view = '',$status){ 
-Log::info("ticket data");
-Log::info(print_r($data,true));
-Log::info(print_r($status,true));
+	
+	$EmailParent =	 0;
+	if(isset($data['TicketID'])){
+			//$EmailParent =	\Api\Model\TicketsTable::where(["TicketID"=>$data['TicketID']])->pluck('AccountEmailLogID');
+	}
     $status_return = array('status' => 0, 'message' => 'Something wrong with Saving log.');
     if(!isset($data['EmailTo']) && empty($data['EmailTo'])){
         $status_return['message'] = 'Email To not set in Account mail log';
@@ -281,7 +283,7 @@ Log::info(print_r($status,true));
     }
     else
     {
-        $data['AttachmentPaths'] = serialize([]);
+        $data['AttachmentPaths'] = 'a:0:{}';
     }
 
     if($view!='')
@@ -291,11 +293,11 @@ Log::info(print_r($status,true));
     else
     {
         $body = $data['Message'];
-    } Log::info(print_r($status,true));
+    } 
 	if(!isset($status['message_id']))
 	{
 		$status['message_id'] = '';
-	} Log::info($status['message_id']);
+	} 
 	if(!isset($data['EmailCall']))
 	{
 		$data['EmailCall'] = \Api\Model\Messages::Sent;
@@ -306,6 +308,9 @@ Log::info(print_r($status,true));
 		$data['EmailFrom'] = $data['EmailFrom'];
 	}else{
 		$data['EmailFrom'] = \Api\Model\User::get_user_email();
+	}
+	if(!isset($data['TicketID'])){ 
+		$data['TicketID']  = 0;
 	}
 	
     $logData = ['EmailFrom'=>$data['EmailFrom'],
@@ -320,10 +325,12 @@ Log::info(print_r($status,true));
         'Bcc'=>$data['bcc'],
         "AttachmentPaths"=>$data['AttachmentPaths'],
 		"MessageID"=>$status['message_id'],
-		"EmailParent"=>isset($data['EmailParent'])?$data['EmailParent']:0,
+		"EmailParent"=>isset($data['EmailParent'])?$data['EmailParent']:$EmailParent,
 		"EmailCall"=>$data['EmailCall'],
+		"TicketID"=>$data['TicketID'],
+		"EmailType"=>\Api\Model\AccountEmailLog::TicketEmail 
     ];
-	Log::info(print_r($logData,true));
+	
     $data =  \Api\Model\AccountEmailLog::insertGetId($logData);
     return $data;
 }
@@ -441,7 +448,7 @@ function site_configration_cache($request){
             }
         }
 
-        $cache['DefaultLogo']       = '/assets/images/logo@2x.png';
+        $cache['DefaultLogo']       = \Api\Model\CompanyConfiguration::get("WEB_URL").'/assets/images/logo@2x.png';
 
 
         \Illuminate\Support\Facades\Cache::add($siteConfigretion, $cache, $minutes);
@@ -484,7 +491,7 @@ function getCompanyLogo($request){
 
         // if no logo and amazon then use from site url even if amazon is set or not.
         $DefaultLogo = $cache['DefaultLogo'];
-        $site_url = \Api\Model\CompanyConfiguration::get("WEBURL");
+        $site_url = \Api\Model\CompanyConfiguration::get("WEB_URL");
 
         $logo_url = combile_url_path($site_url,$DefaultLogo);
 
@@ -583,6 +590,8 @@ function SendTicketEmail($Type='store',$id,$data = array()){
 				$EmailData['CompanyName']  	  =   $data['email_from_name'];
 			}
 			
+			
+			$EmailData['TicketID']	 	  =   $id;
 			$EmailData['Message']	 	  =   $data['Description'];
 			$EmailData['Description']	  =   $data['Description'];			
 			$EmailData['Status']	 	  =   \Api\Model\TicketsTable::getTicketStatusByID($data['Status']);
@@ -591,7 +600,10 @@ function SendTicketEmail($Type='store',$id,$data = array()){
 				
 			if($status['status']==1){
 			return email_log_data_Ticket($EmailData,'emails.tickets.TicketCreated',$status);
-			}						
+			}		
+			else{
+				Log:info(print_r($status,true));
+			}				
 		}		
 		return false;		
 	}
@@ -631,19 +643,20 @@ function SendTicketEmail($Type='store',$id,$data = array()){
 		$EmailData['Subject']   	  =   $data['Subject'];
 		$EmailData['EmailFrom']  	  =   $data['email_from'];
 		$EmailData['CompanyName']  	  =   $data['email_from_name'];
-		$EmailData['In-Reply-To']  	  =   $data['In-Reply-To'];
+		$EmailData['AddReplyTo']  	  =   $data['AddReplyTo'];
 		$EmailData['cc']  		 	  =   isset($data['cc'])?$data['cc']:'';
 		$EmailData['bcc']  		 	  =   isset($data['bcc'])?$data['bcc']:'';
 		$EmailData['AttachmentPaths'] =   !empty($data['files'])?unserialize($data['files']):'';
 		$EmailData['Description']	  =   $data['Description'];			
 		$EmailData['Message']	 	  =   $data['Description'];
+		$EmailData['TicketID']	 	  =   $data['TicketID'];
 		$status       				  =   sendMail('emails.template', $EmailData);	
 		 		
 		if($status['status']==0){
 				 return generateResponse($status['message'],true,true);
 		}		
 		if($status['status']==1){
-			return email_log_data_Ticket($EmailData,'emails.template',$status);
+		//	return email_log_data_Ticket($EmailData,'emails.template',$status);
 		}
 		return false;
 	}
@@ -694,7 +707,7 @@ function SendTaskMailUpdate($NewData,$OldData,$type='Task'){
             }
             $NewData['CreatedBy']      =   $OldData['CreatedBy'];
             $NewData['TitleHeading']  =   $LogginedUserName." <strong>Tagged</strong> you in a ".$type;
-            $NewData['UserProfileImage']  =  UserProfile::get_user_picture_url($LogginedUser);
+            $NewData['UserProfileImage']  =  \Api\Model\UserProfile::get_user_picture_url($LogginedUser);
 
             $status        =   sendMail('emails.task.TaskEmailSend', $NewData);
         }
@@ -712,7 +725,7 @@ function SendTaskMailUpdate($NewData,$OldData,$type='Task'){
                 $NewData['Subject']      =   "(Neon) ".$NewData['Subject'];
                 $NewData['CreatedBy']      =   $OldData['CreatedBy'];
                 $NewData['TitleHeading']  =   $LogginedUserName." <strong>Assigned</strong> you a ".$type;
-                $NewData['UserProfileImage']  =  UserProfile::get_user_picture_url($LogginedUser);
+                $NewData['UserProfileImage']  =  \Api\Model\UserProfile::get_user_picture_url($LogginedUser);
                 $status        =   sendMail('emails.task.TaskEmailSend', $NewData);
             }
         }

@@ -52,7 +52,7 @@ class EmailTemplate extends \Eloquent
     }
 
     public static function getDefaultSystemTemplate($SystemType){
-       return  EmailTemplate::where(array('SystemType'=>$SystemType))->pluck('TemplateID');
+       return  EmailTemplate::where(array('SystemType'=>$SystemType,"CompanyID"=>User::get_companyID()))->pluck('TemplateID');
     }
 	
 	public static function GetUserDefinedTemplates($select = 1){
