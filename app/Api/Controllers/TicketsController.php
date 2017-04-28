@@ -31,6 +31,7 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 use App\TicketEmails;
 use Api\Model\Company;
 use Api\Model\TicketGroupAgents;
+use Api\Model\TicketDashboardTimeline;
 use \App\Imap;
 
 class TicketsController extends BaseController
