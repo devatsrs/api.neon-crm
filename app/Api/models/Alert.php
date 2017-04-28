@@ -28,7 +28,7 @@ class Alert extends Model {
     public static $messages = array(
         'RoundChargesAmount.required' =>'The currency field is required',
         'InvoiceTemplateID.required' =>'Invoice Template  field is required',
-        'CDRType.required' =>'Invoice Format field is required',
+
     );
     public static function checkForeignKeyById($id) {
 
