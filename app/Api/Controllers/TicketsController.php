@@ -554,6 +554,7 @@ private $validlicense;
                 DB::beginTransaction();
                 TicketsTable::where(["TicketID"=>$id])->delete();
               	TicketsDetails::where(["TicketID"=>$id])->delete();
+				TicketDashboardTimeline::where(['TicketID'=>$id])->delete();
 				//TicketsConversation::where(array('TicketID'=>$id))->delete();
                 DB::commit();
 				return generateResponse("Ticket Successfully Deleted");
