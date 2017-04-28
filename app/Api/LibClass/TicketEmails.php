@@ -148,6 +148,7 @@ class TicketEmails{
 			"{{TicketCustomerUrl}}",
 			"{{TicketUrl}}",
 			'{{Comment}}',
+			'{{NoteUser}}'
 			
 		];
 	
@@ -222,9 +223,15 @@ class TicketEmails{
 				$this->SetError("No Note added");
 				return;
 			}
-			if($this->Agent->UserID==User::get_userID()){
-				$this->SetError("Agent added the note");
-				return;
+			if(isset($this->Agent))
+			{
+				if($this->Agent->UserID==User::get_userID()){
+					$this->SetError("Agent added the note");
+					return;
+				}
+			}
+			else{
+				$this->SetError("No agent in note");
 			}
 			
 		 	$replace_array				= 		$this->ReplaceArray($this->TicketData);

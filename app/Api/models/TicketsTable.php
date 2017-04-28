@@ -32,7 +32,7 @@ class TicketsTable extends \Eloquent
         static::creating(function($obj)
         {
             Log::info('i am here');
-            Log::info($obj);
+            //Log::info($obj);
         });
 
 

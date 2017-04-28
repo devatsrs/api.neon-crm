@@ -52,17 +52,16 @@ private $validlicense;
 		   $data 					= 	Input::all(); 
 		   $CompanyID 				= 	User::get_companyID(); 
 		   $search		 			=	isset($data['Search'])?$data['Search']:'';	   		   
-		   $status					=	isset($data['status'])?is_array($data['status'])?implode(",",$data['status']):'':'';		   
-		   $priority				=	isset($data['priority'])?is_array($data['priority'])?implode(",",$data['priority']):'':'';
-		   $Group					=	isset($data['group'])?is_array($data['group'])?implode(",",$data['group']):'':'';		  
+		   $status					=	isset($data['status'])?is_array($data['status'])?implode(",",$data['status']):$data['status']:'';		   
+		   $priority				=	isset($data['priority'])?is_array($data['priority'])?implode(",",$data['priority']):$data['priority']:'';
+		   $Group					=	isset($data['group'])?is_array($data['group'])?implode(",",$data['group']):$data['group']:'';		  
 		   $agent					=	isset($data['agent'])?$data['agent']:'';	
-		   $DueBy					=	isset($data['DueBy'])?is_array($data['DueBy'])?implode(",",$data['DueBy']):'':'';		
+		   $DueBy					=	isset($data['DueBy'])?is_array($data['DueBy'])?implode(",",$data['DueBy']):$data['DueBy']:'';		
 		   $columns 	 			= 	array('TicketID','Subject','Requester','Type','Status','Priority','Group','Agent','created_at');		
 		   $sort_column 			= 	$data['iSortCol_0'];
 		   $AccessPermission		=	isset($data['AccessPermission'])?$data['AccessPermission']:0;
 		   $data['iDisplayStart']   +=	1;
 		   $data['Export']  		=	isset($data['Export'])?$data['Export']:0;
-		   
 		   
 		   if($AccessPermission == TicketsTable::TICKETGLOBALACCESS){
 		   	// no restrictions
@@ -80,23 +79,29 @@ private $validlicense;
                   $status = implode(',',array_unique(array_merge($tempStatus,array_keys($statusArray))));
               }
           }
-		   if(isset($data['LoginType']) && $data['LoginType']=='customer'){		
+		   if(isset($data['LoginType']) && $data['LoginType']=='customer')
+		   {		
 				   $agent		=	'';
 				   $emails 		=	Account::GetAccountAllEmails(User::get_userID());				 
 				   $query 		= 	"call prc_GetSystemTicketCustomer ('".$CompanyID."','".$search."','".$status."','".$priority."','".$Group."','".$agent."','".$emails."',".( ceil($data['iDisplayStart']/$data['iDisplayLength']) )." ,".$data['iDisplayLength'].",'".$sort_column."','".$data['sSortDir_0']."',".$data['Export'].")";  
 				 
-		   }else{			 	  		   			   
-			  	  $query 		= 	"call prc_GetSystemTicket ('".$CompanyID."','".$search."','".$status."','".$priority."','".$Group."','".$agent."','".$DueBy."','".date('Y-m-d H:i')."',".( ceil($data['iDisplayStart']/$data['iDisplayLength']) )." ,".$data['iDisplayLength'].",'".$sort_column."','".$data['sSortDir_0']."',".$data['Export'].")";  Log::info($query);
-			} 		
+		   }else
+		   {			 	  		   			   
+			  	  $query 		= 	"call prc_GetSystemTicket ('".$CompanyID."','".$search."','".$status."','".$priority."','".$Group."','".$agent."','".$DueBy."','".date('Y-m-d H:i')."',".( ceil($data['iDisplayStart']/$data['iDisplayLength']) )." ,".$data['iDisplayLength'].",'".$sort_column."','".$data['sSortDir_0']."',".$data['Export'].")"; 
+			} 
+					
 			$resultdata   	=  DataTableSql::of($query)->getProcResult(array('ResultCurrentPage','TotalResults','GroupsData'));	
 			$resultpage  	=  DataTableSql::of($query)->make(false);				
-			$groupData = isset($resultdata->data['GroupsData'])?$resultdata->data['GroupsData']:array(); 			
-			if($data['Export']){
+			$groupData = isset($resultdata->data['GroupsData'])?$resultdata->data['GroupsData']:array(); 
+						
+			if($data['Export'])
+			{
 				$result = ["resultpage"=>$resultpage,"iTotalRecords"=>$resultdata->iTotalRecords,"iTotalDisplayRecords"=>$resultdata->iTotalDisplayRecords,"ResultCurrentPage"=>$resultdata->data['ResultCurrentPage'],"GroupsData"=>$groupData];
-			}else{
+			}
+			else
+			{
 				$result = ["resultpage"=>$resultpage,"iTotalRecords"=>$resultdata->iTotalRecords,"iTotalDisplayRecords"=>$resultdata->iTotalDisplayRecords,"totalcount"=>$resultdata->data['TotalResults'][0]->totalcount,"ResultCurrentPage"=>$resultdata->data['ResultCurrentPage'],"GroupsData"=>$groupData];
 			}
-			
 			 return generateResponse('success', false, false,$result);
 	  }
 	  
@@ -801,6 +806,11 @@ private $validlicense;
 							}
 						}
 						
+						$ticketdataAll		=	 TicketsTable::find($id);
+						if($ticketdata->Agent==User::get_userID()){
+							$ticketdataAll->update(["AgentRepliedDate"=>date('Y-m-d H:i:s')]);
+						}
+						
 						 DB::commit();	
 						return generateResponse("Successfully Updated");
 					}else{
@@ -885,6 +895,8 @@ private $validlicense;
 					];
 						AccountEmailLog::create($logData);	
 						*/
+						
+						$ticketdata->update(["CustomerRepliedDate"=>date('Y-m-d H:i:s')]);
 						
 						 DB::commit();	
 						return generateResponse("Successfully Updated");
@@ -1186,8 +1198,9 @@ private $validlicense;
         try {
             DB::beginTransaction();
             TicketLog::whereIn('TicketID', explode(',',$data['SelectedIDs']))->delete();
+			TicketDashboardTimeline::whereIn('TicketID', explode(',',$data['SelectedIDs']))->delete();
             TicketsDetails::whereIn('TicketID', explode(',',$data['SelectedIDs']))->delete();
-            TicketsTable::whereIn('TicketID', explode(',',$data['SelectedIDs']))->delete();
+            TicketsTable::whereIn('TicketID', explode(',',$data['SelectedIDs']))->delete();			
             DB::commit();
             return generateResponse('Tickets deleted successfully.');
         }catch (Exception $e) {

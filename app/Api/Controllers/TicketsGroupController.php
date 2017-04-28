@@ -12,6 +12,7 @@ use Api\Model\Company;
 use Api\Model\TicketsTable;
 use Api\Model\TicketGroups;
 use Api\Model\TicketGroupAgents;
+use Api\Model\TicketLog;
 use App\Http\Requests;
 use App\Imap;
 use Dingo\Api\Facade\API;
@@ -86,7 +87,7 @@ private $validlicense;
 		   $columns 	 			= 	array('GroupID','GroupName','GroupEmailAddress','TotalAgents','GroupAssignTime','AssignUser');
 		   $sort_column 			= 	$columns[$data['iSortCol_0']];
 			
-			$query 	= 	"call prc_GetTicketGroups (".$CompanyID.",'".$search."',".( ceil($data['iDisplayStart']/$data['iDisplayLength']) )." ,".$data['iDisplayLength'].",'".$sort_column."','".$data['sSortDir_0']."'";  Log::info($query);
+			$query 	= 	"call prc_GetTicketGroups (".$CompanyID.",'".$search."',".( ceil($data['iDisplayStart']/$data['iDisplayLength']) )." ,".$data['iDisplayLength'].",'".$sort_column."','".$data['sSortDir_0']."'";  
 	
 			if(isset($data['Export']) && $data['Export'] == 1) {
 				$result = DB::select($query . ',1)');
@@ -295,8 +296,14 @@ private $validlicense;
         if( intval($id) > 0)
 		{
                try{
-				   TicketGroups::find($id)->delete();
 				   TicketGroupAgents::where(['GroupID'=>$id])->delete();
+				   //log deleted
+				  // TicketLog::where(['TicketFieldValueFromID'=>$id])->delete();
+				  // TicketLog::where(['TicketFieldValueToID'=>$id])->delete();				   
+				   //TicketDashboardTimeline::where(['TicketFieldValueFromID'=>$id])->delete();
+				   //TicketDashboardTimeline::where(['TicketFieldValueToID'=>$id])->delete();
+				   
+			       TicketGroups::find($id)->delete();
 				   return generateResponse('Ticket Group Successfully Deleted');
                 }catch (Exception $ex){
 					return generateResponse('Problem Deleting. Exception:'.$ex->getMessage(), true, true);
@@ -395,7 +402,7 @@ private $validlicense;
 			'GroupEmailAddress' => 'required',
         );
 
-        $validator = Validator::make($data, $rules);		Log::info(print_r($data,true));
+        $validator = Validator::make($data, $rules);		
 		
 		if ($validator->fails()) {
 			 return generateResponse($validator->errors(),true);

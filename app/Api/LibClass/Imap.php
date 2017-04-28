@@ -512,8 +512,6 @@ protected $server;
 				$FromName	=	$this->GetNametxt($overview[0]->from);
 				$cc			=	isset($headerdata->ccaddress)?$this->GetEmailtxt($headerdata->ccaddress):'';
 				$bcc		=	isset($headerdata->bccaddress)?$this->GetEmailtxt($headerdata->bccaddress):'';
-				Log::info("from name from function:".$FromName);
-				Log::info("from name:".$overview[0]->from);
 				$update_id  =	''; $insert_id  =	'';
 						
 				/*if($parent){ 	
@@ -579,8 +577,6 @@ protected $server;
 					}	
 				
 					$TicketData_parent = TicketsTable::where(["AccountEmailLogID"=>$parent])->first();
-					Log::info('TicketData_parent:'.$parent);
-					Log::info(print_r($TicketData_parent,true));
 					if($from==$TicketData_parent->Requester){		
 						$TicketEmails 	=  new TicketEmails(array("TicketID"=>$TicketData_parent->TicketID,"TriggerType"=>"RequesterRepliestoTicket","CompanyID"=>$CompanyID,"Comment"=>$message));
 						Log::info("error:".$TicketEmails->GetError());
