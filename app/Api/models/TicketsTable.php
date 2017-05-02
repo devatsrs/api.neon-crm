@@ -4,6 +4,7 @@ use App\TicketEmails;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Input;
+use Api\Model\CompanyConfiguration;
 use \App\Imap;
 
 class TicketsTable extends \Eloquent 
@@ -31,7 +32,6 @@ class TicketsTable extends \Eloquent
 
         static::creating(function($obj)
         {
-            Log::info('i am here');
             //Log::info($obj);
         });
 
@@ -239,7 +239,7 @@ class TicketsTable extends \Eloquent
 	
 	 
 	static function CheckTicketLicense(){
-		return true;
+		return CompanyConfiguration::get("TICKETING_SYSTEM");
 		//return false;
 	}
 	

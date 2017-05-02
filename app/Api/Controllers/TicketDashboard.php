@@ -56,7 +56,6 @@ class TicketDashboard extends BaseController {
         }
 
         $query 		= 	"call prc_GetTicketDashboardTimeline ('".$CompanyID."',".$Group.",".$agent.",'".date('Y-m-d H:i:s')."',".$data['iDisplayStart'].",".$data['iDisplayLength'].")";
-        Log::info("query:".$query);
         $result = DB::select($query);
         return generateResponse('',false,false,$result);
     }
