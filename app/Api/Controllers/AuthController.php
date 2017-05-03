@@ -31,11 +31,11 @@ class AuthController extends BaseController
         $UserID = $request->only('LoggedUserID');
 		$LoginType	=	$request->only('LoginType'); 
 			
-        /*Log::info("Authenticate");
+        Log::info("Authenticate");
         Log::info(print_r($license,true));
         Log::info("UserID ". print_r($UserID,true));
         Log::info("credentials ". print_r($credentials,true));
-        Log::info("license ". print_r($license,true));*/
+        Log::info("license ". print_r($license,true));
         try { 
 			 if(!empty($LoginType) && $LoginType['LoginType']=='customer') {
 				//$user = Account::where(['BillingEmail'=>$credentials['LoggedEmailAddress']])->first(); 
@@ -49,18 +49,26 @@ class AuthController extends BaseController
 			 else{
 				if(!empty($UserID['LoggedUserID'])){
 					$user = User::find($UserID['LoggedUserID']);
-				}else {
+                    Log::info(print_r($user,true));
+
+                }else {
 					$user = User::where(['EmailAddress'=>$credentials['LoggedEmailAddress']])->first();
 					if(!Hash::check($credentials['password'], $user->password)){
 						return response()->json(['error' => 'invalid_credentials'], 401);
 					}
 				}
 			 }
+            Log::info(print_r($user,true));
+            $user = Auth::loginUsingId($user->UserID);
+            //Auth::user()->ById($user->UserID);
             $token = JWTAuth::fromUser($user);
+            Log::info("Token is here " . $token);
         } catch (JWTException $e) {
             // something went wrong whilst attempting to encode the token
+            Log::info("could_not_create_token ");
             return response()->json(['error' => 'could_not_create_token'], 500);
         }
+        Log::info("here");
         CompanyConfiguration::getConfiguration($user->CompanyID);
         site_configration_cache($request);
 
