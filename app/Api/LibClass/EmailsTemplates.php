@@ -67,7 +67,7 @@ class EmailsTemplates{
 			$replace_array['user']					= 	 $LogginedUserName;	
 			$replace_array['CompanyName']			=	 Company::getName();
 			$message								=	 "";		
-			$EmailTemplate 							= 	 EmailTemplate::where(["SystemType"=>$slug])->first();
+			$EmailTemplate 							= 	 EmailTemplate::where(["SystemType"=>$slug,"CompanyID"=>User::get_companyID()])->first();
 			if($type=="subject"){
 				$EmailMessage						=	 $EmailTemplate->Subject;
 			}else{
@@ -94,7 +94,7 @@ class EmailsTemplates{
 	
 	
 	static function GetEmailTemplateFrom($slug){
-		return EmailTemplate::where(["SystemType"=>$slug])->pluck("EmailFrom");
+		return EmailTemplate::where(["SystemType"=>$slug,"CompanyID"=>User::get_companyID()])->pluck("EmailFrom");
 	}
 	
 		static function setCompanyFields($array){
@@ -112,7 +112,7 @@ class EmailsTemplates{
 	}
 	
 	static function CheckEmailTemplateStatus($slug){
-		return EmailTemplate::where(["SystemType"=>$slug])->pluck("Status");
+		return EmailTemplate::where(["SystemType"=>$slug,"CompanyID"=>User::get_companyID()])->pluck("Status");
 	}
 	static function setAccountFields($array,$AccountID){
 			$companyID						=	 User::get_companyID();

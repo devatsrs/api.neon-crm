@@ -9,5 +9,15 @@ class AccountEmailLog extends \Eloquent {
     protected $fillable = [];
     protected $table = "AccountEmailLog";
     protected $primaryKey = "AccountEmailLogID";
-
+	
+    const InvoicePaymentReminder=1;
+    const LowBalanceReminder=2;
+    const QosACDAlert =3;
+    const QosASRAlert =4;
+    const CallDurationAlert = 5;
+    const CallCostAlert = 6;
+    const CallOfficeAlert = 7;
+    const CallBlackListAlert = 8;
+    const VendorBalanceReport = 9;
+	const TicketEmail = 10;
 }

@@ -142,7 +142,10 @@ private $validlicense;
 							//'status_id'=>$TicketfieldsValuesData->ValuesID
 							if($choices->deleted==1)
 							{
-								TicketfieldsValues::find($choices->status_id)->delete();  continue;
+								TicketfieldsValues::find($choices->status_id)->delete();
+								TicketLog::where(['TicketFieldValueFromID'=>$choices->status_id])->delete();
+				  				TicketLog::where(['TicketFieldValueToID'=>$choices->status_id])->delete();
+								continue;
 							}
 							else
 							{
@@ -166,7 +169,10 @@ private $validlicense;
 						{
 							if($choices->_destroy==1)
 							{
-									TicketfieldsValues::find($choices->id)->delete(); continue;	
+									TicketfieldsValues::find($choices->id)->delete();
+									TicketLog::where(['TicketFieldValueFromID'=>$choices->id])->delete();
+				  					TicketLog::where(['TicketFieldValueToID'=>$choices->id])->delete();
+									continue;	
 							}
 							else
 							{								

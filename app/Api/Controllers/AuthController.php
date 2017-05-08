@@ -1,8 +1,7 @@
 <?php
 
 namespace Api\Controllers;
-
-
+use Illuminate\Support\Facades\DB; 
 use Api\Model\CompanyConfiguration;
 use Api\Model\User;
 use Api\Model\Account;
@@ -32,14 +31,15 @@ class AuthController extends BaseController
         $UserID = $request->only('LoggedUserID');
 		$LoginType	=	$request->only('LoginType'); 
 			
-        /*Log::info("Authenticate");
+        Log::info("Authenticate");
         Log::info(print_r($license,true));
         Log::info("UserID ". print_r($UserID,true));
         Log::info("credentials ". print_r($credentials,true));
-        Log::info("license ". print_r($license,true));*/
-        try {
+        Log::info("license ". print_r($license,true));
+        try { 
 			 if(!empty($LoginType) && $LoginType['LoginType']=='customer') {
-				$user = Account::where(['BillingEmail'=>$credentials['LoggedEmailAddress']])->first(); 
+				//$user = Account::where(['BillingEmail'=>$credentials['LoggedEmailAddress']])->first(); 
+				$user = Account::whereRaw(" Status=1 AND FIND_IN_SET('".$credentials['LoggedEmailAddress']."',BillingEmail) !=0")->first();
 				$user->CompanyID = $user->CompanyId;
 				Config::set('auth.providers.users.model', \Api\Model\Customer::class);			   
 				if(!Hash::check($credentials['password'], $user->password)){
@@ -49,18 +49,24 @@ class AuthController extends BaseController
 			 else{
 				if(!empty($UserID['LoggedUserID'])){
 					$user = User::find($UserID['LoggedUserID']);
-				}else {
-					$user = User::where(['EmailAddress'=>$credentials['LoggedEmailAddress']])->first();
+                    Log::info(print_r($user,true));
+
+                }else {
+					$user = User::where(['EmailAddress'=>$credentials['LoggedEmailAddress'],'Status'=>1])->first();
 					if(!Hash::check($credentials['password'], $user->password)){
 						return response()->json(['error' => 'invalid_credentials'], 401);
 					}
 				}
 			 }
+            Log::info(print_r($user,true));
             $token = JWTAuth::fromUser($user);
+            Log::info("Token is here " . $token);
         } catch (JWTException $e) {
             // something went wrong whilst attempting to encode the token
+            Log::info("could_not_create_token ");
             return response()->json(['error' => 'could_not_create_token'], 500);
         }
+        Log::info("here");
         CompanyConfiguration::getConfiguration($user->CompanyID);
         site_configration_cache($request);
 

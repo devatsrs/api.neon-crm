@@ -214,7 +214,6 @@ class AccountController extends BaseController
     public function GetNote()
     {
         $data = Input::all();
-		Log::info(print_r($data,true));
         $rules['NoteID'] = 'required';
         $validator = Validator::make($data, $rules);
         if ($validator->fails()) {
@@ -222,10 +221,10 @@ class AccountController extends BaseController
         }
         try {
 			if(isset($data['note_type']) && $data['note_type'] == 'ContactNote'){
-				$Note = ContactNote::find($data['NoteID']); Log::info("ContactNote");
+				$Note = ContactNote::find($data['NoteID']); 
 			}else{
-            	$Note = Note::find($data['NoteID']); Log::info("AccountNote");
-			} Log::info(print_r($Note,true));
+            	$Note = Note::find($data['NoteID']); 
+			} 
         } catch (\Exception $e) {
             Log::info($e);
             return $this->response->errorInternal($e->getMessage());
@@ -303,7 +302,7 @@ class AccountController extends BaseController
 			
 			
             $columns =  ['Timeline_type','ActivityTitle','ActivityDescription','ActivityDate','ActivityType','ActivityID','Emailfrom','EmailTo','EmailSubject','EmailMessage','AccountEmailLogID','NoteID','Note','CreatedBy','created_at','updated_at'];
-            $query = "call prc_getAccountTimeLine(" . $data['AccountID'] . "," . $companyID . ",".$queryTicketType.",'".$data['GUID']."','".date('Y-m-d H:i:00')."'," . $data['iDisplayStart'] . "," . $data['iDisplayLength'] . ")";   Log::info($query);
+            $query = "call prc_getAccountTimeLine(" . $data['AccountID'] . "," . $companyID . ",".$queryTicketType.",'".$data['GUID']."','".date('Y-m-d H:i:00')."'," . $data['iDisplayStart'] . "," . $data['iDisplayLength'] . ")";   
             $result_array = DB::select($query); 
             return generateResponse('',false,false,$result_array);
        }
@@ -395,7 +394,6 @@ class AccountController extends BaseController
 				{
 					//return $GetTickets;	
 					if(isset($GetTickets['StatusCode']) && $GetTickets['StatusCode']!='200' && $GetTickets['StatusCode']!='400'){
-						Log::info("freshdesk StatusCode ".print_r($GetTickets,true));
 						return $GetTickets;							
 					}
 				} 	    
@@ -456,12 +454,12 @@ class AccountController extends BaseController
 			} 	
 		}else{ //system ticket
 			$ticket = TicketsTable::find($data['id']);
-			Log::info("Ticketid:".$data['id']);
-			Log::info("AccountEmailLogID:".$ticket->AccountEmailLogID);
 			
 			
-			$GetTicketsCon = AccountEmailLog::where(['EmailParent'=>$ticket->AccountEmailLogID,'CompanyID'=>$companyID])->select([DB::raw("Message AS body_text"), "created_at"])->orderBy('created_at', 'asc')->get();
-			Log::info(print_r($GetTicketsCon,true));	
+			
+			///$GetTicketsCon = AccountEmailLog::where(['EmailParent'=>$ticket->AccountEmailLogID,'CompanyID'=>$companyID])->select([DB::raw("Message AS body_text"), "created_at"])->orderBy('created_at', 'asc')->get();
+			$GetTicketsCon = AccountEmailLog::WhereRaw("EmailParent>0")->where(['CompanyID'=>$companyID,'TicketID'=>$data['id']])->select([DB::raw("Message AS body_text"), "created_at"])->orderBy('created_at', 'asc')->get();
+			
 			if(count($ticket)>0 && $ticket->AccountEmailLogID>0 && count($GetTicketsCon)>0){
 				return generateResponse('',false,false,$GetTicketsCon);
 			}
@@ -475,7 +473,6 @@ class AccountController extends BaseController
 
     public function DeleteNote(){
         $data = Input::all();
- 		Log::info(print_r($data,true));
         $rules['NoteID'] = 'required';
         $validator = Validator::make($data, $rules);
         if ($validator->fails()) {
@@ -759,7 +756,6 @@ class AccountController extends BaseController
                 $query .= ',0)';
                 $result = DataTableSql::of($query)->make();
             }
-            Log::info($query);
             return generateResponse('',false,false,$result);
         } catch (\Exception $e) {
             Log::info($e);
