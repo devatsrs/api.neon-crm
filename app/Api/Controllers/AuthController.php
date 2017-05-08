@@ -39,7 +39,7 @@ class AuthController extends BaseController
         try { 
 			 if(!empty($LoginType) && $LoginType['LoginType']=='customer') {
 				//$user = Account::where(['BillingEmail'=>$credentials['LoggedEmailAddress']])->first(); 
-				$user = Account::whereRaw("FIND_IN_SET('".$credentials['LoggedEmailAddress']."',BillingEmail) !=0")->first();   
+				$user = Account::whereRaw(" Status=1 AND FIND_IN_SET('".$credentials['LoggedEmailAddress']."',BillingEmail) !=0")->first();
 				$user->CompanyID = $user->CompanyId;
 				Config::set('auth.providers.users.model', \Api\Model\Customer::class);			   
 				if(!Hash::check($credentials['password'], $user->password)){
@@ -52,15 +52,13 @@ class AuthController extends BaseController
                     Log::info(print_r($user,true));
 
                 }else {
-					$user = User::where(['EmailAddress'=>$credentials['LoggedEmailAddress']])->first();
+					$user = User::where(['EmailAddress'=>$credentials['LoggedEmailAddress'],'Status'=>1])->first();
 					if(!Hash::check($credentials['password'], $user->password)){
 						return response()->json(['error' => 'invalid_credentials'], 401);
 					}
 				}
 			 }
             Log::info(print_r($user,true));
-            $user = Auth::loginUsingId($user->UserID);
-            //Auth::user()->ById($user->UserID);
             $token = JWTAuth::fromUser($user);
             Log::info("Token is here " . $token);
         } catch (JWTException $e) {
