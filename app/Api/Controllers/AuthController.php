@@ -97,6 +97,7 @@ class AuthController extends BaseController
     }
 
     public function logout() {
+        Log::info("Logout fn class AuthController");
         Session::flush();
         Auth::logout();
         //JWTAuth::invalidate(JWTAuth::getToken());
