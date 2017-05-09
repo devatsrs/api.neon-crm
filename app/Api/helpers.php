@@ -517,7 +517,7 @@ function call_api($post = array()){
 
     ////setting the nvpreq as POST FIELD to curl
     curl_setopt($ch, CURLOPT_POSTFIELDS, $nvpreq);
-
+    \Illuminate\Support\Facades\Log::info(print_r($ch,true));
     //getting response from server
     $response = curl_exec($ch);
     Illuminate\Support\Facades\Log::info($response);
