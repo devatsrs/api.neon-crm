@@ -511,7 +511,8 @@ function call_api($post = array()){
 
     //NVPRequest for submitting to server
     $nvpreq = "json=" . json_encode($post);
-
+    \Illuminate\Support\Facades\Log::info("Licencing request... ");
+    \Illuminate\Support\Facades\Log::info($nvpreq);
     //$nvpreq = http_build_query($post);
 
     ////setting the nvpreq as POST FIELD to curl
