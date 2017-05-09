@@ -43,6 +43,8 @@ class AuthController extends BaseController
 				$user->CompanyID = $user->CompanyId;
 				Config::set('auth.providers.users.model', \Api\Model\Customer::class);			   
 				if(!Hash::check($credentials['password'], $user->password)){
+                    Log::info("class AuthController");
+                    Log::info($credentials);
 					return response()->json(['error' => 'invalid_credentials'], 401);
 				 } 
 			 }
@@ -54,7 +56,10 @@ class AuthController extends BaseController
                 }else {
 					$user = User::where(['EmailAddress'=>$credentials['LoggedEmailAddress'],'Status'=>1])->first();
 					if(!Hash::check($credentials['password'], $user->password)){
-						return response()->json(['error' => 'invalid_credentials'], 401);
+                        Log::info("class AuthController");
+                        Log::info($credentials);
+                        Log::info("password " . $user->password);
+                        return response()->json(['error' => 'invalid_credentials'], 401);
 					}
 				}
 			 }
@@ -92,6 +97,7 @@ class AuthController extends BaseController
     }
 
     public function logout() {
+        Log::info("Logout fn class AuthController");
         Session::flush();
         Auth::logout();
         //JWTAuth::invalidate(JWTAuth::getToken());
