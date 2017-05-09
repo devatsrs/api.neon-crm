@@ -172,20 +172,19 @@ class Company extends \Eloquent {
     }
 
     public static function getLicenceResponse($request){
-        $CACHE_EXPIRE = 60;
-        $time = empty($CACHE_EXPIRE)?60:$CACHE_EXPIRE;
-        $minutes = \Carbon\Carbon::now()->addMinutes($time);
         $license  = $request->only('LicenceKey','CompanyName');
         $license['LicenceHost'] = $request->getHttpHost();
         $license['LicenceIP'] = $request->getClientIp();
         $licenseCacheKey = 'LicenceApiResponse' . $license['LicenceKey'];
+        Log::info("getLicenceResponse");
+        Log::info($license);
         if (!Cache::has($licenseCacheKey)) {
             $LicenceApiResponse = Company::ValidateLicenceKey($license);
             if (!empty($LicenceApiResponse)) {
                 if ($LicenceApiResponse['Status'] != 1) {
                     return $LicenceApiResponse;
                 }
-                Cache::add($licenseCacheKey, $LicenceApiResponse, $minutes);
+                Cache::forever($licenseCacheKey, $LicenceApiResponse);
             } else {
                 $LicenceApiResponse['Status'] = 0;
                 $LicenceApiResponse['Message'] = 'Some thing wrong with license';
