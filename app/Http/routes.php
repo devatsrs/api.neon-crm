@@ -26,7 +26,7 @@ $api->version('v1', function ($api) {
 		
 		// Dogs! All routes in here are protected and thus need a valid token
 		//$api->group( [ 'protected' => true, 'middleware' => 'jwt.refresh' ], function ($api) {
-		$api->group( [ 'middleware' => 'jwt.refresh' ], function ($api) {
+        $api->group( [ 'middleware' => ['jwt.refresh','jwt.auth','DefaultSettingLoad'] ], function ($api) {
 
 			//token validation
 			$api->get('users/me', 'AuthController@me');

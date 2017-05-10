@@ -16,12 +16,12 @@ class BaseController extends Controller
     protected $request='';
 
     public function __Construct(Request $request){
-        $email   = $request->only('LoggedEmailAddress');
+        /*$email   = $request->only('LoggedEmailAddress');
         $userID  = $request->only('LoggedUserID');
         if(empty($email['LoggedEmailAddress']) && empty($userID['LoggedUserID']))
         {
           $this->middleware('jwt.auth');
           $this->middleware('DefaultSettingLoad');
-        }
+        }*/
     }
 }
