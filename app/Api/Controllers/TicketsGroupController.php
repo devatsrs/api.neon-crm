@@ -31,18 +31,13 @@ private $validlicense;
 	public function __construct(Request $request){ 
         $this->middleware('jwt.auth');
         Parent::__Construct($request);
-		$this->validlicense = TicketsTable::CheckTicketLicense();
-		$data = Input::all();
     }
 	 
-	 protected function IsValidLicense(){
-	 	return $this->validlicense;		
-	 }
-	
-	
+
+
     public function index() {          
-		$this->IsValidLicense();
-		$data 			 		= 	array();	
+
+		$data 			 		= 	array();
 		$EscalationTimes_json 	= 	json_encode(TicketGroups::$EscalationTimes);
         return View::make('ticketgroups.groups', compact('data','EscalationTimes_json'));   
 	  }		
@@ -104,8 +99,8 @@ private $validlicense;
 	  
 	  function Store(){
 		  
-	    $this->IsValidLicense();
-		$data 			= 	Input::all();  
+
+		$data 			= 	Input::all();
         
         $rules = array(
             'GroupName' => 'required|min:2',
@@ -159,8 +154,8 @@ private $validlicense;
 	  
 	  function Update($id){
 		  
-	    $this->IsValidLicense();
-		$data 			= 	Input::all();  
+
+		$data 			= 	Input::all();
 		$TicketGroup	= 	TicketGroups::find($id);
 		$TicketGroupold	= 	TicketGroups::find($id);
         

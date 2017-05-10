@@ -94,7 +94,7 @@ class AccountActivityController extends BaseController {
 			 Contact::CheckEmailContact($data['cc'],isset($data['AccountID'])?$data['AccountID']:0);
 			 Contact::CheckEmailContact($data['bcc'],isset($data['AccountID'])?$data['AccountID']:0);		
 			 
-			 if(isset($data['createticket']) && TicketsTable::CheckTicketLicense()){ //check and create ticket
+			 if(isset($data['createticket']) && TicketsTable::getTicketLicense()){ //check and create ticket
 			 	$email_from_data   	= 	TicketGroups::where(["GroupEmailAddress"=>$data['email-from']])->select('GroupEmailAddress','GroupName','GroupID','GroupReplyAddress')->get();  
 				$TicketData = array(
 					"CompanyID"=>User::get_companyID(),
@@ -145,7 +145,7 @@ class AccountActivityController extends BaseController {
 					$result->EmailTo = $user_data[0]['FirstName'].' '.$user_data[0]['LastName'];
 				}
 			} 
-			 if(isset($data['createticket']) && TicketsTable::CheckTicketLicense()){ //check and create ticket
+			 if(isset($data['createticket']) && TicketsTable::getTicketLicense()){ //check and create ticket
 			 	TicketsTable::find($TicketID)->update(array("AccountEmailLogID"=>$result->AccountEmailLogID));
 				 $TicketEmails1		=  new TicketEmails(array("TicketID"=>$TicketID,"TriggerType"=>array("RequesterNewTicketCreated")));				 
 				 $TicketEmails 		=  new TicketEmails(array("TicketID"=>$TicketID,"TriggerType"=>"CCNewTicketCreated"));

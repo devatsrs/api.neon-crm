@@ -42,13 +42,9 @@ private $validlicense;
 	public function __construct(Request $request){ 
         $this->middleware('jwt.auth');
         Parent::__Construct($request);
-		$this->validlicense = TicketsTable::CheckTicketLicense();
     }
 	 
-	 protected function IsValidLicense(){
-	 	return $this->validlicense;		
-	 }
-	  
+
 	  function GetResult(){ 
 		   $data 					= 	Input::all(); 
 		   $CompanyID 				= 	User::get_companyID(); 
@@ -107,8 +103,7 @@ private $validlicense;
 	  }
 	  
 	  function Store(){
-	    $this->IsValidLicense();
-		$data 			= 	Input::all(); 
+		$data 			= 	Input::all();
 		$CompanyID 		= 	User::get_companyID();
 
 		  if(!isset($data['Ticket'])){
@@ -299,7 +294,6 @@ private $validlicense;
 	  
 	public function Edit($id)
 	{
-		$this->IsValidLicense();
 		$post_data = Input::all();
 	    if($id > 0)
 		{	
@@ -339,7 +333,6 @@ private $validlicense;
 	}
 	  
 	  function Update($id){
-		$this->IsValidLicense();
 
 		$TicketID = $id;
 		$CompanyID 				= 	User::get_companyID();
@@ -454,8 +447,8 @@ private $validlicense;
 	
 	 function UpdateDetailPage($id){
 	  
-	    $this->IsValidLicense();
-		$data 			= 	Input::all();  
+
+		$data 			= 	Input::all();
 		$ticketdata		=	 TicketsTable::find($id);
 		$TicketID 		= $id;
 	    if($ticketdata)
@@ -672,8 +665,8 @@ private $validlicense;
 
 	function UpdateTicketAttributes($id)
 	{
-		 $this->IsValidLicense();
-		 $data 	= 	Input::all();   
+
+		 $data 	= 	Input::all();
 		 if($id)
 		 {
 			   $ticketdata		=	 TicketsTable::find($id);
@@ -722,8 +715,8 @@ private $validlicense;
 	}
 	
 	function ActionSubmit($id){
-		 $this->IsValidLicense();
-		 $data    =  Input::all(); 
+
+		 $data    =  Input::all();
 		if($id)
 		{
 			$ticketdata		=	 TicketsTable::find($id);
@@ -830,8 +823,8 @@ private $validlicense;
 	}
 	
 	public function CustomerActionSubmit($id){
-		 $this->IsValidLicense();
-		 $data    =  Input::all();  
+
+		 $data    =  Input::all();
 		if($id)
 		{
 			$ticketdata		=	 TicketsTable::find($id);
@@ -953,7 +946,7 @@ private $validlicense;
 	
 	function SendMailTicket(){
 
-	    $this->IsValidLicense();
+
 		$data 			= 	Input::all();
 		$CompanyID 					 = 		User::get_companyID();
 
@@ -1102,8 +1095,8 @@ private $validlicense;
 	}
 	
 	function add_note(){
-		$this->IsValidLicense();
-		$data 			= 	Input::all();  
+
+		$data 			= 	Input::all();
 		
 		 $rules = array(
 				'TicketID' =>'required',
