@@ -2,6 +2,7 @@
 
 namespace Api\Controllers;
 
+use Api\Model\TicketDashboardTimeline;
 use Api\Model\Ticketfields;
 use Dingo\Api\Http\Request;
 use Api\Model\AccountBalance;
