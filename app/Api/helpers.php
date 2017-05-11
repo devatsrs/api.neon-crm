@@ -463,6 +463,7 @@ function site_configration_cache($request){
  * @param $path
  * @return string
  */
+// not in use - this is wrong way
 function get_image_src($path){
     $path = \App\AmazonS3::unSignedUrl($path);
     if(file_exists($path)){
