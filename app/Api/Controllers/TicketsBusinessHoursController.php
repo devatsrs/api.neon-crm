@@ -25,10 +25,7 @@ private $validlicense;
         $this->middleware('jwt.auth');
         Parent::__Construct($request);
     }
-	 protected function IsValidLicense(){		
-	 	//return $this->validlicense;		
-	 }
-	 
+
     public function ajax_datagrid() {		
         $companyID  =   User::get_companyID();
 		
@@ -74,9 +71,7 @@ private $validlicense;
 	
 	
 	  
-	public function create() {	
-	} 	  
-	
+
 	public function store() {
 		
 	 	$data 		= 	Input::all();  
@@ -236,9 +231,10 @@ private $validlicense;
 			 
 			 if($update)
 			 {		//saving wokring days
+					 TicketsWorkingDays::where(["BusinessHoursID"=>$id])->delete(); // delete old data
 					if($data["HelpdeskHours"]==TicketBusinessHours::$HelpdeskHoursCustom)
 					{	
-						TicketsWorkingDays::where(["BusinessHoursID"=>$id])->delete(); // delete old data
+						
 						$workingDays = $data['custom_hours_day'];
 						
 						foreach($workingDays as $key => $workingDaysData)
@@ -263,9 +259,9 @@ private $validlicense;
 					}
 					
 					//saving holidays
+					TicketBusinessHolidays::where(["BusinessHoursID"=>$id])->delete();
 					if(isset($data["holidays"]) && count($data["holidays"])>0)
-					{	
-						TicketBusinessHolidays::where(["BusinessHoursID"=>$id])->delete();
+					{							
 						foreach($data["holidays"] as $key => $HolidaysData)
 						{
 							$HolidayDate 	=	 explode("_",$key);	

@@ -29,15 +29,11 @@ private $validlicense;
 	public function __construct(Request $request){ 
         $this->middleware('jwt.auth');
         Parent::__Construct($request);
-		$this->validlicense = TicketsTable::CheckTicketLicense(); 
     }
 	 
-	 protected function IsValidLicense(){
-	 	return $this->validlicense;		
-	 }
-	
+
 	function GetFields(){
-		$this->IsValidLicense();
+
 		$data 					= 	Input::all();   
 		try
 		{
@@ -56,7 +52,7 @@ private $validlicense;
 	
 	function GetDynamicFields(){
 
-		$this->IsValidLicense();
+
 		try
 		{	
 			$Ticketfields  =	DB::table('tblTicketfields')->orderBy('FieldOrder', 'asc')->get(); 
