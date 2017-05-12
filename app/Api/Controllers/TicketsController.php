@@ -938,12 +938,16 @@ private $validlicense;
 	
 	function CloseTicket($ticketID)
 	{
-		$Ticketdata 	=   TicketsTable::find($ticketID);					
+		$Ticketdata 	=   TicketsTable::find($ticketID);		
+		$data 			= 	Input::all(); 
+		
 		if($Ticketdata)
 		{ 	 $CloseStatus =  TicketsTable::getClosedTicketStatus(); 
 			 $Ticketdata->update(array("Status"=>$CloseStatus));	
 			// return Response::json(array("status" => "success", "message" => "Ticket Successfully Closed.","close_id"=>$CloseStatus)); 	
-			$TicketEmails 	=  new TicketEmails(array("TicketID"=>$ticketID,"TriggerType"=>"AgentClosestheTicket"));
+			if(isset($data['isSendEmail']) && $data['isSendEmail']>0){ 
+				$TicketEmails 	=  new TicketEmails(array("TicketID"=>$ticketID,"TriggerType"=>"AgentClosestheTicket"));
+			}
 			 return generateResponse('Ticket Successfully Closed');
 			 //return generateResponse("Ticket Successfully Closed");
 		}
