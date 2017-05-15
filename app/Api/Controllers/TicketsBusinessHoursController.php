@@ -25,10 +25,7 @@ private $validlicense;
         $this->middleware('jwt.auth');
         Parent::__Construct($request);
     }
-	 protected function IsValidLicense(){		
-	 	//return $this->validlicense;		
-	 }
-	 
+
     public function ajax_datagrid() {		
         $companyID  =   User::get_companyID();
 		
@@ -74,9 +71,7 @@ private $validlicense;
 	
 	
 	  
-	public function create() {	
-	} 	  
-	
+
 	public function store() {
 		
 	 	$data 		= 	Input::all();  

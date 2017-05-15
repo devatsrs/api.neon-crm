@@ -237,8 +237,7 @@ class TicketsTable extends \Eloquent
 			return $data;
 	}
 	
-	 
-	static function CheckTicketLicense(){
+	static function getTicketLicense(){
 		return CompanyConfiguration::get("TICKETING_SYSTEM");
 		//return false;
 	}
@@ -343,4 +342,13 @@ class TicketsTable extends \Eloquent
             $TicketEmails 	=  new TicketEmails(array("TicketID"=>$id,"TriggerType"=>"AgentSolvestheTicket"));
         }
     }
+
+	public static function validateTicketingLicence() {
+
+		if(self::getTicketLicense()==1) {
+			return true;
+		}
+		return false;
+
+	}
 }

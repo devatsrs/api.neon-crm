@@ -144,7 +144,7 @@ class ContactsController extends BaseController
         }			
 		
 		$queryTicketType	= 0;
-		$SystemTicket  = TicketsTable::CheckTicketLicense();
+		$SystemTicket  = TicketsTable::getTicketLicense();
 		if($SystemTicket){
 			$queryTicketType	= TicketsTable::$SystemTicket;
 		}

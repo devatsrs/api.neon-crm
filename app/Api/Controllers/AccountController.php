@@ -282,7 +282,7 @@ class AccountController extends BaseController
         }			
 		
 		$queryTicketType	= 0;
-		$SystemTicket  = TicketsTable::CheckTicketLicense();
+		$SystemTicket  = TicketsTable::getTicketLicense();
 		if($SystemTicket){
 			$queryTicketType	= TicketsTable::$SystemTicket;
 		}
@@ -436,7 +436,7 @@ class AccountController extends BaseController
 		$data           	=   	Input::all();  		
 		
 		$queryTicketType	= 0;
-		$SystemTicket  = TicketsTable::CheckTicketLicense();
+		$SystemTicket  = TicketsTable::getTicketLicense();
 		if($SystemTicket){
 			$queryTicketType	= TicketsTable::$SystemTicket;
 		}
