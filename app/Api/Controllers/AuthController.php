@@ -30,20 +30,22 @@ class AuthController extends BaseController
         $license['LicenceHost'] = $request->getHttpHost();
         $license['LicenceIP'] = $request->getClientIp();
         $UserID = $request->only('LoggedUserID');
-		$LoginType	=	$request->only('LoginType'); 
-			
-        /*Log::info("Authenticate");
+		$LoginType	=	$request->only('LoginType');
+
+        Log::info("Authenticate");
         Log::info(print_r($license,true));
         Log::info("UserID ". print_r($UserID,true));
         Log::info("credentials ". print_r($credentials,true));
-        Log::info("license ". print_r($license,true));*/
+        Log::info("license ". print_r($license,true));
         try {
 			 if(!empty($LoginType) && $LoginType['LoginType']=='customer') {
 				$user = Account::where(['BillingEmail'=>$credentials['LoggedEmailAddress']])->first(); 
 				$user->CompanyID = $user->CompanyId;
 				Config::set('auth.providers.users.model', \Api\Model\Customer::class);			   
 				if(!Hash::check($credentials['password'], $user->password)){
-					return response()->json(['error' => 'invalid_credentials'], 401);
+                    Log::info("class AuthController");
+                    Log::info($credentials);
+                    return response()->json(['error' => 'invalid_credentials'], 401);
 				 } 
 			 }
 			 else{
@@ -52,7 +54,10 @@ class AuthController extends BaseController
 				}else {
 					$user = User::where(['EmailAddress'=>$credentials['LoggedEmailAddress']])->first();
 					if(!Hash::check($credentials['password'], $user->password)){
-						return response()->json(['error' => 'invalid_credentials'], 401);
+                        Log::info("class AuthController");
+                        Log::info($credentials);
+                        Log::info("password " . $user->password);
+                        return response()->json(['error' => 'invalid_credentials'], 401);
 					}
 				}
 			 }
