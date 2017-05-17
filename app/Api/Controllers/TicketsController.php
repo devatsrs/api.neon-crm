@@ -109,7 +109,7 @@ private $validlicense;
 		  if(!isset($data['Ticket'])){
 			return generateResponse("Please submit required fields.",true);
 		}
-		
+		//Log::info(print_r($data,true)); exit;
 		
 		//$RulesMessages      = 	TicketsTable::GetAgentSubmitRules();       
 		if(isset($data['LoginType']) && $data['LoginType']=='customer'){
@@ -127,7 +127,7 @@ private $validlicense;
 		 if (isset($data['file']) && !empty($data['file'])) {
             $files = serialize(json_decode($data['file'],true));
         }
-
+			
 		    $Ticketfields      =  $data['Ticket'];
 			
 			if (strpos($Ticketfields['default_requester'], '<') !== false && strpos($Ticketfields['default_requester'], '>') !== false)
@@ -183,6 +183,7 @@ private $validlicense;
 					"CompanyID"=>$CompanyID,
 					"Requester"=>$RequesterEmail,
 					"RequesterName"=>$RequesterName,
+					"AccountID"=>$data['TicketAccount'],
 					"RequesterCC"=>isset($Ticketfields['cc'])?$Ticketfields['cc']:'',
 					"Subject"=>isset($Ticketfields['default_subject'])?$Ticketfields['default_subject']:'',
 					"Type"=>isset($Ticketfields['default_ticket_type'])?$Ticketfields['default_ticket_type']:0,
@@ -196,7 +197,10 @@ private $validlicense;
 				);
 			}
 			unset($Ticketfields['cc']);
-			$TicketData = array_merge($TicketData,$MatchArray);
+			if(!isset($TicketData['AccountID']))
+			{
+				$TicketData = array_merge($TicketData,$MatchArray);
+			}
 			
 			try{
  			    DB::beginTransaction();
@@ -802,9 +806,9 @@ private $validlicense;
 						}
 						
 						$ticketdataAll		=	 TicketsTable::find($id);
-						if($ticketdata->Agent==User::get_userID()){
+						//if($ticketdata->Agent==User::get_userID()){ //removed as mam said
 							$ticketdataAll->update(["AgentRepliedDate"=>date('Y-m-d H:i:s')]);
-						}
+						//}
 						
 						 DB::commit();	
 						return generateResponse("Successfully Updated");
