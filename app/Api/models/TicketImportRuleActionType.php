@@ -17,6 +17,17 @@ class TicketImportRuleActionType extends \Eloquent  {
     const SET_STATUS = 'set_status';
     const SET_AGENT = 'set_agent';
     const SET_GROUP = 'set_group';
+	const SET_TYPE = 'set_type';
+	
+	static $ActionArrayValue = array(
+		self::DELETE_TICKET=>"skip",
+		self::SKIP_NOTIFICATION=>"skip",
+		self::SET_PRIORITY=>"condition_match_priority",
+		self::SET_STATUS=>"condition_match_status",	
+		self::SET_AGENT=>"condition_match_agent",
+		self::SET_GROUP=>"condition_match_group",
+		self::SET_TYPE=>"condition_match_type",	
+	);
 
     protected $enable_cache = true;
     protected $cache_name = "TicketImportRuleActionType";

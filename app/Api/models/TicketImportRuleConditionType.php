@@ -19,6 +19,15 @@ class TicketImportRuleConditionType extends \Eloquent  {
     const STATUS = 'status';
     const AGENT = 'agent';
     const GROUP = 'group';
+	
+	static $DifferentCondtionsArray = array(self::PRIORITY ,self::STATUS,self::AGENT,self::GROUP);
+	
+	static $DifferentCondtionsArrayValue = array(
+		self::PRIORITY=>"condition_value_priority",
+		self::STATUS=>"condition_value_status",
+		self::GROUP=>"condition_value_group",
+		self::AGENT=>"condition_value_agent"
+	);
 
     protected $enable_cache = true;
     protected $cache_name = "TicketImportRuleConditionType";
