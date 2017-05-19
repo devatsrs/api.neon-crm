@@ -27,7 +27,7 @@ class TicketImportRuleCondition extends \Eloquent {
     }
     public static function field($field){
         $ins = new static;
-        $ins->field = trim($field);
+        $ins->field = strip_tags(trim($field));
         return $ins;
     }
 
