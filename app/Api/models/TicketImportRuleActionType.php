@@ -26,9 +26,7 @@ class TicketImportRuleActionType extends \Eloquent {
 		self::SET_AGENT=>"condition_match_agent",
 		self::SET_GROUP=>"condition_match_group",
 		self::SET_TYPE=>"condition_match_type",	
-	);
-	
-	
+	);	
 
 	
 }
