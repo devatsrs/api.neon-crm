@@ -3,8 +3,6 @@
 namespace Api\Controllers;
 
 use Api\Model\TicketfieldsValues;
-use Api\Model\TicketImportRule;
-use Api\Model\TicketImportRuleActionType;
 use Api\Model\TicketLog;
 use Api\Model\TicketSla;
 use Dingo\Api\Http\Request;
@@ -239,47 +237,16 @@ private $validlicense;
 				 	return generateResponse($logID['message'], true, true);
 				 }*/
 
-				// --------------- check for TicketImportRule ----------------
-				$skip_email_notification = false;
-				$ticketRuleData = array_merge($TicketData,["TicketID"=>$TicketID,"EmailTo"=>$email_from,]);
-				try{
-					$TicketImportRuleResult = TicketImportRule::check($CompanyID,$ticketRuleData);
-				} catch ( \Exception $ex){
+				 if(isset($Ticketfields['default_group']) && $Ticketfields['default_group']>0){
+			  	  $TicketEmails 	=  new TicketEmails(array("TicketID"=>$TicketID,"TriggerType"=>array("AgentAssignedGroup")));
+				 }
 
-					Log::error("Error in TicketImportRule::check on TicketID " . $TicketID);
-					Log::error(print_r($ex,true));
-					Log::error("TicketRuleData");
-					Log::error($ticketRuleData);
-				}
+				 if(isset($Ticketfields['default_agent']) && $Ticketfields['default_agent']>0){
+				 	 $TicketEmails 	=  new TicketEmails(array("TicketID"=>$TicketID,"TriggerType"=>array("TicketAssignedtoAgent")));
+				 }
+				  $TicketEmails 	=  new TicketEmails(array("TicketID"=>$TicketID,"TriggerType"=>array("RequesterNewTicketCreated")));
+				  $TicketEmails 	=  new TicketEmails(array("TicketID"=>$TicketID,"TriggerType"=>"CCNewTicketCreated"));
 
-				if(is_array($TicketImportRuleResult)) {
-					if (in_array(TicketImportRuleActionType::DELETE_TICKET,$TicketImportRuleResult)) {
-						Log::info("TicketImportRuleAction TicketDeleted");
-						//continue;
-						DB::rollback();
-						return generateResponse("Ticket deleted due to import rule", true, true);
-
-					} else if (in_array(TicketImportRuleActionType::SKIP_NOTIFICATION, $TicketImportRuleResult)) {
-						Log::info("TicketImportRuleAction SKIP_NOTIFICATION");
-						$skip_email_notification = true;
-					} else {
-						Log::info("TicketImportRuleAction Result");
-						Log::info($TicketImportRuleResult);
-					}
-				}
-				// -------------------------------
-
-				if(!$skip_email_notification) {
-					if (isset($Ticketfields['default_group']) && $Ticketfields['default_group'] > 0) {
-						new TicketEmails(array("TicketID" => $TicketID, "TriggerType" => array("AgentAssignedGroup")));
-					}
-
-					if (isset($Ticketfields['default_agent']) && $Ticketfields['default_agent'] > 0) {
-						new TicketEmails(array("TicketID" => $TicketID, "TriggerType" => array("TicketAssignedtoAgent")));
-					}
-					new TicketEmails(array("TicketID" => $TicketID, "TriggerType" => array("RequesterNewTicketCreated")));
-					new TicketEmails(array("TicketID" => $TicketID, "TriggerType" => "CCNewTicketCreated"));
-				}
 				 TicketsTable::CheckTicketStatus('',isset($Ticketfields['default_status'])?$Ticketfields['default_status']:TicketsTable::getDefaultStatus(),$TicketID);
 				 DB::commit();
 				try {
