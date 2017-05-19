@@ -3,6 +3,8 @@
 namespace Api\Controllers;
 
 use Api\Model\TicketfieldsValues;
+use Api\Model\TicketImportRule;
+use Api\Model\TicketImportRuleActionType;
 use Api\Model\TicketLog;
 use Api\Model\TicketSla;
 use Dingo\Api\Http\Request;
@@ -239,12 +241,12 @@ private $validlicense;
 
 				// --------------- check for TicketImportRule ----------------
 				$skip_email_notification = false;
-				$ticketRuleData = array_merge($TicketData,["TicketID"=>$TicketID,"EmailTo"=>$to,]);
+				$ticketRuleData = array_merge($TicketData,["TicketID"=>$TicketID,"EmailTo"=>$email_from,]);
 				try{
 					$TicketImportRuleResult = TicketImportRule::check($CompanyID,$ticketRuleData);
 				} catch ( \Exception $ex){
 
-					Log::error("Error in TicketImportRule::check on TicketID " . $ticketID);
+					Log::error("Error in TicketImportRule::check on TicketID " . $TicketID);
 					Log::error("TicketRuleData");
 					Log::error($ticketRuleData);
 					Log::error(print_r($ex,true));
@@ -269,14 +271,14 @@ private $validlicense;
 
 				if(!$skip_email_notification) {
 					if (isset($Ticketfields['default_group']) && $Ticketfields['default_group'] > 0) {
-						$TicketEmails = new TicketEmails(array("TicketID" => $TicketID, "TriggerType" => array("AgentAssignedGroup")));
+						new TicketEmails(array("TicketID" => $TicketID, "TriggerType" => array("AgentAssignedGroup")));
 					}
 
 					if (isset($Ticketfields['default_agent']) && $Ticketfields['default_agent'] > 0) {
-						$TicketEmails = new TicketEmails(array("TicketID" => $TicketID, "TriggerType" => array("TicketAssignedtoAgent")));
+						new TicketEmails(array("TicketID" => $TicketID, "TriggerType" => array("TicketAssignedtoAgent")));
 					}
-					$TicketEmails = new TicketEmails(array("TicketID" => $TicketID, "TriggerType" => array("RequesterNewTicketCreated")));
-					$TicketEmails = new TicketEmails(array("TicketID" => $TicketID, "TriggerType" => "CCNewTicketCreated"));
+					new TicketEmails(array("TicketID" => $TicketID, "TriggerType" => array("RequesterNewTicketCreated")));
+					new TicketEmails(array("TicketID" => $TicketID, "TriggerType" => "CCNewTicketCreated"));
 				}
 				 TicketsTable::CheckTicketStatus('',isset($Ticketfields['default_status'])?$Ticketfields['default_status']:TicketsTable::getDefaultStatus(),$TicketID);
 				 DB::commit();
