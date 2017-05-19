@@ -6,8 +6,7 @@ use Illuminate\Support\Facades\Input;
 
 class TicketImportRuleAction extends \Eloquent {
 
-    protected $table 		= 	"tblTicketImportRuleAction";
-    protected $primaryKey 	= 	"TicketImportRuleActionID";
-	protected $guarded 		=	 array("TicketImportRuleActionID");		
-	
+    protected $guarded = array("TicketImportRuleActionID");
+    protected $table = 'tblTicketImportRuleAction';
+    protected $primaryKey = "TicketImportRuleActionID";
 }

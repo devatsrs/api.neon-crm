@@ -236,17 +236,17 @@ private $validlicense;
 				 }else{
 				 	return generateResponse($logID['message'], true, true);
 				 }*/
-				 
-				 if(isset($Ticketfields['default_group']) && $Ticketfields['default_group']>0){				 
-			  	  $TicketEmails 	=  new TicketEmails(array("TicketID"=>$TicketID,"TriggerType"=>array("AgentAssignedGroup")));					
+
+				 if(isset($Ticketfields['default_group']) && $Ticketfields['default_group']>0){
+			  	  $TicketEmails 	=  new TicketEmails(array("TicketID"=>$TicketID,"TriggerType"=>array("AgentAssignedGroup")));
 				 }
-			
+
 				 if(isset($Ticketfields['default_agent']) && $Ticketfields['default_agent']>0){
-				 	 $TicketEmails 	=  new TicketEmails(array("TicketID"=>$TicketID,"TriggerType"=>array("TicketAssignedtoAgent")));					
-				 }				 
+				 	 $TicketEmails 	=  new TicketEmails(array("TicketID"=>$TicketID,"TriggerType"=>array("TicketAssignedtoAgent")));
+				 }
 				  $TicketEmails 	=  new TicketEmails(array("TicketID"=>$TicketID,"TriggerType"=>array("RequesterNewTicketCreated")));
 				  $TicketEmails 	=  new TicketEmails(array("TicketID"=>$TicketID,"TriggerType"=>"CCNewTicketCreated"));
-				  
+
 				 TicketsTable::CheckTicketStatus('',isset($Ticketfields['default_status'])?$Ticketfields['default_status']:TicketsTable::getDefaultStatus(),$TicketID);
 				 DB::commit();
 				try {

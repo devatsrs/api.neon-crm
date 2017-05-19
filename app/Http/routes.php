@@ -14,7 +14,6 @@ $api->version('v1', function ($api) {
         $api->post('logout', 'AuthController@logout');
 		$api->post('register', 'AuthController@register');
 		$api->post('l/{id}', 'AuthController@authenticate');
-		$request =$api->getCurrentRequest();
 
        $postdata    =  Input::all(); 
         if(isset($postdata['LoginType']) && $postdata['LoginType']=='customer') { //set customer configuration  
