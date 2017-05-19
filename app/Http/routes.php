@@ -257,6 +257,17 @@ $api->version('v1', function ($api) {
                 $api->post('tickets/businesshours/delete/{id}', 'TicketsBusinessHoursController@delete');
                 $api->post('tickets/businesshours/{id}/edit', 'TicketsBusinessHoursController@edit');
                 $api->post('tickets/businesshours/update/{id}', "TicketsBusinessHoursController@update");
+				
+				
+				$api->post('tickets/importrules', "TicketImportRulesController@index");
+                $api->post('tickets/importrules/{id}/edit', "TicketImportRulesController@index");
+                $api->post('tickets/importrules/ajax_datagrid', "TicketImportRulesController@ajax_datagrid");
+                $api->post('tickets/importrules/exports/{type}', 'TicketImportRulesController@exports');
+                $api->post('tickets/importrules/add', "TicketImportRulesController@add");
+                $api->post('tickets/importrules/store', "TicketImportRulesController@store");
+                $api->post('tickets/importrules/delete/{id}', 'TicketImportRulesController@delete');
+                $api->post('tickets/importrules/edit/{id}', 'TicketImportRulesController@edit');
+                $api->post('tickets/importrules/update/{id}', "TicketImportRulesController@update");
 
     		});
 
