@@ -24,8 +24,6 @@ class TicketImportRuleActionType extends \Eloquent  {
     // load all types in cache
     function __construct(){
 
-        Log::info("Action Cache name " . $this->cache_name);
-
         if ($this->enable_cache && Cache::has($this->cache_name)) {
 
             $cache = Cache::get($this->cache_name);
@@ -45,7 +43,6 @@ class TicketImportRuleActionType extends \Eloquent  {
         $cache = Cache::get($this->cache_name);
         $cache = isset($cache[$this->cache_name])?$cache[$this->cache_name]:"";
 
-        Log::info($cache);
         if(!empty($cache) && isset($cache[$key])){
             return $cache[$key];
         }

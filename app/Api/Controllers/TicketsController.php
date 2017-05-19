@@ -247,9 +247,9 @@ private $validlicense;
 				} catch ( \Exception $ex){
 
 					Log::error("Error in TicketImportRule::check on TicketID " . $TicketID);
+					Log::error(print_r($ex,true));
 					Log::error("TicketRuleData");
 					Log::error($ticketRuleData);
-					Log::error(print_r($ex,true));
 				}
 
 				if(is_array($TicketImportRuleResult)) {

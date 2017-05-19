@@ -36,9 +36,6 @@ class TicketImportRuleConditionType extends \Eloquent  {
             Cache::forever($this->cache_name, $cache);
 
         }
-        Log::info("TicketImportRuleConditionType");
-        Log::info($cache);
-
         return $cache[$this->cache_name];
     }
 

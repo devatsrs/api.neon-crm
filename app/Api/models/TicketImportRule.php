@@ -17,7 +17,6 @@ class TicketImportRule extends \Eloquent
 
     public static function check($CompanyID, $TicketData)
     {
-        Log::info("checking");
         $TicketImportRules = TicketImportRule::where(["CompanyID" => $CompanyID, "Status" => 1])->get();
         $log = array();
         if (count($TicketImportRules) > 0) {
