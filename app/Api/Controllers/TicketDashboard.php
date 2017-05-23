@@ -54,8 +54,10 @@ class TicketDashboard extends BaseController {
         }else if($AccessPermission == TicketsTable::TICKETRESTRICTEDACCESS){ //assigned ticket access
             $agent = User::get_userID();
         }
-
-        $query 		= 	"call prc_GetTicketDashboardTimeline ('".$CompanyID."',".$Group.",".$agent.",'".date('Y-m-d H:i:s')."',".$data['iDisplayStart'].",".$data['iDisplayLength'].")";
+		
+		$ticketID = 0;
+		if(isset($data['TicketID'])){$ticketID = $data['TicketID'];}
+        $query 		= 	"call prc_GetTicketDashboardTimeline ('".$CompanyID."',".$Group.",".$agent.",'".date('Y-m-d H:i:s')."','".$ticketID."',".$data['iDisplayStart'].",".$data['iDisplayLength'].")"; Log::info($query);
         $result = DB::select($query);
         return generateResponse('',false,false,$result);
     }
