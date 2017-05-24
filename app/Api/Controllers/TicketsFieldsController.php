@@ -38,7 +38,7 @@ private $validlicense;
 		try
 		{
 			if($data['LoginType']=='customer'){		
-				$Ticketfields	=	DB::table('tblTicketfields')->Where(['CustomerDisplay'=>1])->orderBy('FieldOrder', 'asc')->get(); 
+				$Ticketfields	=	DB::table('tblTicketfields')->Where(['CustomerEdit'=>1])->orderBy('FieldOrder', 'asc')->get(); 
 			}else{
 				$Ticketfields	=	DB::table('tblTicketfields')->orderBy('FieldOrder', 'asc')->get();
 			}
@@ -52,10 +52,14 @@ private $validlicense;
 	
 	function GetDynamicFields(){
 
-
+		$data 					= 	Input::all();   
 		try
 		{	
-			$Ticketfields  =	DB::table('tblTicketfields')->orderBy('FieldOrder', 'asc')->get(); 
+			if($data['LoginType']=='customer'){		
+				$Ticketfields  =	DB::table('tblTicketfields')->Where(['CustomerDisplay'=>1])->orderBy('FieldOrder', 'asc')->get(); 
+			}else{
+				$Ticketfields  =	DB::table('tblTicketfields')->orderBy('FieldOrder', 'asc')->get(); 
+			}
 			return generateResponse('success', false, false, $Ticketfields);
 		}catch (\Exception $e) {
          	Log::info($e);
