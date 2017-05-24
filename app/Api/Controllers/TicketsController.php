@@ -109,7 +109,7 @@ private $validlicense;
 		  if(!isset($data['Ticket'])){
 			return generateResponse("Please submit required fields.",true);
 		}
-		
+		//Log::info(print_r($data,true)); exit;
 		
 		//$RulesMessages      = 	TicketsTable::GetAgentSubmitRules();       
 		if(isset($data['LoginType']) && $data['LoginType']=='customer'){
@@ -127,7 +127,7 @@ private $validlicense;
 		 if (isset($data['file']) && !empty($data['file'])) {
             $files = serialize(json_decode($data['file'],true));
         }
-
+			
 		    $Ticketfields      =  $data['Ticket'];
 			
 			if (strpos($Ticketfields['default_requester'], '<') !== false && strpos($Ticketfields['default_requester'], '>') !== false)
@@ -183,6 +183,7 @@ private $validlicense;
 					"CompanyID"=>$CompanyID,
 					"Requester"=>$RequesterEmail,
 					"RequesterName"=>$RequesterName,
+					"AccountID"=>$data['TicketAccount'],
 					"RequesterCC"=>isset($Ticketfields['cc'])?$Ticketfields['cc']:'',
 					"Subject"=>isset($Ticketfields['default_subject'])?$Ticketfields['default_subject']:'',
 					"Type"=>isset($Ticketfields['default_ticket_type'])?$Ticketfields['default_ticket_type']:0,
@@ -196,7 +197,10 @@ private $validlicense;
 				);
 			}
 			unset($Ticketfields['cc']);
-			$TicketData = array_merge($TicketData,$MatchArray);
+			if(!isset($TicketData['AccountID']))
+			{
+				$TicketData = array_merge($TicketData,$MatchArray);
+			}
 			
 			try{
  			    DB::beginTransaction();
@@ -232,17 +236,17 @@ private $validlicense;
 				 }else{
 				 	return generateResponse($logID['message'], true, true);
 				 }*/
-				 
-				 if(isset($Ticketfields['default_group']) && $Ticketfields['default_group']>0){				 
-			  	  $TicketEmails 	=  new TicketEmails(array("TicketID"=>$TicketID,"TriggerType"=>array("AgentAssignedGroup")));					
+
+				 if(isset($Ticketfields['default_group']) && $Ticketfields['default_group']>0){
+			  	  $TicketEmails 	=  new TicketEmails(array("TicketID"=>$TicketID,"TriggerType"=>array("AgentAssignedGroup")));
 				 }
-			
+
 				 if(isset($Ticketfields['default_agent']) && $Ticketfields['default_agent']>0){
-				 	 $TicketEmails 	=  new TicketEmails(array("TicketID"=>$TicketID,"TriggerType"=>array("TicketAssignedtoAgent")));					
-				 }				 
+				 	 $TicketEmails 	=  new TicketEmails(array("TicketID"=>$TicketID,"TriggerType"=>array("TicketAssignedtoAgent")));
+				 }
 				  $TicketEmails 	=  new TicketEmails(array("TicketID"=>$TicketID,"TriggerType"=>array("RequesterNewTicketCreated")));
 				  $TicketEmails 	=  new TicketEmails(array("TicketID"=>$TicketID,"TriggerType"=>"CCNewTicketCreated"));
-				  
+
 				 TicketsTable::CheckTicketStatus('',isset($Ticketfields['default_status'])?$Ticketfields['default_status']:TicketsTable::getDefaultStatus(),$TicketID);
 				 DB::commit();
 				try {
@@ -802,9 +806,9 @@ private $validlicense;
 						}
 						
 						$ticketdataAll		=	 TicketsTable::find($id);
-						if($ticketdata->Agent==User::get_userID()){
+						//if($ticketdata->Agent==User::get_userID()){ //removed as mam said
 							$ticketdataAll->update(["AgentRepliedDate"=>date('Y-m-d H:i:s')]);
-						}
+						//}
 						
 						 DB::commit();	
 						return generateResponse("Successfully Updated");
@@ -931,12 +935,16 @@ private $validlicense;
 	
 	function CloseTicket($ticketID)
 	{
-		$Ticketdata 	=   TicketsTable::find($ticketID);					
+		$Ticketdata 	=   TicketsTable::find($ticketID);		
+		$data 			= 	Input::all(); 
+		
 		if($Ticketdata)
 		{ 	 $CloseStatus =  TicketsTable::getClosedTicketStatus(); 
 			 $Ticketdata->update(array("Status"=>$CloseStatus));	
 			// return Response::json(array("status" => "success", "message" => "Ticket Successfully Closed.","close_id"=>$CloseStatus)); 	
-			$TicketEmails 	=  new TicketEmails(array("TicketID"=>$ticketID,"TriggerType"=>"AgentClosestheTicket"));
+			if(isset($data['isSendEmail']) && $data['isSendEmail']>0){ 
+				$TicketEmails 	=  new TicketEmails(array("TicketID"=>$ticketID,"TriggerType"=>"AgentClosestheTicket"));
+			}
 			 return generateResponse('Ticket Successfully Closed');
 			 //return generateResponse("Ticket Successfully Closed");
 		}

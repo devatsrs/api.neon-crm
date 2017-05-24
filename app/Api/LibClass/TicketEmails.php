@@ -510,6 +510,7 @@ class TicketEmails{
 	
 	protected function SetError($error){
 		$this->Error = $error;
+		Log::info("Ticket Email error: ".$error);
 	}
 	public function GetError(){
 		return $this->Error;

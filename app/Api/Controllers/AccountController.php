@@ -431,6 +431,7 @@ class AccountController extends BaseController
 	
 	
 	function GetTicketConversations(){
+
 		$companyID 			=	 	User::get_companyID();
 		$data           	=   	Input::all();  		
 		
@@ -459,8 +460,7 @@ class AccountController extends BaseController
 			
 			///$GetTicketsCon = AccountEmailLog::where(['EmailParent'=>$ticket->AccountEmailLogID,'CompanyID'=>$companyID])->select([DB::raw("Message AS body_text"), "created_at"])->orderBy('created_at', 'asc')->get();
 			$GetTicketsCon = AccountEmailLog::WhereRaw("EmailParent>0")->where(['CompanyID'=>$companyID,'TicketID'=>$data['id']])->select([DB::raw("Message AS body_text"), "created_at"])->orderBy('created_at', 'asc')->get();
-			
-			if(count($ticket)>0 && $ticket->AccountEmailLogID>0 && count($GetTicketsCon)>0){
+			if(count($ticket)>0 && count($GetTicketsCon)>0){
 				return generateResponse('',false,false,$GetTicketsCon);
 			}
 			else
