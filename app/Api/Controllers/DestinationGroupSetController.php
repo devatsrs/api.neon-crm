@@ -59,7 +59,6 @@ class DestinationGroupSetController extends BaseController
                 $query .= ',0)';
                 $result = DataTableSql::of($query)->make();
             }
-            Log::info($query);
             return generateResponse('',false,false,$result);
         } catch (\Exception $e) {
             Log::info($e);

@@ -1,4 +1,6 @@
 <?php
+//use Illuminate\Http\Request;
+
 $api = app('Dingo\Api\Routing\Router');
 
 // Version 1 of our API
@@ -13,9 +15,17 @@ $api->version('v1', function ($api) {
 		$api->post('register', 'AuthController@register');
 		$api->post('l/{id}', 'AuthController@authenticate');
 
+       $postdata    =  Input::all(); 
+        if(isset($postdata['LoginType']) && $postdata['LoginType']=='customer') { //set customer configuration  
+              \Config::set('jwt.user' , "Api\Model\Customer");
+              \Config::set('auth.table', 'tblAccount');
+              \Config::set('auth.model', Api\Model\Customer::class);
+			  \Config::set('jwt.identifier', 'AccountID');
+        }
+		
 		// Dogs! All routes in here are protected and thus need a valid token
 		//$api->group( [ 'protected' => true, 'middleware' => 'jwt.refresh' ], function ($api) {
-		$api->group( [ 'middleware' => 'jwt.refresh' ], function ($api) {
+        $api->group( [ 'middleware' => ['jwt.refresh','jwt.auth','DefaultSettingLoad'] ], function ($api) {
 
 			//token validation
 			$api->get('users/me', 'AuthController@me');
@@ -74,7 +84,14 @@ $api->version('v1', function ($api) {
 			$api->get('account/get_account_threshold', 'AccountController@GetAccountThreshold');
 			$api->post('account/update_account_threshold', 'AccountController@UpdateAccountThreshold');
 			$api->delete('account/delete_temp_credit', 'AccountController@DeleteAccountThreshold');
-
+			
+			
+			$api->get('contact/GetTimeLine', 'ContactsController@GetTimeLine');
+			$api->post('contact/add_note', 'ContactsController@add_note');
+            $api->get('contact/get_note','ContactsController@GetNote');
+            $api->post('contact/delete_note','ContactsController@DeleteNote');
+			$api->post('contact/update_note','ContactsController@UpdateNote');
+			
             //Opportunity Board
             $api->get('opportunityboard/get_boards','OpportunityBoardController@getBoards');
             $api->post('opportunityboard/add_board','OpportunityBoardController@addBoard');
@@ -175,6 +192,86 @@ $api->version('v1', function ($api) {
 
             // Mailbox Class
             $api->post('email/sendemail', 'MailboxController@sendMail');
+
+            $api->group( [ 'middleware' => 'check_ticket_licence' ], function ($api) {
+
+                $api->post('ticketgroups/get_groups', 'TicketsGroupController@getGroups');
+                $api->post('ticketgroups/store', 'TicketsGroupController@Store');
+                $api->post('ticketgroups/get/{id}', 'TicketsGroupController@get');
+
+                $api->post('ticketgroups/get_group_agents/{id}', 'TicketsGroupController@get_group_agents');
+                $api->post('ticketgroups/get_group_agents_ids/{id}', 'TicketsGroupController@get_group_agents_ids');
+                $api->put('ticketgroups/update/{id}', 'TicketsGroupController@Update');
+                $api->post('ticketgroups/delete/{id}', 'TicketsGroupController@Delete');
+                $api->post('ticketgroups/send_activation_single/{id}', 'TicketsGroupController@send_activation_single');
+                $api->post('ticketgroups/validatesmtp', 'TicketsGroupController@validatesmtp');
+
+
+                $api->post('ticketsfields/getfields', 'TicketsFieldsController@GetFields');
+                $api->post('ticketsfields/iframeSubmits', 'TicketsFieldsController@iframeSubmits');
+                $api->post('ticketsfields/GetDynamicFields', 'TicketsFieldsController@GetDynamicFields');
+
+                $api->post('tickets/get_tickets', 'TicketsController@GetResult');
+                $api->post('tickets/store', 'TicketsController@Store');
+
+                $api->post('tickets/getticket/{id}', 'TicketsController@GetSingleTicket');
+                $api->post('tickets/getticketdetail/{id}', 'TicketsController@GetSingleTicketDetails');
+                $api->post('tickets/getticketdetailsdata', 'TicketsController@GetTicketDetailsData');
+                $api->post('tickets/ticketcction', 'TicketsController@TicketAction');
+                $api->post('tickets/actionsubmit/{id}', 'TicketsController@ActionSubmit');
+
+                $api->post('customer/tickets/actionsubmit/{id}', 'TicketsController@CustomerActionSubmit');
+
+                $api->post('tickets/closeticket/{id}', 'TicketsController@CloseTicket');
+                $api->post('tickets/delete/{id}', 'TicketsController@Delete');
+                $api->post('tickets/edit/{id}', 'TicketsController@Edit');
+                $api->post('tickets/update/{id}', 'TicketsController@Update');
+                $api->post('tickets/updatedetailpage/{id}', 'TicketsController@UpdateDetailPage');
+                $api->post('tickets/updateticketduetime/{id}', 'TicketsController@UpdateTicketDueTime');
+                $api->post('tickets/SendMailTicket', 'TicketsController@SendMailTicket');
+                $api->post('tickets/updateticketattributes/{id}', 'TicketsController@UpdateTicketAttributes');
+                $api->post('tickets/add_note', 'TicketsController@add_note');
+                $api->post('tickets/bulkactions', 'TicketsController@BulkAction');
+                $api->post('tickets/bulkdelete', 'TicketsController@BulkDelete');
+				$api->post('tickets/ticketlog/{id}', 'TicketsController@TicketLogs');
+				
+
+                $api->post('tickets/get_ticket_dashboard_summary', 'TicketDashboard@ticketSummaryWidget');
+                $api->post('tickets/get_ticket_dashboard_timeline_widget', 'TicketDashboard@ticketTimeLineWidget');
+
+
+
+                $api->post('tickets/sla_policies', "TicketsSlaController@index");
+                $api->post('tickets/sla_policies/{id}/edit', "TicketsSlaController@index");
+                $api->post('tickets/sla_policies/ajax_datagrid', "TicketsSlaController@ajax_datagrid");
+                $api->post('tickets/sla_policies/exports/{type}', 'TicketsSlaController@exports');
+                $api->post('tickets/sla_policies/add', "TicketsSlaController@add");
+                $api->post('tickets/sla_policies/store', "TicketsSlaController@store");
+                $api->post('tickets/sla_policies/delete/{id}', 'TicketsSlaController@delete');
+                $api->post('tickets/sla_policies/edit/{id}', 'TicketsSlaController@edit');
+                $api->post('tickets/sla_policies/update/{id}', "TicketsSlaController@update");
+
+                $api->post('tickets/businesshours', 'TicketsBusinessHoursController@index');
+                $api->post('tickets/businesshours/ajax_datagrid', 'TicketsBusinessHoursController@ajax_datagrid');
+                $api->post('tickets/businesshours/exports', 'TicketsBusinessHoursController@exports');
+                $api->post('tickets/businesshours/create', "TicketsBusinessHoursController@create");
+                $api->post('tickets/businesshours/store','TicketsBusinessHoursController@store');
+                $api->post('tickets/businesshours/delete/{id}', 'TicketsBusinessHoursController@delete');
+                $api->post('tickets/businesshours/{id}/edit', 'TicketsBusinessHoursController@edit');
+                $api->post('tickets/businesshours/update/{id}', "TicketsBusinessHoursController@update");
+				
+				
+				$api->post('tickets/importrules', "TicketImportRulesController@index");
+                $api->post('tickets/importrules/{id}/edit', "TicketImportRulesController@index");
+                $api->post('tickets/importrules/ajax_datagrid', "TicketImportRulesController@ajax_datagrid");
+                $api->post('tickets/importrules/exports/{type}', 'TicketImportRulesController@exports');
+                $api->post('tickets/importrules/add', "TicketImportRulesController@add");
+                $api->post('tickets/importrules/store', "TicketImportRulesController@store");
+                $api->post('tickets/importrules/delete/{id}', 'TicketImportRulesController@delete');
+                $api->post('tickets/importrules/edit/{id}', 'TicketImportRulesController@edit');
+                $api->post('tickets/importrules/update/{id}', "TicketImportRulesController@update");
+
+    		});
 
 		});
 

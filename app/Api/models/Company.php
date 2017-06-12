@@ -172,19 +172,19 @@ class Company extends \Eloquent {
     }
 
     public static function getLicenceResponse($request){
-        $minutes = Carbon::now()->addMinutes(getenv('CACHE_EXPIRE'));
         $license  = $request->only('LicenceKey','CompanyName');
         $license['LicenceHost'] = $request->getHttpHost();
         $license['LicenceIP'] = $request->getClientIp();
         $licenseCacheKey = 'LicenceApiResponse' . $license['LicenceKey'];
+        Log::info("getLicenceResponse");
+        Log::info($license);
         if (!Cache::has($licenseCacheKey)) {
             $LicenceApiResponse = Company::ValidateLicenceKey($license);
             if (!empty($LicenceApiResponse)) {
                 if ($LicenceApiResponse['Status'] != 1) {
                     return $LicenceApiResponse;
                 }
-                Cache::add($licenseCacheKey, $LicenceApiResponse, $minutes);
-                //Cache::forever($licenseCacheKey, $LicenceApiResponse);
+                Cache::forever($licenseCacheKey, $LicenceApiResponse);
             } else {
                 $LicenceApiResponse['Status'] = 0;
                 $LicenceApiResponse['Message'] = 'Some thing wrong with license';
@@ -194,4 +194,30 @@ class Company extends \Eloquent {
         }
         return $LicenceApiResponse;
     }
+	
+	public static function getCompanyFullAddress($companyID){
+		 if($companyID>0)
+		 {
+			 $companyData = Company::find($companyID);
+		 }else{
+			$companyData = Company::find(User::get_companyID());
+		 }
+			$Address = "";
+			$Address .= !empty($companyData->Address1) ? $companyData->Address1 . ',' . PHP_EOL : '';
+			$Address .= !empty($companyData->Address2) ? $companyData->Address2 . ',' . PHP_EOL : '';
+			$Address .= !empty($companyData->Address3) ? $companyData->Address3 . ',' . PHP_EOL : '';
+			$Address .= !empty($companyData->City) ? $companyData->City . ',' . PHP_EOL : '';
+			$Address .= !empty($companyData->PostCode) ? $companyData->PostCode . ',' . PHP_EOL : '';
+			$Address .= !empty($companyData->Country) ? $companyData->Country : '';
+			return $Address;		
+    }
+
+    public static function getCompanyTimeZone($companyID=0){
+        if($companyID>0){
+            return Company::find($companyID)->TimeZone;
+        }else{
+            return Company::find(User::get_companyID())->TimeZone;
+        }
+    }
+
 }

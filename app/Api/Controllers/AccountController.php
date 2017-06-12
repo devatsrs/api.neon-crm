@@ -10,11 +10,14 @@ use Api\Model\User;
 use Api\Model\Account;
 use Api\Model\Note;
 use Api\Model\Invoice;
+use Api\Model\ContactNote;
 use Api\Model\Ticket;
 use Api\Model\Company;
 use Api\Model\CompanySetting;
 use Api\Model\CompanyConfiguration;
 use Api\Model\AccountEmailLog;
+use Api\Model\TicketsTable;
+use Api\Model\Contact;
 use App\Http\Requests;
 use Dingo\Api\Facade\API;
 use Illuminate\Support\Facades\DB;
@@ -32,8 +35,7 @@ class AccountController extends BaseController
 {
 	protected $tokenClass;
 	
-    public function __construct(Request $request)
-    { 
+    public function __construct(Request $request){ 
         $this->middleware('jwt.auth');
         Parent::__Construct($request);
     }
@@ -212,14 +214,17 @@ class AccountController extends BaseController
     public function GetNote()
     {
         $data = Input::all();
-
         $rules['NoteID'] = 'required';
         $validator = Validator::make($data, $rules);
         if ($validator->fails()) {
             return generateResponse($validator->errors(),true);
         }
         try {
-            $Note = Note::find($data['NoteID']);
+			if(isset($data['note_type']) && $data['note_type'] == 'ContactNote'){
+				$Note = ContactNote::find($data['NoteID']); 
+			}else{
+            	$Note = Note::find($data['NoteID']); 
+			} 
         } catch (\Exception $e) {
             Log::info($e);
             return $this->response->errorInternal($e->getMessage());
@@ -243,9 +248,18 @@ class AccountController extends BaseController
         }
 
 		try{
-			 $data = cleanarray($data,[]);
-			$result = Note::find($data['NoteID'])->update($data);
-			$result = Note::find($data['NoteID']);
+			 $NoteType = $data['NoteType'];
+			 $data = cleanarray($data,['NoteType']);
+			 if(isset($NoteType) && $NoteType == 'ContactNote'){
+				ContactNote::find($data['NoteID'])->update($data);
+				$result = ContactNote::find($data['NoteID']);
+			}else{
+				Note::find($data['NoteID'])->update($data);
+				$result = Note::find($data['NoteID']);
+			} 
+			
+			//$result = Note::find($data['NoteID'])->update($data);
+			//$result = Note::find($data['NoteID']);
 
             return generateResponse('',false,false,$result);
         }catch (\Exception $ex){
@@ -266,18 +280,29 @@ class AccountController extends BaseController
         if ($validator->fails()) {
             return generateResponse($validator->errors(),true);
         }			
+		
+		$queryTicketType	= 0;
+		$SystemTicket  = TicketsTable::getTicketLicense();
+		if($SystemTicket){
+			$queryTicketType	= TicketsTable::$SystemTicket;
+		}
 			
         try { 
-			if($data['iDisplayStart']==0) {
-				if(\App\SiteIntegration::CheckIntegrationConfiguration(false,\App\SiteIntegration::$freshdeskSlug)){
-				 $freshsdesk = 	$this->FreshSDeskGetTickets($data['AccountID'],$data['GUID']); 
-					if($freshsdesk){
-						//return generateResponse(array("freshsdesk"=>array(0=>$freshsdesk['errors'][0]->message)),true);
+			if(!$queryTicketType){ //check system ticket enable . if not then check freshdesk tickets
+				if($data['iDisplayStart']==0) {
+					if(\App\SiteIntegration::CheckIntegrationConfiguration(false,\App\SiteIntegration::$freshdeskSlug)){
+						$queryTicketType	= TicketsTable::$FreshdeskTicket;
+					 $freshsdesk = 	$this->FreshSDeskGetTickets($data['AccountID'],$data['GUID']); 
+						if($freshsdesk){
+							//return generateResponse(array("freshsdesk"=>array(0=>$freshsdesk['errors'][0]->message)),true);
+						}
 					}
 				}
 			}
+			
+			
             $columns =  ['Timeline_type','ActivityTitle','ActivityDescription','ActivityDate','ActivityType','ActivityID','Emailfrom','EmailTo','EmailSubject','EmailMessage','AccountEmailLogID','NoteID','Note','CreatedBy','created_at','updated_at'];
-            $query = "call prc_getAccountTimeLine(" . $data['AccountID'] . "," . $companyID . ",'".$data['GUID']."'," . $data['iDisplayStart'] . "," . $data['iDisplayLength'] . ")";  
+            $query = "call prc_getAccountTimeLine(" . $data['AccountID'] . "," . $companyID . ",".$queryTicketType.",'".$data['GUID']."','".date('Y-m-d H:i:00')."'," . $data['iDisplayStart'] . "," . $data['iDisplayLength'] . ")";   
             $result_array = DB::select($query); 
             return generateResponse('',false,false,$result_array);
        }
@@ -299,6 +324,7 @@ class AccountController extends BaseController
         $email_array			 = 	array();
         $billingemail_array 	 = 	array();
         $allemail 				 =  array();
+		$Contacts_Email_array	 =	array();
         $AccountEmails  		 =	Account::where("AccountID",$AccountID)->select(['Email'])->first();
 		
         if(count($AccountEmails)>0)
@@ -313,7 +339,14 @@ class AccountController extends BaseController
             $billingemail_array = explode(',', $AccountEmails1['BillingEmail']);
         }
 		
-        $allemail 				= 	array_merge($email_array,$billingemail_array);
+		$AccountsContacts  	=DB::table('tblContact')->select(DB::raw("group_concat(DISTINCT Email separator ',') as ContactsEmails"))->where(array("AccountID"=>$AccountID))->pluck('ContactsEmails');
+	
+		if(strlen($AccountsContacts)>0)
+		{
+            $Contacts_Email_array = explode(',', $AccountsContacts);
+        }
+		
+        $allemail 				= 	array_merge($email_array,$billingemail_array,$Contacts_Email_array);
         $emails					=	array_filter(array_unique($allemail));
 		$TicketsIDs				=	array();  		
 		$FreshDeskObj 			=  	new \App\SiteIntegration();
@@ -361,7 +394,6 @@ class AccountController extends BaseController
 				{
 					//return $GetTickets;	
 					if(isset($GetTickets['StatusCode']) && $GetTickets['StatusCode']!='200' && $GetTickets['StatusCode']!='400'){
-						Log::info("freshdesk StatusCode ".print_r($GetTickets,true));
 						return $GetTickets;							
 					}
 				} 	    
@@ -399,23 +431,48 @@ class AccountController extends BaseController
 	
 	
 	function GetTicketConversations(){
+
 		$companyID 			=	 	User::get_companyID();
 		$data           	=   	Input::all();  		
-		$FreshDeskObj 		= 		new \App\SiteIntegration();
-		$FreshDeskObj->SetSupportSettings();		
 		
-		$GetTicketsCon 		= 		$FreshDeskObj->GetSupportTicketConversations($data['id']);  
-		if($GetTicketsCon['StatusCode'] == 200 && count($GetTicketsCon['data'])>0){ 
-			return generateResponse('',false,false,$GetTicketsCon['data']);
+		$queryTicketType	= 0;
+		$SystemTicket  = TicketsTable::getTicketLicense();
+		if($SystemTicket){
+			$queryTicketType	= TicketsTable::$SystemTicket;
 		}
-		else{
-			return generateResponse('No Record Found.',false,false);
-		} 	
+			
+		if(!$queryTicketType){ //fresh desk ticket
+			$FreshDeskObj 		= 		new \App\SiteIntegration();
+			$FreshDeskObj->SetSupportSettings();		
+			
+			$GetTicketsCon 		= 		$FreshDeskObj->GetSupportTicketConversations($data['id']);  
+			if($GetTicketsCon['StatusCode'] == 200 && count($GetTicketsCon['data'])>0){ 
+				return generateResponse('',false,false,$GetTicketsCon['data']);
+			}
+			else
+			{
+				return generateResponse('No Record Found.',false,false);
+			} 	
+		}else{ //system ticket
+			$ticket = TicketsTable::find($data['id']);
+			
+			
+			
+			///$GetTicketsCon = AccountEmailLog::where(['EmailParent'=>$ticket->AccountEmailLogID,'CompanyID'=>$companyID])->select([DB::raw("Message AS body_text"), "created_at"])->orderBy('created_at', 'asc')->get();
+			$GetTicketsCon = AccountEmailLog::WhereRaw("EmailParent>0")->where(['CompanyID'=>$companyID,'TicketID'=>$data['id']])->select([DB::raw("Message AS body_text"), "created_at"])->orderBy('created_at', 'asc')->get();
+			if(count($ticket)>0 && count($GetTicketsCon)>0){
+				return generateResponse('',false,false,$GetTicketsCon);
+			}
+			else
+			{
+				return generateResponse('No Record Found.',false,false);
+			}
+		}
+		
 	}
 
     public function DeleteNote(){
         $data = Input::all();
-
         $rules['NoteID'] = 'required';
         $validator = Validator::make($data, $rules);
         if ($validator->fails()) {
@@ -423,7 +480,11 @@ class AccountController extends BaseController
         }
 
         try{
-            Note::where(['NoteID'=>$data['NoteID']])->delete();
+			 if(isset($data['NoteType']) && $data['NoteType'] == 'ContactNote'){
+				 ContactNote::where(['NoteID'=>$data['NoteID']])->delete();
+			}else{
+				 Note::where(['NoteID'=>$data['NoteID']])->delete();
+			}
         }catch (\Exception $ex){
             Log::info($ex);
             return $this->response->errorInternal($ex->getMessage());
@@ -695,7 +756,6 @@ class AccountController extends BaseController
                 $query .= ',0)';
                 $result = DataTableSql::of($query)->make();
             }
-            Log::info($query);
             return generateResponse('',false,false,$result);
         } catch (\Exception $e) {
             Log::info($e);

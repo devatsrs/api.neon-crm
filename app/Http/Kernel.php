@@ -33,5 +33,7 @@ class Kernel extends HttpKernel
         'jwt.refresh' => \Tymon\JWTAuth\Middleware\RefreshToken::class,
         'cors' => \Barryvdh\Cors\HandleCors::class,
         'dbselector' => \App\Http\Middleware\DBSelector::class,
+		'DefaultSettingLoad' => \App\Http\Middleware\DefaultSettingLoad::class,
+		'check_ticket_licence' => \App\Http\Middleware\CheckTicketLicence::class,
     ];
 }

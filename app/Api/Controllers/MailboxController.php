@@ -116,7 +116,7 @@ class MailboxController extends BaseController {
 			
 			$data['message_id'] 	=   isset($status['message_id'])?$status['message_id']:"";			
             $result 				= 	email_log_data($data,'emails.template');           	
-			$result['message_sent']	=   $message_sent;
+			$result->message_sent	=   $message_sent;
 			$multiple_addresses		= 	strpos($data['EmailTo'],',');
 
 			if($multiple_addresses == false){
