@@ -45,6 +45,8 @@ class DBSelector
             if(!empty($credentials['LoggedEmailAddress']) || !empty($UserID['LoggedUserID'])){
                 $license = 	Company::getLicenceResponse($request);
                 if($license['Status']!=1) {
+                    Log::info("DBSelector Error");
+                    Log::info($license);
                     return response()->json(['error' => $license['Message']], 401);
                 }
             }

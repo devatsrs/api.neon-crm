@@ -42,13 +42,9 @@ private $validlicense;
 	public function __construct(Request $request){ 
         $this->middleware('jwt.auth');
         Parent::__Construct($request);
-		$this->validlicense = TicketsTable::CheckTicketLicense();
     }
 	 
-	 protected function IsValidLicense(){
-	 	return $this->validlicense;		
-	 }
-	  
+
 	  function GetResult(){ 
 		   $data 					= 	Input::all(); 
 		   $CompanyID 				= 	User::get_companyID(); 
@@ -107,14 +103,13 @@ private $validlicense;
 	  }
 	  
 	  function Store(){
-	    $this->IsValidLicense();
-		$data 			= 	Input::all(); 
+		$data 			= 	Input::all();
 		$CompanyID 		= 	User::get_companyID();
 
 		  if(!isset($data['Ticket'])){
 			return generateResponse("Please submit required fields.",true);
 		}
-		
+		//Log::info(print_r($data,true)); exit;
 		
 		//$RulesMessages      = 	TicketsTable::GetAgentSubmitRules();       
 		if(isset($data['LoginType']) && $data['LoginType']=='customer'){
@@ -132,7 +127,7 @@ private $validlicense;
 		 if (isset($data['file']) && !empty($data['file'])) {
             $files = serialize(json_decode($data['file'],true));
         }
-
+			
 		    $Ticketfields      =  $data['Ticket'];
 			
 			if (strpos($Ticketfields['default_requester'], '<') !== false && strpos($Ticketfields['default_requester'], '>') !== false)
@@ -188,6 +183,7 @@ private $validlicense;
 					"CompanyID"=>$CompanyID,
 					"Requester"=>$RequesterEmail,
 					"RequesterName"=>$RequesterName,
+					"AccountID"=>$data['TicketAccount'],
 					"RequesterCC"=>isset($Ticketfields['cc'])?$Ticketfields['cc']:'',
 					"Subject"=>isset($Ticketfields['default_subject'])?$Ticketfields['default_subject']:'',
 					"Type"=>isset($Ticketfields['default_ticket_type'])?$Ticketfields['default_ticket_type']:0,
@@ -201,7 +197,10 @@ private $validlicense;
 				);
 			}
 			unset($Ticketfields['cc']);
-			$TicketData = array_merge($TicketData,$MatchArray);
+			if(!isset($TicketData['AccountID']))
+			{
+				$TicketData = array_merge($TicketData,$MatchArray);
+			}
 			
 			try{
  			    DB::beginTransaction();
@@ -237,17 +236,17 @@ private $validlicense;
 				 }else{
 				 	return generateResponse($logID['message'], true, true);
 				 }*/
-				 
-				 if(isset($Ticketfields['default_group']) && $Ticketfields['default_group']>0){				 
-			  	  $TicketEmails 	=  new TicketEmails(array("TicketID"=>$TicketID,"TriggerType"=>array("AgentAssignedGroup")));					
+
+				 if(isset($Ticketfields['default_group']) && $Ticketfields['default_group']>0){
+			  	  $TicketEmails 	=  new TicketEmails(array("TicketID"=>$TicketID,"TriggerType"=>array("AgentAssignedGroup")));
 				 }
-			
+
 				 if(isset($Ticketfields['default_agent']) && $Ticketfields['default_agent']>0){
-				 	 $TicketEmails 	=  new TicketEmails(array("TicketID"=>$TicketID,"TriggerType"=>array("TicketAssignedtoAgent")));					
-				 }				 
+				 	 $TicketEmails 	=  new TicketEmails(array("TicketID"=>$TicketID,"TriggerType"=>array("TicketAssignedtoAgent")));
+				 }
 				  $TicketEmails 	=  new TicketEmails(array("TicketID"=>$TicketID,"TriggerType"=>array("RequesterNewTicketCreated")));
 				  $TicketEmails 	=  new TicketEmails(array("TicketID"=>$TicketID,"TriggerType"=>"CCNewTicketCreated"));
-				  
+
 				 TicketsTable::CheckTicketStatus('',isset($Ticketfields['default_status'])?$Ticketfields['default_status']:TicketsTable::getDefaultStatus(),$TicketID);
 				 DB::commit();
 				try {
@@ -299,7 +298,6 @@ private $validlicense;
 	  
 	public function Edit($id)
 	{
-		$this->IsValidLicense();
 		$post_data = Input::all();
 	    if($id > 0)
 		{	
@@ -339,7 +337,6 @@ private $validlicense;
 	}
 	  
 	  function Update($id){
-		$this->IsValidLicense();
 
 		$TicketID = $id;
 		$CompanyID 				= 	User::get_companyID();
@@ -454,8 +451,8 @@ private $validlicense;
 	
 	 function UpdateDetailPage($id){
 	  
-	    $this->IsValidLicense();
-		$data 			= 	Input::all();  
+
+		$data 			= 	Input::all();
 		$ticketdata		=	 TicketsTable::find($id);
 		$TicketID 		= $id;
 	    if($ticketdata)
@@ -672,8 +669,8 @@ private $validlicense;
 
 	function UpdateTicketAttributes($id)
 	{
-		 $this->IsValidLicense();
-		 $data 	= 	Input::all();   
+
+		 $data 	= 	Input::all();
 		 if($id)
 		 {
 			   $ticketdata		=	 TicketsTable::find($id);
@@ -722,8 +719,8 @@ private $validlicense;
 	}
 	
 	function ActionSubmit($id){
-		 $this->IsValidLicense();
-		 $data    =  Input::all(); 
+
+		 $data    =  Input::all();
 		if($id)
 		{
 			$ticketdata		=	 TicketsTable::find($id);
@@ -809,9 +806,9 @@ private $validlicense;
 						}
 						
 						$ticketdataAll		=	 TicketsTable::find($id);
-						if($ticketdata->Agent==User::get_userID()){
+						//if($ticketdata->Agent==User::get_userID()){ //removed as mam said
 							$ticketdataAll->update(["AgentRepliedDate"=>date('Y-m-d H:i:s')]);
-						}
+						//}
 						
 						 DB::commit();	
 						return generateResponse("Successfully Updated");
@@ -830,8 +827,8 @@ private $validlicense;
 	}
 	
 	public function CustomerActionSubmit($id){
-		 $this->IsValidLicense();
-		 $data    =  Input::all();  
+
+		 $data    =  Input::all();
 		if($id)
 		{
 			$ticketdata		=	 TicketsTable::find($id);
@@ -938,12 +935,16 @@ private $validlicense;
 	
 	function CloseTicket($ticketID)
 	{
-		$Ticketdata 	=   TicketsTable::find($ticketID);					
+		$Ticketdata 	=   TicketsTable::find($ticketID);		
+		$data 			= 	Input::all(); 
+		
 		if($Ticketdata)
 		{ 	 $CloseStatus =  TicketsTable::getClosedTicketStatus(); 
 			 $Ticketdata->update(array("Status"=>$CloseStatus));	
 			// return Response::json(array("status" => "success", "message" => "Ticket Successfully Closed.","close_id"=>$CloseStatus)); 	
-			$TicketEmails 	=  new TicketEmails(array("TicketID"=>$ticketID,"TriggerType"=>"AgentClosestheTicket"));
+			if(isset($data['isSendEmail']) && $data['isSendEmail']>0){ 
+				$TicketEmails 	=  new TicketEmails(array("TicketID"=>$ticketID,"TriggerType"=>"AgentClosestheTicket"));
+			}
 			 return generateResponse('Ticket Successfully Closed');
 			 //return generateResponse("Ticket Successfully Closed");
 		}
@@ -953,7 +954,7 @@ private $validlicense;
 	
 	function SendMailTicket(){
 
-	    $this->IsValidLicense();
+
 		$data 			= 	Input::all();
 		$CompanyID 					 = 		User::get_companyID();
 
@@ -1102,8 +1103,8 @@ private $validlicense;
 	}
 	
 	function add_note(){
-		$this->IsValidLicense();
-		$data 			= 	Input::all();  
+
+		$data 			= 	Input::all();
 		
 		 $rules = array(
 				'TicketID' =>'required',
