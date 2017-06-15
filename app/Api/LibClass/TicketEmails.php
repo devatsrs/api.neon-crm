@@ -33,7 +33,7 @@ class TicketEmails{
 	protected $CompanyID;
 	protected $Comment;
 	protected $NoteUser;
-	
+	protected $EmailSenderFrom;
 
 	 public function __construct($data = array()){
 		 foreach($data as $key => $value){
@@ -79,7 +79,19 @@ class TicketEmails{
 			$replace_array['Requester'] 		 = 		$Ticketdata->Requester;
 			
 			if($Ticketdata->AccountID){
-				$replace_array['RequesterName'] 	 = 		Account::where(["AccountID"=>$Ticketdata->AccountID])->pluck("AccountName");
+				$AccountData						 =		Account::where("AccountID",$Ticketdata->AccountID)->select(['AccountName','FirstName','LastName','Email','Address1','Address2','Address3','City','PostCode','Country'])->first();
+				$replace_array['RequesterName'] 	    = 	$AccountData->AccountName;
+				$replace_array['AccountName']			=	$AccountData->AccountName;
+				$replace_array['FirstName']				=	$AccountData->FirstName;
+				$replace_array['LastName']				=	$AccountData->LastName;
+				$replace_array['Email']					=	$AccountData->Email;
+				$replace_array['Address1']				=	$AccountData->Address1;
+				$replace_array['Address2']				=	$AccountData->Address2;
+				$replace_array['Address3']				=	$AccountData->Address3;
+				$replace_array['City']					=	$AccountData->City;
+
+				$replace_array['PostCode']				=	$AccountData->PostCode;
+				$replace_array['Country']				=	$AccountData->Country;
 			}
 			else if($Ticketdata->ContactID){
 				$contactData						 =		Contact::where("ContactID",$Ticketdata->ContactID)->select(['FirstName','LastName'])->first();
@@ -126,6 +138,16 @@ class TicketEmails{
 			'{{TicketID}}',
 			'{{Requester}}',
 			'{{RequesterName}}',
+			'{{AccountName}}',
+			'{{FirstName}}',
+			'{{LastName}}',
+			'{{Email}}',
+			'{{Address1}}',
+			'{{Address2}}',
+			'{{Address3}}',
+			'{{City}}',
+			'{{PostCode}}',
+			'{{Country}}',
 			'{{Status}}',
 			'{{Priority}}',
 			'{{Description}}',
@@ -169,14 +191,14 @@ class TicketEmails{
 			$array_data['CompanyName']					=   	$CompanyData->CompanyName;
 			$array_data['CompanyVAT']					=   	$CompanyData->VAT;			
 			$array_data['CompanyAddress1']				=   	$CompanyData->Address1;
-			$array_data['CompanyAddress2']				=   	$CompanyData->Address1;
-			$array_data['CompanyAddress3']				=   	$CompanyData->Address1;
+			$array_data['CompanyAddress2']				=   	$CompanyData->Address2;
+			$array_data['CompanyAddress3']				=   	$CompanyData->Address3;
 			$array_data['CompanyCity']					=   	$CompanyData->City;
 			$array_data['CompanyPostCode']				=   	$CompanyData->PostCode;
 			$array_data['CompanyCountry']				=   	$CompanyData->Country;
 			$array_data['TicketUrl']					=   	$site_url."/tickets/".$this->TicketID."/detail";	
 			$array_data['TicketCustomerUrl']			=   	$site_url."/customer/tickets/".$this->TicketID."/detail";	
-			$array_data['Group']						=   	$this->Group->GroupName;
+			$array_data['Group']						=   	isset($this->Group->GroupName)?$this->Group->GroupName:'';
 			$array_data['AgentName']					=   	isset($this->Agent->FirstName)?$this->Agent->FirstName.' '.$this->Agent->LastName:"";
 			$array_data['AgentEmail']					=   	isset($this->Agent->EmailAddress)?$this->Agent->EmailAddress:"";		
 			return array_merge($array_data,$array);
@@ -573,7 +595,49 @@ class TicketEmails{
 		}		
 		return true;
 	}
-	
+
+	/* Ticket New Email */
+	protected function CCEmailTicketCreated(){
+
+		$emailto					=		array();
+		$this->slug					=		"CCEmailTicketCreated";
+		/*
+		if(!$this->CheckBasicRequirments())
+		{
+			return $this->Error;
+		}
+		*/
+		//log::info(print_r($this->TicketData,true));
+		if(isset($this->TicketData->Requester) && !empty($this->TicketData->Requester)){
+			$emailto = explode(",",$this->TicketData->Requester);
+		}else{
+			return;
+		}
+		log::info("--email to--");
+		//log::info(print_r($emailto,true));
+		$CompanyID = User::get_companyID();
+		$CompanyName = Company::getName($CompanyID);
+
+		if(count($emailto)>0){
+			$replace_array				= 		$this->ReplaceArray($this->TicketData);
+			$finalBody 					= 		$this->template_var_replace($this->TicketData->Description,$replace_array);
+			$finalSubject				= 		$this->template_var_replace($this->TicketData->Subject,$replace_array);
+			$emailData['Subject']		=		$finalSubject;
+			$emailData['Message'] 		= 		$finalBody;
+			$emailData['CompanyID'] 	= 		User::get_companyID();
+			$emailData['EmailTo'] 		= 		$emailto;
+			$emailData['EmailFrom'] 	= 		$this->EmailSenderFrom;
+			$emailData['CompanyName'] 	= 		isset($this->Group->GroupName)? $this->Group->GroupName:$CompanyName ;
+			$emailData['AddReplyTo'] 	= 		isset($this->Group->GroupReplyAddress)?$this->Group->GroupReplyAddress:$this->EmailSenderFrom;
+			$emailData['TicketID'] 		= 		$this->TicketID;
+			$status 					= 		sendMail($finalBody,$emailData,0);
+			if($status['status']){
+				//email_log_data_Ticket($emailData,'',$status);
+			}else{
+				$this->SetError($status['message']);
+			}
+		}
+	}
 	
 }
 ?>
