@@ -626,6 +626,10 @@ class TicketEmails{
 			$emailData['Message'] 		= 		$finalBody;
 			$emailData['CompanyID'] 	= 		User::get_companyID();
 			$emailData['EmailTo'] 		= 		$emailto;
+			if(isset($this->TicketData->RequesterCC) && !empty($this->TicketData->RequesterCC)){
+				$emailcc = explode(",",$this->TicketData->RequesterCC);
+				$emailData['cc'] 		= 		$emailcc;
+			}
 			$emailData['EmailFrom'] 	= 		$this->EmailSenderFrom;
 			$emailData['CompanyName'] 	= 		isset($this->Group->GroupName)? $this->Group->GroupName:$CompanyName ;
 			$emailData['AddReplyTo'] 	= 		isset($this->Group->GroupReplyAddress)?$this->Group->GroupReplyAddress:$this->EmailSenderFrom;
