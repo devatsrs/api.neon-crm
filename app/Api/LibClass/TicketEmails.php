@@ -15,6 +15,7 @@ use Api\Model\TicketGroupAgents;
 use Api\Model\Contact;
 use Api\Model\Note;
 use Api\Model\CompanyConfiguration;
+use Api\Model\Currency;
 
 
 class TicketEmails{
@@ -92,6 +93,8 @@ class TicketEmails{
 
 				$replace_array['PostCode']				=	$AccountData->PostCode;
 				$replace_array['Country']				=	$AccountData->Country;
+				$array['Currency']						=	 Currency::getCurrencyCode($AccountData->CurrencyId);
+				$array['CurrencySign']					=	 Currency::getCurrencySymbol($AccountData->CurrencyId);
 			}
 			else if($Ticketdata->ContactID){
 				$contactData						 =		Contact::where("ContactID",$Ticketdata->ContactID)->select(['FirstName','LastName'])->first();
@@ -148,6 +151,8 @@ class TicketEmails{
 			'{{City}}',
 			'{{PostCode}}',
 			'{{Country}}',
+			'{{Currency}}',
+			'{{CurrencySign}}',
 			'{{Status}}',
 			'{{Priority}}',
 			'{{Description}}',
