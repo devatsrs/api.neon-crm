@@ -1064,6 +1064,7 @@ private $validlicense;
 				log::info("--Ticket log --");
 
                 TicketLog::AddLog($TicketID,($data['LoginType']=='user')?0:1);
+                TicketLog::updateEmailLog($TicketID,($data['LoginType']=='user')?0:1,$Ticketfields['default_status']);
 
 				log::info("--Ticket log over --");
 				//create contact if email not found in system
