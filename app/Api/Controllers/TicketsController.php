@@ -1116,14 +1116,12 @@ private $validlicense;
 				*/
 				 DB::commit();
 
-				/* comment ticket assign section
 				try {
 					TicketSla::assignSlaToTicket($CompanyID,$TicketID);
 				} catch (Exception $ex) {
 					Log::info("fail TicketSla::assignSlaToTicket");
 					Log::info($ex);
 				}
-				*/
 				 return generateResponse('Ticket Successfully Created');
       		 }catch (Exception $ex){ 	
 			      DB::rollback();
