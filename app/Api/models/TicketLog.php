@@ -37,4 +37,26 @@ class TicketLog extends \Eloquent
         TicketLog::insert($data);
     }
 
+    public static function updateEmailLog($TicketID,$isCustomer = 0,$status){
+        if($isCustomer == 1){
+            $UserID = 0;
+            $AccountID = User::get_userID();
+        }else {
+            $UserID = User::get_userID();
+            $AccountID = 0;
+        }
+        $CompanyID = User::get_companyID();
+        $FieldsID = TicketfieldsValues::where(['ValuesID'=>$status])->pluck('FieldsID');
+        $TicketFieldValueFromID = 0;
+        $data = ['UserID' => $UserID,
+            'AccountID' => $AccountID,
+            'CompanyID' => $CompanyID,
+            'TicketID' => $TicketID,
+            'TicketFieldID' => $FieldsID,
+            'TicketFieldValueFromID' => $TicketFieldValueFromID,
+			'TicketFieldValueToID' => $status,
+            'created_at' => date("Y-m-d H:i:s")];
+        TicketLog::insert($data);
+    }
+
 }
