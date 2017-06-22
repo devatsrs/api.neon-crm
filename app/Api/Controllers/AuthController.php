@@ -76,7 +76,8 @@ class AuthController extends BaseController
         site_configration_cache($request);
 
         // all good so return the token
-        return response()->json(compact('token'));
+        return \Dingo\Api\Facade\API::response()->array(compact('token'))->statusCode(200);
+
     }
 
     public function validateToken(){

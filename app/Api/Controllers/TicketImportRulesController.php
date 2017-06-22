@@ -85,19 +85,19 @@ class TicketImportRulesController extends BaseController {
 					$condition = $data['condition'];
 					
 					foreach($condition as $key => $ConditionData)
-					{	   
-						$conditionDbData  = TicketImportRuleConditionType::find($ConditionData['rule_condition']);
-						if(in_array($conditionDbData->Condition,TicketImportRuleConditionType::$DifferentCondtionsArray))
-						{
-							$operandCondition 	= 	$ConditionData['rule_match_sp']; 							
-							$operandValue	  	= 	implode(",",$ConditionData['condition_value']);
+					{
+						$operandCondition = $operandValue = "";
+						if($ConditionData['rule_condition'] > 0 ) {
+							$conditionDbData = TicketImportRuleConditionType::find($ConditionData['rule_condition']);
+							if (in_array($conditionDbData->Condition, TicketImportRuleConditionType::$DifferentCondtionsArray)) {
+								$operandCondition = $ConditionData['rule_match_sp'];
+								$operandValue = implode(",", $ConditionData['condition_value']);
+							} else {
+								$operandCondition = $ConditionData['rule_match_all'];
+								$operandValue = $ConditionData['condition_value'];
+							}
+
 						}
-						else
-						{
-							$operandCondition 	= 	$ConditionData['rule_match_all'];
-							$operandValue	  	= 	$ConditionData['condition_value'];
-						}
-						
 						 $SaveConditionData = array(
 							 "TicketImportRuleID"=>$ID,
 							 "TicketImportRuleConditionTypeID"=>$ConditionData['rule_condition'],
@@ -105,31 +105,52 @@ class TicketImportRulesController extends BaseController {
 							 "Value"=>$operandValue,
 							 "Order"=>$ConditionData['condition_order']						
 						 );
-						 
+
+
+						$rules = array(
+							'TicketImportRuleID' =>   'required',
+							'TicketImportRuleConditionTypeID' =>   'required',
+							'Operand' =>   'required',
+							'Order' =>   'required',
+						);
+						if (Validator::make($data,$rules)->fails()) {
+							return generateResponse($validator->errors(),true);
+						}
+
 						TicketImportRuleCondition::create($SaveConditionData);						
 					}
 					
 					//saving rules
 					$rule = $data['rule'];
 					foreach($rule as $key => $RuleData)
-					{	 
-						$RuleDbData  = TicketImportRuleActionType::find($RuleData['rule_action']);
-						if(TicketImportRuleActionType::$ActionArrayValue[$RuleDbData->Action]=='skip')
-						{
-							$Value	  	= 	'';							
+					{
+						$Value = "";
+
+						if($RuleData['rule_action'] > 0) {
+							$RuleDbData = TicketImportRuleActionType::find($RuleData['rule_action']);
+							if (TicketImportRuleActionType::$ActionArrayValue[$RuleDbData->Action] == 'skip') {
+								$Value = '';
+							} else {
+								$Value = implode(",", $RuleData['action_value']);
+							}
 						}
-						else
-						{
-							$Value	  	= 	implode(",",$RuleData['action_value']);							
-						}
-						
 						 $SaveRuleData = array(
 							 "TicketImportRuleID"=>$ID,
 							 "TicketImportRuleActionTypeID"=>$RuleData['rule_action'],
 							 "Value"=>$Value,
 							 "Order"=>$RuleData['action_order']					
 						 );
-						 
+
+
+						$rules = array(
+							'TicketImportRuleID' =>   'required',
+							'TicketImportRuleActionTypeID' =>   'required',
+							'Value' =>   'required',
+							'Order' =>   'required',
+						);
+						if (Validator::make($data,$rules)->fails()) {
+							return generateResponse($validator->errors(),true);
+						}
 						TicketImportRuleAction::create($SaveRuleData);						
 					}					
 			 }
@@ -181,57 +202,78 @@ class TicketImportRulesController extends BaseController {
 				//saving conditions
 					
 				$condition = $data['condition'];
-					
-				foreach($condition as $key => $ConditionData)
-				{	   
-					$conditionDbData  = TicketImportRuleConditionType::find($ConditionData['rule_condition']);
-					if(in_array($conditionDbData->Condition,TicketImportRuleConditionType::$DifferentCondtionsArray))
-					{
-						$operandCondition 	= 	$ConditionData['rule_match_sp']; 							
-						$operandValue	  	= 	implode(",",$ConditionData['condition_value']);
-					}
-					else
-					{
-						$operandCondition 	= 	$ConditionData['rule_match_all'];
-						$operandValue	  	= 	$ConditionData['condition_value'];
-					}
-					
+
+				 foreach($condition as $key => $ConditionData)
+				 {
+					 $operandCondition = $operandValue = "";
+					 if($ConditionData['rule_condition'] > 0 ) {
+						 $conditionDbData = TicketImportRuleConditionType::find($ConditionData['rule_condition']);
+						 if (in_array($conditionDbData->Condition, TicketImportRuleConditionType::$DifferentCondtionsArray)) {
+							 $operandCondition = $ConditionData['rule_match_sp'];
+							 $operandValue = implode(",", $ConditionData['condition_value']);
+						 } else {
+							 $operandCondition = $ConditionData['rule_match_all'];
+							 $operandValue = $ConditionData['condition_value'];
+						 }
+
+					 }
 					 $SaveConditionData = array(
 						 "TicketImportRuleID"=>$id,
 						 "TicketImportRuleConditionTypeID"=>$ConditionData['rule_condition'],
 						 "Operand"=>$operandCondition,
 						 "Value"=>$operandValue,
-						 "Order"=>$ConditionData['condition_order']							
+						 "Order"=>$ConditionData['condition_order']
 					 );
-					 
-					TicketImportRuleCondition::create($SaveConditionData);						
-				}
+
+
+					 $rules = array(
+						 'TicketImportRuleID' =>   'required',
+						 'TicketImportRuleConditionTypeID' =>   'required',
+						 'Operand' =>   'required',
+						 'Order' =>   'required',
+					 );
+					 if (Validator::make($data,$rules)->fails()) {
+						 return generateResponse($validator->errors(),true);
+					 }
+
+					 TicketImportRuleCondition::create($SaveConditionData);
+				 }
 				
 				TicketImportRuleAction::where(['TicketImportRuleID'=>$id])->delete(); //delete old
 				
 				//saving rules
 				$rule = $data['rule'];
-				foreach($rule as $key => $RuleData)
-				{	 
-					$RuleDbData  = TicketImportRuleActionType::find($RuleData['rule_action']);
-					if(TicketImportRuleActionType::$ActionArrayValue[$RuleDbData->Action]=='skip')
-					{
-						$Value	  	= 	'';							
-					}
-					else
-					{
-						$Value	  	= 	implode(",",$RuleData['action_value']);							
-					}
-					
+				 foreach($rule as $key => $RuleData)
+				 {
+					 $Value = "";
+
+					 if($RuleData['rule_action'] > 0) {
+						 $RuleDbData = TicketImportRuleActionType::find($RuleData['rule_action']);
+						 if (TicketImportRuleActionType::$ActionArrayValue[$RuleDbData->Action] == 'skip') {
+							 $Value = '';
+						 } else {
+							 $Value = implode(",", $RuleData['action_value']);
+						 }
+					 }
 					 $SaveRuleData = array(
 						 "TicketImportRuleID"=>$id,
 						 "TicketImportRuleActionTypeID"=>$RuleData['rule_action'],
 						 "Value"=>$Value,
-						 "Order"=>$RuleData['action_order']							
+						 "Order"=>$RuleData['action_order']
 					 );
-					 
-					TicketImportRuleAction::create($SaveRuleData);						
-				}								
+
+
+					 $rules = array(
+						 'TicketImportRuleID' =>   'required',
+						 'TicketImportRuleActionTypeID' =>   'required',
+						 'Value' =>   'required',
+						 'Order' =>   'required',
+					 );
+					 if (Validator::make($data,$rules)->fails()) {
+						 return generateResponse($validator->errors(),true);
+					 }
+					 TicketImportRuleAction::create($SaveRuleData);
+				 }
 		 }
 			 
 			 DB::commit();

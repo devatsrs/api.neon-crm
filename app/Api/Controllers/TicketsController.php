@@ -955,13 +955,13 @@ private $validlicense;
 	function SendMailTicket(){
 
 
-		$data 			= 	Input::all();
-		$CompanyID 					 = 		User::get_companyID();
+		$data =	Input::all();
+		$CompanyID = User::get_companyID();
 
 		if(!isset($data['Ticket'])){
 			return generateResponse("Please submit required fields.",true);
 		}
-		
+
 		//$RulesMessages      = 	TicketsTable::GetAgentSubmitRules();       
 		if(isset($data['LoginType']) && $data['LoginType']=='customer'){
 			$RulesMessages      = 	TicketsTable::GetCustomerSubmitRules();       
@@ -1043,28 +1043,53 @@ private $validlicense;
 			
 			try{
  			    DB::beginTransaction();
+				log::info("--Ticket Data--");
 				$TicketID = TicketsTable::insertGetId($TicketData);
+				log::info("--Ticket Data over -- ".$TicketID);
 
-
+				log::info("--Ticket Filed--");
 
 				foreach($Ticketfields as $key => $TicketfieldsData)
 				{
 					if(!in_array($key,Ticketfields::$staticfields))
 					{
 						$TicketFieldsID =  Ticketfields::where(["FieldType"=>$key])->pluck('TicketFieldsID');
+						log::info("--Ticket New Filed -- ".$TicketFieldsID);
 						TicketsDetails::insert(array("TicketID"=>$TicketID,"FieldID"=>$TicketFieldsID,"FieldValue"=>$TicketfieldsData));
 					}
 				}
 
+				log::info("--Ticket Fileds over--");
+
+				log::info("--Ticket log --");
+
                 TicketLog::AddLog($TicketID,($data['LoginType']=='user')?0:1);
+                TicketLog::updateEmailLog($TicketID,($data['LoginType']=='user')?0:1,$Ticketfields['default_status']);
+
+				log::info("--Ticket log over --");
 				//create contact if email not found in system
+
+				log::info("--Contact log --");
 				$AllEmails  =   Messages::GetAllSystemEmails();
+
+
 				if(!in_array($RequesterEmail,$AllEmails))
 				{
 					$ContactData = array("Email"=>$RequesterEmail,"CompanyId"=>$CompanyID);
+					log::info("--Contact Email -- ".$RequesterEmail);
+					log::info("--Contact CompanyId -- ".$CompanyID);
 					Contact::create($ContactData);
-				}	
-				
+				}
+
+				log::info("--Contact over --");
+
+				/* Ticket Email Send Section */
+				log::info("--Email send --");
+				$TicketEmails 		=  new TicketEmails(array("TicketID"=>$TicketID,"TriggerType"=>"CCEmailTicketCreated","EmailSenderFrom"=>$data['email-from']));
+
+				log::info("--Email over --");
+				/* Ticket Email Send Section over*/
+
 				/*if(count($email_from_data)>0){	
 					 $TicketData['AddReplyTo']	 	  = 	$email_from_data[0]->GroupEmailAddress;				
 					 $TicketData['email_from']	   	  = 	$email_from_data[0]->GroupReplyAddress;
@@ -1083,12 +1108,15 @@ private $validlicense;
 				 }else{
 				 	return generateResponse($logID['message'], true, true);
 				 }*/
+				/* comment ticket assign section
 				 if($Ticketfields['default_group']){
 				 	$TicketEmails 		=  new TicketEmails(array("TicketID"=>$TicketID,"TriggerType"=>array("AgentAssignedGroup")));
 				 }
 				 $TicketEmails1		=  new TicketEmails(array("TicketID"=>$TicketID,"TriggerType"=>array("RequesterNewTicketCreated")));				 
 				 $TicketEmails 		=  new TicketEmails(array("TicketID"=>$TicketID,"TriggerType"=>"CCNewTicketCreated"));
+				*/
 				 DB::commit();
+
 				try {
 					TicketSla::assignSlaToTicket($CompanyID,$TicketID);
 				} catch (Exception $ex) {
