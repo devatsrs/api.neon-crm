@@ -31,41 +31,53 @@ class AuthController extends BaseController
         $UserID = $request->only('LoggedUserID');
 		$LoginType	=	$request->only('LoginType'); 
 			
-        /*Log::info("Authenticate");
+        Log::info("Authenticate");
         Log::info(print_r($license,true));
         Log::info("UserID ". print_r($UserID,true));
         Log::info("credentials ". print_r($credentials,true));
-        Log::info("license ". print_r($license,true));*/
+        Log::info("license ". print_r($license,true));
         try { 
 			 if(!empty($LoginType) && $LoginType['LoginType']=='customer') {
 				//$user = Account::where(['BillingEmail'=>$credentials['LoggedEmailAddress']])->first(); 
-				$user = Account::whereRaw("FIND_IN_SET('".$credentials['LoggedEmailAddress']."',BillingEmail) !=0")->first();   
+				$user = Account::whereRaw(" Status=1 AND FIND_IN_SET('".$credentials['LoggedEmailAddress']."',BillingEmail) !=0")->first();
 				$user->CompanyID = $user->CompanyId;
 				Config::set('auth.providers.users.model', \Api\Model\Customer::class);			   
 				if(!Hash::check($credentials['password'], $user->password)){
+                    Log::info("class AuthController");
+                    Log::info($credentials);
 					return response()->json(['error' => 'invalid_credentials'], 401);
 				 } 
 			 }
 			 else{
 				if(!empty($UserID['LoggedUserID'])){
 					$user = User::find($UserID['LoggedUserID']);
-				}else {
-					$user = User::where(['EmailAddress'=>$credentials['LoggedEmailAddress']])->first();
+                    Log::info(print_r($user,true));
+
+                }else {
+					$user = User::where(['EmailAddress'=>$credentials['LoggedEmailAddress'],'Status'=>1])->first();
 					if(!Hash::check($credentials['password'], $user->password)){
-						return response()->json(['error' => 'invalid_credentials'], 401);
+                        Log::info("class AuthController");
+                        Log::info($credentials);
+                        Log::info("password " . $user->password);
+                        return response()->json(['error' => 'invalid_credentials'], 401);
 					}
 				}
 			 }
+            Log::info(print_r($user,true));
             $token = JWTAuth::fromUser($user);
+            Log::info("Token is here " . $token);
         } catch (JWTException $e) {
             // something went wrong whilst attempting to encode the token
+            Log::info("could_not_create_token ");
             return response()->json(['error' => 'could_not_create_token'], 500);
         }
+        Log::info("here");
         CompanyConfiguration::getConfiguration($user->CompanyID);
         site_configration_cache($request);
 
         // all good so return the token
-        return response()->json(compact('token'));
+        return \Dingo\Api\Facade\API::response()->array(compact('token'))->statusCode(200);
+
     }
 
     public function validateToken(){
@@ -86,6 +98,7 @@ class AuthController extends BaseController
     }
 
     public function logout() {
+        Log::info("Logout fn class AuthController");
         Session::flush();
         Auth::logout();
         //JWTAuth::invalidate(JWTAuth::getToken());

@@ -459,20 +459,7 @@ function site_configration_cache($request){
 }
 
 
-/** Send Amazone url or image data for <img src=
- * @param $path
- * @return string
- */
-function get_image_src($path){
-    $path = \App\AmazonS3::unSignedUrl($path);
-    if(file_exists($path)){
-        if (copy($path, './uploads/' . basename($path))) {
-            $path = URL::to('/') . '/uploads/' . basename($path);
-        }
-        //$path = get_image_data($path);
-    }
-    return $path;
-}
+
 
 
 /** Send logo url
@@ -524,12 +511,13 @@ function call_api($post = array()){
 
     //NVPRequest for submitting to server
     $nvpreq = "json=" . json_encode($post);
-
+    \Illuminate\Support\Facades\Log::info("Licencing request... ");
+    \Illuminate\Support\Facades\Log::info($nvpreq);
     //$nvpreq = http_build_query($post);
 
     ////setting the nvpreq as POST FIELD to curl
     curl_setopt($ch, CURLOPT_POSTFIELDS, $nvpreq);
-
+    \Illuminate\Support\Facades\Log::info(print_r($ch,true));
     //getting response from server
     $response = curl_exec($ch);
     Illuminate\Support\Facades\Log::info($response);

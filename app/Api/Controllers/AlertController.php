@@ -377,7 +377,6 @@ class AlertController extends BaseController
                 $result = DB::select($query . ',1)');
             } else {
                 $query .= ',0)';
-                Log::info($query);
                 $result = DataTableSql::of($query)->make();
             }
             return generateResponse('',false,false,$result);

@@ -2,6 +2,8 @@
 
 namespace Api\Controllers;
 
+use Api\Model\TicketDashboardTimeline;
+use Api\Model\Ticketfields;
 use Dingo\Api\Http\Request;
 use Api\Model\AccountBalance;
 use Api\Model\AccountBalanceHistory;
@@ -31,18 +33,13 @@ private $validlicense;
 	public function __construct(Request $request){ 
         $this->middleware('jwt.auth');
         Parent::__Construct($request);
-		$this->validlicense = TicketsTable::CheckTicketLicense();
-		$data = Input::all();
     }
 	 
-	 protected function IsValidLicense(){
-	 	return $this->validlicense;		
-	 }
-	
-	
+
+
     public function index() {          
-		$this->IsValidLicense();
-		$data 			 		= 	array();	
+
+		$data 			 		= 	array();
 		$EscalationTimes_json 	= 	json_encode(TicketGroups::$EscalationTimes);
         return View::make('ticketgroups.groups', compact('data','EscalationTimes_json'));   
 	  }		
@@ -104,8 +101,8 @@ private $validlicense;
 	  
 	  function Store(){
 		  
-	    $this->IsValidLicense();
-		$data 			= 	Input::all();  
+
+		$data 			= 	Input::all();
         
         $rules = array(
             'GroupName' => 'required|min:2',
@@ -159,8 +156,8 @@ private $validlicense;
 	  
 	  function Update($id){
 		  
-	    $this->IsValidLicense();
-		$data 			= 	Input::all();  
+
+		$data 			= 	Input::all();
 		$TicketGroup	= 	TicketGroups::find($id);
 		$TicketGroupold	= 	TicketGroups::find($id);
         
@@ -297,8 +294,12 @@ private $validlicense;
 		{
                try{
 				   TicketGroupAgents::where(['GroupID'=>$id])->delete();
-				   TicketLog::where(['TicketFieldValueFromID'=>$id])->delete();
-				   TicketLog::where(['TicketFieldValueToID'=>$id])->delete();
+				   //log deleted
+				   TicketLog::where(['TicketFieldValueFromID'=>$id,"TicketFieldID"=>Ticketfields::default_group])->delete();
+				   TicketLog::where(['TicketFieldValueToID'=>$id,"TicketFieldID"=>Ticketfields::default_group])->delete();				   
+				   TicketDashboardTimeline::where(['TicketFieldValueFromID'=>$id,"TicketFieldID"=>Ticketfields::default_group])->delete();
+				   TicketDashboardTimeline::where(['TicketFieldValueToID'=>$id,"TicketFieldID"=>Ticketfields::default_group])->delete();
+				   
 			       TicketGroups::find($id)->delete();
 				   return generateResponse('Ticket Group Successfully Deleted');
                 }catch (Exception $ex){

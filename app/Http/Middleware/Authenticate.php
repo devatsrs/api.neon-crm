@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Contracts\Auth\Guard;
+use Illuminate\Support\Facades\Log;
 
 class Authenticate
 {
@@ -36,6 +37,7 @@ class Authenticate
     {
         if ($this->auth->guest()) {
             if ($request->ajax()) {
+                Log::info("class Authenticate");
                 return response('Unauthorized.', 401);
             } else {
                 return redirect()->guest('auth/login');
