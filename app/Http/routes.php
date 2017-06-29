@@ -190,6 +190,11 @@ $api->version('v1', function ($api) {
             $api->delete('qos_alert/delete/{AlertID}', 'AlertController@Delete');
             $api->get('alert/history', 'AlertController@History');
 
+            // Report
+            $api->post('report/store', 'ReportController@Store');
+            $api->put('report/update/{AlertID}', 'ReportController@Update');
+            $api->delete('report/delete/{AlertID}', 'ReportController@Delete');
+
             // Mailbox Class
             $api->post('email/sendemail', 'MailboxController@sendMail');
 
