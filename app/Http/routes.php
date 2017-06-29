@@ -14,7 +14,6 @@ $api->version('v1', function ($api) {
         $api->post('logout', 'AuthController@logout');
 		$api->post('register', 'AuthController@register');
 		$api->post('l/{id}', 'AuthController@authenticate');
-		$request =$api->getCurrentRequest();
 
        $postdata    =  Input::all(); 
         if(isset($postdata['LoginType']) && $postdata['LoginType']=='customer') { //set customer configuration  
@@ -234,6 +233,8 @@ $api->version('v1', function ($api) {
                 $api->post('tickets/add_note', 'TicketsController@add_note');
                 $api->post('tickets/bulkactions', 'TicketsController@BulkAction');
                 $api->post('tickets/bulkdelete', 'TicketsController@BulkDelete');
+				$api->post('tickets/ticketlog/{id}', 'TicketsController@TicketLogs');
+				
 
                 $api->post('tickets/get_ticket_dashboard_summary', 'TicketDashboard@ticketSummaryWidget');
                 $api->post('tickets/get_ticket_dashboard_timeline_widget', 'TicketDashboard@ticketTimeLineWidget');
@@ -258,6 +259,17 @@ $api->version('v1', function ($api) {
                 $api->post('tickets/businesshours/delete/{id}', 'TicketsBusinessHoursController@delete');
                 $api->post('tickets/businesshours/{id}/edit', 'TicketsBusinessHoursController@edit');
                 $api->post('tickets/businesshours/update/{id}', "TicketsBusinessHoursController@update");
+				
+				
+				$api->post('tickets/importrules', "TicketImportRulesController@index");
+                $api->post('tickets/importrules/{id}/edit', "TicketImportRulesController@index");
+                $api->post('tickets/importrules/ajax_datagrid', "TicketImportRulesController@ajax_datagrid");
+                $api->post('tickets/importrules/exports/{type}', 'TicketImportRulesController@exports');
+                $api->post('tickets/importrules/add', "TicketImportRulesController@add");
+                $api->post('tickets/importrules/store', "TicketImportRulesController@store");
+                $api->post('tickets/importrules/delete/{id}', 'TicketImportRulesController@delete');
+                $api->post('tickets/importrules/edit/{id}', 'TicketImportRulesController@edit');
+                $api->post('tickets/importrules/update/{id}', "TicketImportRulesController@update");
 
     		});
 

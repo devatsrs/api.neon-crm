@@ -351,4 +351,34 @@ class TicketsTable extends \Eloquent
 		return false;
 
 	}
+
+	static function deleteTicket($TicketID) {
+		$Ticket = TicketsTable::find($TicketID);
+		if(!empty($Ticket) && isset($Ticket->TicketID) && $Ticket->TicketID > 0 ) {
+			TicketsDetails::where(["TicketID"=>$TicketID])->delete();
+			TicketLog::where(["TicketID"=>$TicketID])->delete();
+			AccountEmailLog::where(["TicketID"=>$TicketID])->delete();
+			$Ticket->delete();
+			Log::info("TicketDeleted " . $TicketID);
+			return true;
+		}
+		return false;
+	}
+
+	static function setTicketFieldValue($TicketID,$Field,$Value) {
+		$Ticket = TicketsTable::find($TicketID);
+		if(!empty($Ticket) && isset($Ticket->TicketID) && $Ticket->TicketID > 0 ) {
+
+			try{
+				if($Ticket->update([$Field=>$Value])){
+					return true;
+				}
+			} catch (\Exception $ex){
+				Log::info("Error with setTicketValue " );
+				Log::info(print_r($ex,true));
+			}
+		}
+		return false;
+	}
+
 }

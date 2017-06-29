@@ -297,7 +297,7 @@ protected $server;
 	
 	static	function CheckConnection($server,$email,$password){
 		try{
-			imap_open("{".$server."}", $email, $password);
+			imap_open("{".$server."}INBOX", $email, $password);
 			//return true;
 			return array("status"=>1,"error"=>0);
 		} catch (\Exception $e) {
