@@ -268,7 +268,11 @@ private $validlicense;
 			
 			if ($id > 0){           
 				try {
-					$ticketdata = TicketsTable::find($id);
+
+					//$ticketdata = TicketsTable::find($id);
+					$ticketdata_query  =      	"call prc_GetSingleTicket (".$id.")";
+					$ticketdata		   =		DB::select($ticketdata_query);
+
 				} catch (\Exception $e) {
 					Log::info($e);
 					return generateResponse('Ticket not found.',true,true);
