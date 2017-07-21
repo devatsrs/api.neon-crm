@@ -1212,7 +1212,8 @@ private $validlicense;
                 if(isset($update['Status']) && ($update['Status'] != 0) && $data['isSendEmail'] == 1){
                     TicketsTable::CheckTicketStatus($ticket->Status,$update['Status'],$id);
                 }
-                TicketsTable::where(['TicketID'=>$id])->update($update);
+                //TicketsTable::where(['TicketID'=>$id])->update($update);
+				$ticket->update($update);
 				DB::commit();
 				try {
 					$TicketID=$id;
