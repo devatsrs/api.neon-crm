@@ -282,7 +282,7 @@ $api->version('v1', function ($api) {
          * CompanyID
          * GatewayID
          */
-        $api->post('import_account_import_export_logs', "AccountImportExportLogController@get");
+        $api->post('import_account_audit_export_logs', "AccountAuditExportLogController@get");
 
         /**
          * Parameters:

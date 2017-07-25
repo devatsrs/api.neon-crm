@@ -2,12 +2,12 @@
 
 namespace Api\Controllers;
 
-use App\AccountImportExportLog;
-use App\NeonAccountImportExportLog;
+use Api\Models\AccountAuditExportLog;
+//use App\NeonAccountAuditExportLog;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Support\Facades\Log;
 
-class AccountImportExportLogController extends BaseController {
+class AccountAuditExportLogController extends BaseController {
 
     public function __construct() {
 
@@ -16,7 +16,7 @@ class AccountImportExportLogController extends BaseController {
     /** Perameters :
      * CompanyID
      * GatewayID
-     * @return list of accounts from tblAccountImportExportLog
+     * @return list of accounts from tblAccountAuditExportLog
      */
     public function get() {
 
@@ -27,8 +27,9 @@ class AccountImportExportLogController extends BaseController {
 
         // import un processed
         try {
-            $accounts = AccountImportExportLog::importAccountImportExportLogs($CompanyID,$GatewayID);
-            return generateResponse('',false,false,$accounts);
+            $accounts = AccountAuditExportLog::importAccountAuditExportLogs($CompanyID,$GatewayID);
+//            return generateResponse('',false,false,$accounts);
+            return \Dingo\Api\Facade\API::response()->array($accounts)->statusCode(200);
         }catch (\Exception $ex){
             Log::info($ex);
             return generateResponse($ex->getMessage(),true,false,[]);
@@ -47,7 +48,7 @@ class AccountImportExportLogController extends BaseController {
 
         try {
 
-            AccountImportExportLog::mark_processed($CompanyID,$GatewayID,$AccountImportExportLogIDs);
+            AccountAuditExportLog::mark_processed($CompanyID,$GatewayID,$AccountImportExportLogIDs);
             return generateResponse('success',false,false,[]);
 
         }catch (\Exception $ex){
