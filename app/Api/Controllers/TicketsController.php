@@ -268,7 +268,15 @@ private $validlicense;
 			
 			if ($id > 0){           
 				try {
-					$ticketdata = TicketsTable::find($id);
+
+					//$ticketdata = TicketsTable::find($id);
+					$ticketdata_query  =      	"call prc_GetSingleTicket (".$id.")";
+					$ticketdata		   =		DB::select($ticketdata_query);
+					if(isset($ticketdata[0])){
+						$ticketdata = $ticketdata[0];
+					}else {
+						return generateResponse('Ticket not found.',true,true);
+					}
 				} catch (\Exception $e) {
 					Log::info($e);
 					return generateResponse('Ticket not found.',true,true);
@@ -1204,7 +1212,8 @@ private $validlicense;
                 if(isset($update['Status']) && ($update['Status'] != 0) && $data['isSendEmail'] == 1){
                     TicketsTable::CheckTicketStatus($ticket->Status,$update['Status'],$id);
                 }
-                TicketsTable::where(['TicketID'=>$id])->update($update);
+                //TicketsTable::where(['TicketID'=>$id])->update($update);
+				$ticket->update($update);
 				DB::commit();
 				try {
 					$TicketID=$id;
