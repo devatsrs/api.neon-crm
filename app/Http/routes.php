@@ -275,6 +275,25 @@ $api->version('v1', function ($api) {
 
 		});
 
-	});
+
+        // VOS Account Import Export API
+        /**
+         * Parameters:
+         * CompanyID
+         * GatewayID
+         */
+        $api->post('import_account_audit_export_logs', "AccountAuditExportLogController@get");
+
+        /**
+         * Parameters:
+         * CompanyID
+         * GatewayID
+         * AccountImportExportLogIDs - Comma seperated
+         */
+        $api->post('mark_processed', "AccountImportExportLogController@mark_processed");
+
+
+
+    });
 
 });
