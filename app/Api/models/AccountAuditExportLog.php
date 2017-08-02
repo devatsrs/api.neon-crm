@@ -13,19 +13,21 @@ class AccountAuditExportLog extends Model
     protected $guarded = array('AccountAuditExportLogID');
     protected $table = 'tblAccountAuditExportLog';
     protected  $primaryKey = "AccountAuditExportLogID";
+    public $timestamps = false;
 
 
-    public static function importAccountAuditExportLogs($CompanyID,$GatewayID){
+    public static function importAccountAuditExportLogs($CompanyID,$GatewayID) {
 
-        // there will be separate record for each gateway.
-
-        // import un processed
         $audits = DB::select("call prc_getAccountAuditExportLog('".$CompanyID."' , '".$GatewayID."')");
         $data['status'] = 'success';
         $data['message'] = '1';
         $data['AccountAuditExportLogID'] = '';
+        $data['export_time'] = '';
+        $data['start_time'] = '';
+        $data['end_time'] = '';
         $data['data'] = array();
         $vendors = array();
+        $k=0;
         foreach ($audits as $audit) {
             $account = Account::where($audit->ParentColumnName, $audit->ParentColumnID)->select('AccountID','IsCustomer','IsVendor','AccountName');
             if($account->count() > 0) {
@@ -50,6 +52,13 @@ class AccountAuditExportLog extends Model
                 $d['ColumnName'] = $audit->ColumnName;
                 $d['OldValue'] = $audit->OldValue;
                 $d['NewValue'] = $audit->NewValue;
+
+                if($k==1) {
+                    $data['export_time'] = $audit->created_at;
+                    $data['start_time'] = $audit->start_time;
+                    $data['end_time'] = $audit->end_time;
+                }
+                $k++;
                 $data['data'][] = $d;
             }
         }
@@ -63,13 +72,12 @@ class AccountAuditExportLog extends Model
         $accounts[] = ["AccountID" => 1 ,"Type" => "Update" , "AccountName" => "DevTest" , "FieldName" => "Phone",  "OldValue" => "9979907571" , NewValue => "0919979907571" ];
 
         return $accounts;*/
-
     }
 
-    public static function mark_processed($CompanyID,$GatewayID,$AccountImportExportLogIDs) {
 
-        $accounts = DB::select("call prc_AccountImportExportLogMarkProcessed('".$CompanyID."' , '".$GatewayID."', '".$AccountImportExportLogIDs."')");
 
+    public static function markProcessed($CompanyID,$GatewayID,$export_time,$start_time,$end_time) {
+        AccountAuditExportLog::where(["CompanyID"=>$CompanyID,"CompanyGatewayID"=>$GatewayID,"created_at"=>$export_time,"start_time"=>$start_time,"end_time"=>$end_time,"Status"=>0])->update(['Status'=>1]);
     }
 
 }

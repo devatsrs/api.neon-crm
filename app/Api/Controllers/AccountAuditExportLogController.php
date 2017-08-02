@@ -19,9 +19,7 @@ class AccountAuditExportLogController extends BaseController {
      * @return list of accounts from tblAccountAuditExportLog
      */
     public function get() {
-
         $data = Input::all();
-
         $CompanyID = $data['CompanyID'];
         $GatewayID = $data['GatewayID'];
 
@@ -34,28 +32,25 @@ class AccountAuditExportLogController extends BaseController {
             Log::info($ex);
             return generateResponse($ex->getMessage(),true,false,[]);
          }
-
-
     }
 
-    public function mark_processed() {
-
+    public function markProcessed() {
         $data = Input::all();
 
-        $CompanyID = $data['CompanyID'];
-        $GatewayID = $data['GatewayID'];
-        $AccountImportExportLogIDs = $data['AccountImportExportLogIDs'];
-
+        // import un processed
         try {
+            $CompanyID   = $data['CompanyID'];
+            $GatewayID   = $data['GatewayID'];
+            $export_time = $data['export_time'];
+            $start_time  = $data['start_time'];
+            $end_time    = $data['end_time'];
 
-            AccountAuditExportLog::mark_processed($CompanyID,$GatewayID,$AccountImportExportLogIDs);
-            return generateResponse('success',false,false,[]);
-
+            AccountAuditExportLog::markProcessed($CompanyID,$GatewayID,$export_time,$start_time,$end_time);
+            return generateResponse('Marked processed logs successfully!',false,false,[]);
         }catch (\Exception $ex){
             Log::info($ex);
             return generateResponse($ex->getMessage(),true,false,[]);
         }
-
     }
 
 }
