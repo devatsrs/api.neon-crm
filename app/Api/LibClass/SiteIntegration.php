@@ -130,14 +130,14 @@ class SiteIntegration{
       	  break;
 		}	
 	}
-	
+
 
 	/*
 	 * check settings addded or not . return true,data or false
 	 */ 	
-	public static function  CheckIntegrationConfiguration($data=false,$slug){	
+	public static function  CheckIntegrationConfiguration($data=false,$slug,$companyID=0){
 		
-		$companyID		 =	User::get_companyID();
+		$companyID		 =	isset($companyID) && $companyID != 0 ? $companyID : User::get_companyID();
 		$Integration	 =	Integration::where(["CompanyID" => $companyID,"Slug"=>$slug])->first();	
 	
 		if(count($Integration)>0)
