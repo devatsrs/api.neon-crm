@@ -53,7 +53,7 @@ class AccountAuditExportLog extends Model
                 $d['OldValue'] = $audit->OldValue;
                 $d['NewValue'] = $audit->NewValue;
 
-                if($k==1) {
+                if($k==0) {
                     $data['export_time'] = $audit->created_at;
                     $data['start_time'] = $audit->start_time;
                     $data['end_time'] = $audit->end_time;
