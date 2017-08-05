@@ -95,9 +95,9 @@ class PHPMAILERIntegtration{
 		$mail =  self::add_email_address($mail,$data,'cc');
 		$mail =  self::add_email_address($mail,$data,'bcc');
 		
-		if(SiteIntegration::CheckIntegrationConfiguration(false,SiteIntegration::$imapSlug))
+		if(SiteIntegration::CheckIntegrationConfiguration(false,SiteIntegration::$imapSlug,$companyID))
 		{
-			$ImapData =  SiteIntegration::CheckIntegrationConfiguration(true,SiteIntegration::$imapSlug);
+			$ImapData =  SiteIntegration::CheckIntegrationConfiguration(true,SiteIntegration::$imapSlug,$companyID);
 			
 			$mail->AddReplyTo($ImapData->EmailTrackingEmail, $FromName);
 		}

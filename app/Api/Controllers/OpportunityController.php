@@ -195,6 +195,7 @@ class OpportunityController extends BaseController {
         $data['Worth']    = !empty($data['Worth'])?$data['Worth']:0;
         $data ["CompanyID"] = $companyID;
         $rules = array(
+            'UserID' => 'required',
             'CompanyID' => 'required',
             'OpportunityName' => 'required',
             'Company'=>'required',
@@ -205,6 +206,7 @@ class OpportunityController extends BaseController {
             'BoardID'=>'required'
         );
         $messages = array(
+            'UserID.required' => 'Account Owner field is required.',
             'BoardID.required' => 'Opportunity Board field is required.',
         );
 
@@ -308,6 +310,7 @@ class OpportunityController extends BaseController {
 			$TaskBoardUrl=	'';
             
 			$rules = array(
+                'UserID' => 'required',
                 'CompanyID' => 'required',
                 'OpportunityName' => 'required',
                 'Company'=>'required',
@@ -319,6 +322,7 @@ class OpportunityController extends BaseController {
             ); 
 			
 		 $messages = array(
+                'UserID.required' => 'Account Owner field is required.',
                 'BoardID.required' => 'Opportunity Board field is required.'
             );
 			

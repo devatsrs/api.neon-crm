@@ -51,7 +51,10 @@ function sendMail($view,$data,$ViewType=1)
 		$body  = $view;
 	}
 
-	if(\App\SiteIntegration::CheckCategoryConfiguration(false,\App\SiteIntegration::$EmailSlug)){
+    if(isset($data['isAPI']) && $data['isAPI'] == 1){
+        $config = \Api\Model\Company::select('SMTPServer','SMTPUsername','CompanyName','SMTPPassword','Port','IsSSL','EmailFrom')->where("CompanyID", '=', $companyID)->first();
+        $status = 	 \App\PHPMAILERIntegtration::SendMail($view,$data,$config,$companyID,$body);
+    }else if(\App\SiteIntegration::CheckCategoryConfiguration(false,\App\SiteIntegration::$EmailSlug)){
 		$status = 	 \App\SiteIntegration::SendMail($view,$data,$companyID,$body);		
 	}
 	else{
@@ -459,7 +462,21 @@ function site_configration_cache($request){
 }
 
 
-
+/** Send Amazone url or image data for <img src=
+ * @param $path
+ * @return string
+ */
+// not in use - this is wrong way
+function get_image_src($path){
+    $path = \App\AmazonS3::unSignedUrl($path);
+    if(file_exists($path)){
+        if (copy($path, './uploads/' . basename($path))) {
+            $path = URL::to('/') . '/uploads/' . basename($path);
+        }
+        //$path = get_image_data($path);
+    }
+    return $path;
+}
 
 
 /** Send logo url
