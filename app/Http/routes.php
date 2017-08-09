@@ -298,16 +298,13 @@ $api->version('v1', function ($api) {
          */
         $api->post('mark_processed_audit_export_logs', "AccountAuditExportLogController@markProcessed");
 
+        // VOS AccountIP Audit Export API
         /**
          * Parameters:
          * CompanyID
          * GatewayID
-         * AccountImportExportLogIDs - Comma seperated
          */
-        $api->post('mark_processed', "AccountImportExportLogController@mark_processed");
-
-
-
+        $api->post('import_accountip_audit_export_logs', "AccountAuditExportLogController@getAccountIPAuditLogs");
     });
 
 });

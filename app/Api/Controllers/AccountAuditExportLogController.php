@@ -39,15 +39,16 @@ class AccountAuditExportLogController extends BaseController {
 
         // import un processed
         try {
+            $Type               = $data['Type'];
             $CompanyID          = $data['CompanyID'];
             $GatewayID          = $data['GatewayID'];
             $export_time        = $data['export_time'];
             $start_time         = $data['start_time'];
             $end_time           = $data['end_time'];
-            $updated_vendor     = $data['updated_vendor'];
-            $updated_customer   = $data['updated_customer'];
-            $inserted_vendor    = $data['inserted_vendor'];
-            $inserted_customer  = $data['inserted_customer'];
+            $updated_vendor     = isset($data['updated_vendor']) ? $data['updated_vendor'] : 0;
+            $updated_customer   = isset($data['updated_customer']) ? $data['updated_customer'] : 0;
+            $inserted_vendor    = isset($data['inserted_vendor']) ? $data['inserted_vendor'] : 0;
+            $inserted_customer  = isset($data['inserted_customer']) ? $data['inserted_customer'] : 0;
 
             $email_data['isAPI']	        = 	1;
             $email_data['companyID']	    = 	$CompanyID;
@@ -59,15 +60,40 @@ class AccountAuditExportLogController extends BaseController {
             $email_data['Message']  	    = 	"CompanyID : ".$CompanyID."<br/>";
             $email_data['Message']  	   .= 	"GatewaiID : ".$GatewayID."<br/>";
             $email_data['Message']  	   .= 	"Export Time : ".$export_time."<br/>";
-            $email_data['Message']  	   .= 	"Customers Inserted : ".$inserted_customer."<br/>";
-            $email_data['Message']  	   .= 	"Customers Updated : ".$updated_customer."<br/>";
-            $email_data['Message']  	   .= 	"Vendors Inserted : ".$inserted_vendor."<br/>";
-            $email_data['Message']  	   .= 	"Vendors Updated : ".$updated_vendor."<br/>";
+
+            if($Type == 'account') {
+                $email_data['Message'] .= "Customers Inserted : " . $inserted_customer . "<br/>";
+                $email_data['Message'] .= "Customers Updated : " . $updated_customer . "<br/>";
+                $email_data['Message'] .= "Vendors Inserted : " . $inserted_vendor . "<br/>";
+                $email_data['Message'] .= "Vendors Updated : " . $updated_vendor . "<br/>";
+            } else if($Type == 'IP') {
+                $email_data['Message'] .= "Customer IP Updated : " . $updated_customer . "<br/>";
+                $email_data['Message'] .= "Vendors IP Updated : " . $updated_vendor . "<br/>";
+            }
 
             $status = sendMail('emails.template', $email_data);
 
             AccountAuditExportLog::markProcessed($CompanyID,$GatewayID,$export_time,$start_time,$end_time);
             return generateResponse('Marked processed logs successfully!',false,false,[]);
+        }catch (\Exception $ex){
+            Log::info($ex);
+            return generateResponse($ex->getMessage(),true,false,[]);
+        }
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getAccountIPAuditLogs() {
+        $data = Input::all();
+        $CompanyID = $data['CompanyID'];
+        $GatewayID = $data['GatewayID'];
+
+        // import un processed
+        try {
+            $accountips = AccountAuditExportLog::importAccountIPAuditExportLogs($CompanyID,$GatewayID);
+//            return generateResponse('',false,false,$accounts);
+            return \Dingo\Api\Facade\API::response()->array($accountips)->statusCode(200);
         }catch (\Exception $ex){
             Log::info($ex);
             return generateResponse($ex->getMessage(),true,false,[]);
