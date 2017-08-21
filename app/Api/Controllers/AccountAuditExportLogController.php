@@ -81,6 +81,53 @@ class AccountAuditExportLogController extends BaseController {
         }
     }
 
+    public function markProcessedIP() {
+        $data = Input::all();
+
+        // import un processed
+        try {
+            $Type                   = $data['Type'];
+            $CompanyID              = $data['CompanyID'];
+            $GatewayID              = $data['GatewayID'];
+            $export_time            = $data['export_time'];
+            $start_time             = $data['start_time'];
+            $end_time               = $data['end_time'];
+            $updated_vendorip       = isset($data['updated_vendorip']) ? $data['updated_vendorip'] : 0;
+            $updated_customerip     = isset($data['updated_customerip']) ? $data['updated_customerip'] : 0;
+            $inserted_vendorip      = isset($data['inserted_vendorip']) ? $data['inserted_vendorip'] : 0;
+            $inserted_customerip    = isset($data['inserted_customerip']) ? $data['inserted_customerip'] : 0;
+
+            $email_data['isAPI']	        = 	1;
+            $email_data['companyID']	    = 	$CompanyID;
+            $email_data['EmailTo']	        = 	"vasim.seta@code-desk.com";
+            $email_data['In-Reply-To']	    = 	"vasim.seta@code-desk.com";
+            $email_data['EmailFrom']	   	= 	"vasim.seta@code-desk.com";
+            $email_data['CompanyName']  	= 	"vasim";
+            $email_data['Subject']  	    = 	"accountip imported to vos server";
+            $email_data['Message']  	    = 	"CompanyID : ".$CompanyID."<br/>";
+            $email_data['Message']  	   .= 	"GatewaiID : ".$GatewayID."<br/>";
+            $email_data['Message']  	   .= 	"Export Time : ".$export_time."<br/>";
+
+            if($Type == 'account') {
+                $email_data['Message'] .= "Customers IP Inserted : " . $inserted_customerip . "<br/>";
+                $email_data['Message'] .= "Customers IP Updated : " . $updated_customerip . "<br/>";
+                $email_data['Message'] .= "Vendors IP Inserted : " . $inserted_vendorip . "<br/>";
+                $email_data['Message'] .= "Vendors IP Updated : " . $updated_vendorip . "<br/>";
+            } else if($Type == 'IP') {
+                $email_data['Message'] .= "Customer IP Updated : " . $updated_customerip . "<br/>";
+                $email_data['Message'] .= "Vendors IP Updated : " . $updated_vendorip . "<br/>";
+            }
+
+            $status = sendMail('emails.template', $email_data);
+
+            AccountAuditExportLog::markProcessed($CompanyID,$GatewayID,$export_time,$start_time,$end_time);
+            return generateResponse('Marked processed logs successfully!',false,false,[]);
+        }catch (\Exception $ex){
+            Log::info($ex);
+            return generateResponse($ex->getMessage(),true,false,[]);
+        }
+    }
+
     /**
      * @return mixed
      */
@@ -92,7 +139,6 @@ class AccountAuditExportLogController extends BaseController {
         // import un processed
         try {
             $accountips = AccountAuditExportLog::importAccountIPAuditExportLogs($CompanyID,$GatewayID);
-//            return generateResponse('',false,false,$accounts);
             return \Dingo\Api\Facade\API::response()->array($accountips)->statusCode(200);
         }catch (\Exception $ex){
             Log::info($ex);
