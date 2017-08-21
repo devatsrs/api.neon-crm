@@ -76,7 +76,7 @@ class AccountAuditExportLogController extends BaseController {
 
     public function markProcessedIP() {
         $data = Input::all();
-
+        Log::info($data);
         // import un processed
         try {
             $CompanyID              = $data['CompanyID'];
@@ -84,10 +84,10 @@ class AccountAuditExportLogController extends BaseController {
             $export_time            = $data['export_time'];
             $start_time             = $data['start_time'];
             $end_time               = $data['end_time'];
-            $updated_vendorip       = isset($data['updated_vendorip']) ? $data['updated_vendorip'] : 0;
-            $updated_customerip     = isset($data['updated_customerip']) ? $data['updated_customerip'] : 0;
-            $inserted_vendorip      = isset($data['inserted_vendorip']) ? $data['inserted_vendorip'] : 0;
-            $inserted_customerip    = isset($data['inserted_customerip']) ? $data['inserted_customerip'] : 0;
+            $updated_vendorip       = isset($data['updated_vendor']) ? $data['updated_vendor'] : 0;
+            $updated_customerip     = isset($data['updated_customer']) ? $data['updated_customer'] : 0;
+            $inserted_vendorip      = isset($data['inserted_vendor']) ? $data['inserted_vendor'] : 0;
+            $inserted_customerip    = isset($data['inserted_customer']) ? $data['inserted_customer'] : 0;
 
             $email_data['isAPI']	    = 1;
             $email_data['companyID']	= $CompanyID;
