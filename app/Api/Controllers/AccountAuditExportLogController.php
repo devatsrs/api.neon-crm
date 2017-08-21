@@ -39,7 +39,6 @@ class AccountAuditExportLogController extends BaseController {
 
         // import un processed
         try {
-            $Type               = $data['Type'];
             $CompanyID          = $data['CompanyID'];
             $GatewayID          = $data['GatewayID'];
             $export_time        = $data['export_time'];
@@ -50,26 +49,20 @@ class AccountAuditExportLogController extends BaseController {
             $inserted_vendor    = isset($data['inserted_vendor']) ? $data['inserted_vendor'] : 0;
             $inserted_customer  = isset($data['inserted_customer']) ? $data['inserted_customer'] : 0;
 
-            $email_data['isAPI']	        = 	1;
-            $email_data['companyID']	    = 	$CompanyID;
-            $email_data['EmailTo']	        = 	"vasim.seta@code-desk.com";
-            $email_data['In-Reply-To']	    = 	"vasim.seta@code-desk.com";
-            $email_data['EmailFrom']	   	= 	"vasim.seta@code-desk.com";
-            $email_data['CompanyName']  	= 	"vasim";
-            $email_data['Subject']  	    = 	"account imported to vos server";
-            $email_data['Message']  	    = 	"CompanyID : ".$CompanyID."<br/>";
-            $email_data['Message']  	   .= 	"GatewaiID : ".$GatewayID."<br/>";
-            $email_data['Message']  	   .= 	"Export Time : ".$export_time."<br/>";
-
-            if($Type == 'account') {
-                $email_data['Message'] .= "Customers Inserted : " . $inserted_customer . "<br/>";
-                $email_data['Message'] .= "Customers Updated : " . $updated_customer . "<br/>";
-                $email_data['Message'] .= "Vendors Inserted : " . $inserted_vendor . "<br/>";
-                $email_data['Message'] .= "Vendors Updated : " . $updated_vendor . "<br/>";
-            } else if($Type == 'IP') {
-                $email_data['Message'] .= "Customer IP Updated : " . $updated_customer . "<br/>";
-                $email_data['Message'] .= "Vendors IP Updated : " . $updated_vendor . "<br/>";
-            }
+            $email_data['isAPI']	    = 1;
+            $email_data['companyID']	= $CompanyID;
+            $email_data['EmailTo']	    = "vasim.seta@code-desk.com";
+            $email_data['In-Reply-To']	= "vasim.seta@code-desk.com";
+            $email_data['EmailFrom']	= "vasim.seta@code-desk.com";
+            $email_data['CompanyName']  = "vasim";
+            $email_data['Subject']  	= "account imported to vos server";
+            $email_data['Message']  	= "CompanyID : ".$CompanyID."<br/>";
+            $email_data['Message']     .= "GatewaiID : ".$GatewayID."<br/>";
+            $email_data['Message']     .= "Export Time : ".$export_time."<br/>";
+            $email_data['Message']     .= "Customers Inserted : " . $inserted_customer . "<br/>";
+            $email_data['Message']     .= "Customers Updated : " . $updated_customer . "<br/>";
+            $email_data['Message']     .= "Vendors Inserted : " . $inserted_vendor . "<br/>";
+            $email_data['Message']     .= "Vendors Updated : " . $updated_vendor . "<br/>";
 
             $status = sendMail('emails.template', $email_data);
 
@@ -86,7 +79,6 @@ class AccountAuditExportLogController extends BaseController {
 
         // import un processed
         try {
-            $Type                   = $data['Type'];
             $CompanyID              = $data['CompanyID'];
             $GatewayID              = $data['GatewayID'];
             $export_time            = $data['export_time'];
@@ -97,26 +89,20 @@ class AccountAuditExportLogController extends BaseController {
             $inserted_vendorip      = isset($data['inserted_vendorip']) ? $data['inserted_vendorip'] : 0;
             $inserted_customerip    = isset($data['inserted_customerip']) ? $data['inserted_customerip'] : 0;
 
-            $email_data['isAPI']	        = 	1;
-            $email_data['companyID']	    = 	$CompanyID;
-            $email_data['EmailTo']	        = 	"vasim.seta@code-desk.com";
-            $email_data['In-Reply-To']	    = 	"vasim.seta@code-desk.com";
-            $email_data['EmailFrom']	   	= 	"vasim.seta@code-desk.com";
-            $email_data['CompanyName']  	= 	"vasim";
-            $email_data['Subject']  	    = 	"accountip imported to vos server";
-            $email_data['Message']  	    = 	"CompanyID : ".$CompanyID."<br/>";
-            $email_data['Message']  	   .= 	"GatewaiID : ".$GatewayID."<br/>";
-            $email_data['Message']  	   .= 	"Export Time : ".$export_time."<br/>";
-
-            if($Type == 'account') {
-                $email_data['Message'] .= "Customers IP Inserted : " . $inserted_customerip . "<br/>";
-                $email_data['Message'] .= "Customers IP Updated : " . $updated_customerip . "<br/>";
-                $email_data['Message'] .= "Vendors IP Inserted : " . $inserted_vendorip . "<br/>";
-                $email_data['Message'] .= "Vendors IP Updated : " . $updated_vendorip . "<br/>";
-            } else if($Type == 'IP') {
-                $email_data['Message'] .= "Customer IP Updated : " . $updated_customerip . "<br/>";
-                $email_data['Message'] .= "Vendors IP Updated : " . $updated_vendorip . "<br/>";
-            }
+            $email_data['isAPI']	    = 1;
+            $email_data['companyID']	= $CompanyID;
+            $email_data['EmailTo']	    = "vasim.seta@code-desk.com";
+            $email_data['In-Reply-To']	= "vasim.seta@code-desk.com";
+            $email_data['EmailFrom']	= "vasim.seta@code-desk.com";
+            $email_data['CompanyName']  = "vasim";
+            $email_data['Subject']  	= "accountip imported to vos server";
+            $email_data['Message']  	= "CompanyID : ".$CompanyID."<br/>";
+            $email_data['Message']     .= "GatewaiID : ".$GatewayID."<br/>";
+            $email_data['Message']     .= "Export Time : ".$export_time."<br/>";
+            $email_data['Message']     .= "Customers IP Inserted : " . $inserted_customerip . "<br/>";
+            $email_data['Message']     .= "Customers IP Updated : " . $updated_customerip . "<br/>";
+            $email_data['Message']     .= "Vendors IP Inserted : " . $inserted_vendorip . "<br/>";
+            $email_data['Message']     .= "Vendors IP Updated : " . $updated_vendorip . "<br/>";
 
             $status = sendMail('emails.template', $email_data);
 
