@@ -48,7 +48,7 @@ class AccountAuditExportLog extends Model
                     $VendorName = '';
                 }
 
-                $accountIPs = AccountAuthenticate::where(["CompanyID"=>$CompanyID, "AccountID"=>$account->AccountID]);
+                $accountIPs = AccountAuthenticate::where(["CompanyID"=>$CompanyID, "AccountID"=>$account->AccountID, "ServiceID" => 0]);
 
                 if($accountIPs->count() > 0) {
                     $accountIPs = $accountIPs->first();
