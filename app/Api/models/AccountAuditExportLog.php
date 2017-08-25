@@ -109,8 +109,7 @@ class AccountAuditExportLog extends Model
      * @param $GatewayID
      * @return mixed
      */
-    public static function importAccountIPAuditExportLogs($CompanyID, $GatewayID) {
-
+    public static function importAccountIPAuditExportLogs($CompanyID, $GatewayID, $Type=0) {
         $audits = DB::select("call prc_getAccountIPAuditExportLog('".$CompanyID."' , '".$GatewayID."')");
         $data['status'] = 'success';
         $data['message'] = '1';
@@ -121,39 +120,127 @@ class AccountAuditExportLog extends Model
         $data['data'] = array();
         $vendors = array();
         $k=0;
+
+        $AccountIDs = [];
+        // $Type=0 Account IPs, $Type=1 Service IPs, $Type=2 All IPs
         foreach ($audits as $audit) {
-            $authenticate = AccountAuthenticate::find($audit->ParentColumnID);
-            $account = Account::where('AccountID', $authenticate->AccountID)->select('AccountID','IsCustomer','IsVendor','AccountName');
-            if($account->count() > 0) {
-                $account = $account->first();
+            if($Type == 2) {
+                //All IPs
+                $authenticate = AccountAuthenticate::find($audit->ParentColumnID);
+                $account = Account::where('AccountID', $authenticate->AccountID)->select('AccountID', 'IsCustomer', 'IsVendor', 'AccountName');
+                if ($account->count() > 0) {
+                    $account = $account->first();
 
-                if($account->IsVendor == 1) {
-                    if(array_key_exists($account->AccountID, $vendors)) {
-                        $VendorName = $vendors[$account->AccountID];
-                    } else {
-                        $VendorName = Account::accountVendorName($account->AccountID);
-                        $vendors[$account->AccountID] = $VendorName;
+                    if(!isset($AccountIDs[$account->AccountID][$audit->ColumnName])) {
+                        if ($account->IsVendor == 1) {
+                            if (array_key_exists($account->AccountID, $vendors)) {
+                                $VendorName = $vendors[$account->AccountID];
+                            } else {
+                                $VendorName = Account::accountVendorName($account->AccountID);
+                                $vendors[$account->AccountID] = $VendorName;
+                            }
+                        } else {
+                            $VendorName = '';
+                        }
+
+                        $d['AccountID'] = $account->AccountID;
+                        $d['IsCustomer'] = $account->IsCustomer;
+                        $d['IsVendor'] = $account->IsVendor;
+                        $d['AccountName'] = $account->AccountName;
+                        $d['VendorName'] = $VendorName;
+                        $d['ColumnName'] = $audit->ColumnName;
+                        //$d['OldValue'] = $audit->OldValue;
+                        $d['OldValue'] = "";
+
+                        $authenticate1 = AccountAuthenticate::where('AccountID',$account->AccountID)->get();
+                        $d['NewValue'] = '';
+                        foreach ($authenticate1 as $auth) {
+                            $ColumnName = $audit->ColumnName;
+                            $d['NewValue'] = implode(',',array_filter(array_merge(explode(',',$d['NewValue']), explode(',',$auth->$ColumnName))));
+                            $AccountIDs[$account->AccountID][$audit->ColumnName] = $d['NewValue'];
+                        }
+
+                        if ($k == 0) {
+                            $data['export_time'] = $audit->created_at;
+                            $data['start_time'] = $audit->start_time;
+                            $data['end_time'] = $audit->end_time;
+                        }
+                        $k++;
+                        $data['data'][] = $d;
                     }
-                } else {
-                    $VendorName = '';
                 }
+            } else if($Type == 0 && $audit->ServiceName == null) {
+                //Account IPs
+                $authenticate = AccountAuthenticate::find($audit->ParentColumnID);
+                $account = Account::where('AccountID', $authenticate->AccountID)->select('AccountID', 'IsCustomer', 'IsVendor', 'AccountName');
+                if ($account->count() > 0) {
+                    $account = $account->first();
 
-                $d['AccountID'] = $account->AccountID;
-                $d['IsCustomer'] = $account->IsCustomer;
-                $d['IsVendor'] = $account->IsVendor;
-                $d['AccountName'] = $account->AccountName;
-                $d['VendorName'] = $VendorName;
-                $d['ColumnName'] = $audit->ColumnName;
-                $d['OldValue'] = $audit->OldValue;
-                $d['NewValue'] = $audit->NewValue;
+                    if ($account->IsVendor == 1) {
+                        if (array_key_exists($account->AccountID, $vendors)) {
+                            $VendorName = $vendors[$account->AccountID];
+                        } else {
+                            $VendorName = Account::accountVendorName($account->AccountID);
+                            $vendors[$account->AccountID] = $VendorName;
+                        }
+                    } else {
+                        $VendorName = '';
+                    }
 
-                if($k==0) {
-                    $data['export_time'] = $audit->created_at;
-                    $data['start_time'] = $audit->start_time;
-                    $data['end_time'] = $audit->end_time;
+                    $d['AccountID'] = $account->AccountID;
+                    $d['IsCustomer'] = $account->IsCustomer;
+                    $d['IsVendor'] = $account->IsVendor;
+                    $d['AccountName'] = $account->AccountName;
+                    $d['VendorName'] = $VendorName;
+                    $d['ColumnName'] = $audit->ColumnName;
+                    $d['OldValue'] = $audit->OldValue;
+                    $d['NewValue'] = $audit->NewValue;
+                    $d['ServiceName'] = $audit->ServiceName;
+
+                    if ($k == 0) {
+                        $data['export_time'] = $audit->created_at;
+                        $data['start_time'] = $audit->start_time;
+                        $data['end_time'] = $audit->end_time;
+                    }
+                    $k++;
+                    $data['data'][] = $d;
                 }
-                $k++;
-                $data['data'][] = $d;
+            } else if($Type == 1 && $audit->ServiceName != null) {
+                //Service IPs
+                $authenticate = AccountAuthenticate::find($audit->ParentColumnID);
+                $account = Account::where('AccountID', $authenticate->AccountID)->select('AccountID', 'IsCustomer', 'IsVendor', 'AccountName');
+                if ($account->count() > 0) {
+                    $account = $account->first();
+
+                    if ($account->IsVendor == 1) {
+                        if (array_key_exists($account->AccountID, $vendors)) {
+                            $VendorName = $vendors[$account->AccountID];
+                        } else {
+                            $VendorName = Account::accountVendorName($account->AccountID);
+                            $vendors[$account->AccountID] = $VendorName;
+                        }
+                    } else {
+                        $VendorName = '';
+                    }
+
+                    $d['AccountID'] = $account->AccountID;
+                    $d['IsCustomer'] = $account->IsCustomer;
+                    $d['IsVendor'] = $account->IsVendor;
+                    $d['AccountName'] = $account->AccountName;
+                    $d['VendorName'] = $VendorName;
+                    $d['ColumnName'] = $audit->ColumnName;
+                    $d['OldValue'] = $audit->OldValue;
+                    $d['NewValue'] = $audit->NewValue;
+                    $d['ServiceName'] = $audit->ServiceName;
+
+                    if ($k == 0) {
+                        $data['export_time'] = $audit->created_at;
+                        $data['start_time'] = $audit->start_time;
+                        $data['end_time'] = $audit->end_time;
+                    }
+                    $k++;
+                    $data['data'][] = $d;
+                }
             }
         }
         return $data;

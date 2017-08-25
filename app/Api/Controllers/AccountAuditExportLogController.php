@@ -119,10 +119,11 @@ class AccountAuditExportLogController extends BaseController {
         $data = Input::all();
         $CompanyID = $data['CompanyID'];
         $GatewayID = $data['GatewayID'];
+        $Type      = $data['Type'];
 
         // import un processed
         try {
-            $accountips = AccountAuditExportLog::importAccountIPAuditExportLogs($CompanyID,$GatewayID);
+            $accountips = AccountAuditExportLog::importAccountIPAuditExportLogs($CompanyID,$GatewayID,$Type);
             return \Dingo\Api\Facade\API::response()->array($accountips)->statusCode(200);
         }catch (\Exception $ex){
             Log::info($ex);
