@@ -211,7 +211,7 @@ class AmazonS3 {
     //@TODO: need to update when needed
     static function unSignedImageUrl($key=''){
 
-        $s3 = self::getS3Client();
+        /*$s3 = self::getS3Client();
 
         //When no amazon ;
         if($s3 == 'NoAmazon'){
@@ -222,17 +222,19 @@ class AmazonS3 {
 
         }
 
-        $imagepath=self::unSignedUrl($key);
-        if (!is_numeric(strpos($imagepath, "https://"))) {
-            $site_url = \Api\Model\CompanyConfiguration::get("WEB_URL");
-            if (copy($site_url, './uploads/' . basename($imagepath))) {
-                $imagepath = $site_url . '/uploads/' . basename($imagepath);
-            }
-            return $imagepath;
+        return self::unSignedUrl($key);*/
+
+        $imagepath=self::preSignedUrl($key);
+        if(file_exists($imagepath)){
+            return  get_image_data($imagepath);
+        }
+        elseif (self::$isAmazonS3=="Amazon") {
+            return  $imagepath;
         }
         else{
-            return $imagepath;
+            return get_image_data("http://placehold.it/250x100");
         }
+
     }
 
     /** Delete file from amazon or ssh.
