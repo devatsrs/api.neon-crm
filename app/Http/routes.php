@@ -7,7 +7,10 @@ $api = app('Dingo\Api\Routing\Router');
 $api->version('v1', function ($api) {
 
 	// Set our namespace for the underlying routes
-	$api->group(['namespace' => 'Api\Controllers', 'middleware' => ['cors','dbselector']], function ($api) {
+	$api->group(/**
+     * @param $api
+     */
+        ['namespace' => 'Api\Controllers', 'middleware' => ['cors','dbselector']], function ($api) {
 
 		// Login route
 		$api->post('login', 'AuthController@authenticate');
@@ -275,6 +278,36 @@ $api->version('v1', function ($api) {
 
 		});
 
-	});
+
+        // VOS Account Audit Export API
+        /**
+         * Parameters:
+         * CompanyID
+         * GatewayID
+         */
+        $api->post('import_account_audit_export_logs', "AccountAuditExportLogController@get");
+
+        // Change log status after VOS Account Export
+        /**
+         * Parameters:
+         * CompanyID
+         * GatewayID
+         * export_time
+         * start_time
+         * end_time
+         */
+        $api->post('mark_processed_audit_export_logs', "AccountAuditExportLogController@markProcessed");
+
+        /**
+         * Parameters:
+         * CompanyID
+         * GatewayID
+         * AccountImportExportLogIDs - Comma seperated
+         */
+        $api->post('mark_processed', "AccountImportExportLogController@mark_processed");
+
+
+
+    });
 
 });
