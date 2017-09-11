@@ -290,16 +290,16 @@ class TicketEmails{
 		{ 
 			return $this->Error;
 		}
-
+		$CompanyID = User::get_companyID();
 		$Requester = explode(",",$this->TicketData->Requester);
-		$Requester = self::remove_group_emails_from_array($Requester);
+		$Requester = self::remove_group_emails_from_array($CompanyID,$Requester);
 
 		$replace_array				= 		$this->ReplaceArray($this->TicketData);
 		$finalBody 					= 		$this->template_var_replace($this->EmailTemplate->TemplateBody,$replace_array);
 		$finalSubject				= 		$this->template_var_replace($this->EmailTemplate->Subject,$replace_array);	
 		$emailData['Subject']		=		$finalSubject;
 		$emailData['Message'] 		= 		$finalBody;
-		$emailData['CompanyID'] 	= 		User::get_companyID();
+		$emailData['CompanyID'] 	= 		$CompanyID;
 		$emailData['EmailTo'] 		= 		$Requester;
 		$emailData['EmailFrom'] 	= 		$this->Group->GroupEmailAddress;
 		$emailData['CompanyName'] 	= 		$this->Group->GroupName;
@@ -329,9 +329,9 @@ class TicketEmails{
 				$this->SetError("No Note added");
 				return;
 			}
-
+			$CompanyID = User::get_companyID();
 			$Requester = explode(",",$this->TicketData->Requester);
-			$Requester = self::remove_group_emails_from_array($Requester);
+			$Requester = self::remove_group_emails_from_array($CompanyID,$Requester);
 
 		 	$replace_array				= 		$this->ReplaceArray($this->TicketData);
 		    $finalBody 					= 		$this->template_var_replace($this->EmailTemplate->TemplateBody,$replace_array);
@@ -368,8 +368,8 @@ class TicketEmails{
 		}else{
 			return;
 		}
-
-		$emailto = self::remove_group_emails_from_array($emailto);
+		$CompanyID = User::get_companyID();
+		$emailto = self::remove_group_emails_from_array($CompanyID,$emailto);
 
 		if(count($emailto)>0){
 			$replace_array				= 		$this->ReplaceArray($this->TicketData);
@@ -377,7 +377,7 @@ class TicketEmails{
 			$finalSubject				= 		$this->template_var_replace($this->EmailTemplate->Subject,$replace_array);	
 			$emailData['Subject']		=		$finalSubject;
 			$emailData['Message'] 		= 		$finalBody;
-			$emailData['CompanyID'] 	= 		User::get_companyID();
+			$emailData['CompanyID'] 	= 		$CompanyID;
 			$emailData['EmailTo'] 		= 		$emailto;
 			$emailData['EmailFrom'] 	= 		$this->Group->GroupEmailAddress;
 			$emailData['CompanyName'] 	= 		$this->Group->GroupName;
@@ -408,7 +408,7 @@ class TicketEmails{
 		}else{
 			return;
 		}
-
+		$CompanyID = User::get_companyID();
 		$emailto = self::remove_group_emails_from_array($emailto);
 
 		if(count($emailto)>0){
@@ -417,7 +417,7 @@ class TicketEmails{
 			$finalSubject				= 		$this->template_var_replace($this->EmailTemplate->Subject,$replace_array);	
 			$emailData['Subject']		=		$finalSubject;
 			$emailData['Message'] 		= 		$finalBody;
-			$emailData['CompanyID'] 	= 		User::get_companyID();
+			$emailData['CompanyID'] 	= 		$CompanyID;
 			$emailData['EmailTo'] 		= 		$emailto;
 			$emailData['EmailFrom'] 	= 		$this->Group->GroupEmailAddress;
 			$emailData['CompanyName'] 	= 		$this->Group->GroupName;
@@ -639,7 +639,7 @@ class TicketEmails{
 		$CompanyID = User::get_companyID();
 		$CompanyName = Company::getName($CompanyID);
 
-		$emailto = self::remove_group_emails_from_array($emailto);
+		$emailto = self::remove_group_emails_from_array($CompanyID,$emailto);
 
 
 		if(count($emailto)>0){
