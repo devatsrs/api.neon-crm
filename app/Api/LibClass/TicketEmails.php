@@ -683,7 +683,8 @@ class TicketEmails{
 
 		//$GroupEmailAddress 	=	TicketGroups::get(["GroupEmailAddress"])->lists('GroupEmailAddress');
 
-		return array_diff($email_array,$group_emails);
+		return array_diff((array) $email_array,$group_emails);
+
 
 	}
 }
