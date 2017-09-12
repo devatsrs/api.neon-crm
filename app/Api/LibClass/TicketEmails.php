@@ -369,9 +369,12 @@ class TicketEmails{
 			return;
 		}
 		$CompanyID = User::get_companyID();
-		$emailto = self::remove_group_emails_from_array($CompanyID,$emailto);
+
 
 		if(count($emailto)>0){
+
+			$emailto = self::remove_group_emails_from_array($CompanyID,$emailto);
+
 			$replace_array				= 		$this->ReplaceArray($this->TicketData);
 			$finalBody 					= 		$this->template_var_replace($this->EmailTemplate->TemplateBody,$replace_array);
 			$finalSubject				= 		$this->template_var_replace($this->EmailTemplate->Subject,$replace_array);	
@@ -409,9 +412,10 @@ class TicketEmails{
 			return;
 		}
 		$CompanyID = User::get_companyID();
-		$emailto = self::remove_group_emails_from_array($emailto);
+
 
 		if(count($emailto)>0){
+			$emailto = self::remove_group_emails_from_array($emailto);
 			$replace_array				= 		$this->ReplaceArray($this->TicketData);
 			$finalBody 					= 		$this->template_var_replace($this->EmailTemplate->TemplateBody,$replace_array);
 			$finalSubject				= 		$this->template_var_replace($this->EmailTemplate->Subject,$replace_array);	
@@ -639,10 +643,12 @@ class TicketEmails{
 		$CompanyID = User::get_companyID();
 		$CompanyName = Company::getName($CompanyID);
 
-		$emailto = self::remove_group_emails_from_array($CompanyID,$emailto);
 
 
 		if(count($emailto)>0){
+
+			$emailto = self::remove_group_emails_from_array($CompanyID,$emailto);
+
 			$replace_array				= 		$this->ReplaceArray($this->TicketData);
 			$finalBody 					= 		$this->template_var_replace($this->TicketData->Description,$replace_array);
 			$finalSubject				= 		$this->template_var_replace($this->TicketData->Subject,$replace_array);
@@ -672,7 +678,7 @@ class TicketEmails{
 		}
 	}
 
-	public static function remove_group_emails_from_array($CompanyID,$email_array) {
+	public static function remove_group_emails_from_array($CompanyID,$email_array = array()) {
 
 		$GroupEmailAddress 	=	TicketGroups::where(array("CompanyID"=>$CompanyID,"GroupEmailStatus"=>1))->get(["GroupEmailAddress"])->toArray();
 
@@ -683,8 +689,7 @@ class TicketEmails{
 
 		//$GroupEmailAddress 	=	TicketGroups::get(["GroupEmailAddress"])->lists('GroupEmailAddress');
 
-		return array_diff((array) $email_array,$group_emails);
-
+		return array_diff((array) $email_array, $group_emails);
 
 	}
 }
