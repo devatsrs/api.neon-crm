@@ -261,9 +261,8 @@ function email_log_data_Ticket($data,$view = '',$status){
         $status_return['message'] = 'Subject not set in Account mail log';
         return $status_return;
     }
-    if(!isset($data['Message']) && empty($data['Message'])){
-        $status_return['message'] = 'Message not set in Account mail log';
-        return $status_return;
+    if(isset($status['body']) && (!isset($data['Message']) || empty($data['Message']) )){
+        $data['Message'] = $status['body'];
     }
 
     if(is_array($data['EmailTo'])){

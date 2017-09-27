@@ -226,11 +226,10 @@ private $validlicense;
 				 $TicketData['email_from']  	= 	$email_from;
 				 $TicketData['email_from_name'] = 	$email_from_name;
 				 $TicketData['AttachmentPaths'] =   $files;
-				 
 				/* $logID =  SendTicketEmail('store',$TicketID,$TicketData);
 				 TicketsTable::find($TicketID)->update(array("AccountEmailLogID"=>$logID));
-				
-				
+
+
 				 if(!isset($logID['status'])){
 				  	TicketsTable::find($TicketID)->update(array("AccountEmailLogID"=>$logID));
 				 }else{
@@ -771,7 +770,8 @@ private $validlicense;
 					 $data['EmailTo']  		  	= 	TicketsTable::filterEmailAddressFromName($data['email-to']);
 					 $data['AttachmentPaths'] 	= 	$FilesArray;
 					 $data['cc'] 				= 	trim(TicketsTable::filterEmailAddressFromName($data['cc']));
-					 $data['bcc'] 				= 	trim(TicketsTable::filterEmailAddressFromName($data['bcc']));					 
+					 $data['bcc'] 				= 	trim(TicketsTable::filterEmailAddressFromName($data['bcc']));
+					 $data['Message-ID']		= 	$ticketdata->TicketID;
 					 $status 					= 	sendMail('emails.tickets.ticket', $data);
 					 
 					if($status['status'] == 1)
@@ -879,7 +879,8 @@ private $validlicense;
 					 $data['cc'] 				= 	trim($data['cc']);
 					 $data['bcc'] 				= 	trim($data['bcc']);		
 					// $data['In-Reply-To'] 		= 	AccountEmailLog::where(['AccountEmailLogID'=>$ticketdata->AccountEmailLogID])->pluck('MessageID');
-					 $data['In-Reply-To'] 		= 	"Ticket__".base64_encode($id)."__".base64_encode($ticketdata->Requester);			 
+					 $data['In-Reply-To'] 		= 	"Ticket__".base64_encode($id)."__".base64_encode($ticketdata->Requester);
+					 $data['Message-ID']		= 	$ticketdata->TicketID;
 					 $status 					= 	sendMail('emails.tickets.ticket', $data);
 					if($status['status'] == 1)
 					{	
