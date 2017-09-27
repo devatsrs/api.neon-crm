@@ -221,7 +221,9 @@ private $validlicense;
 				if(!in_array($RequesterEmail,$AllEmails))
 				{
 					$ContactData = array("Email"=>$RequesterEmail,"CompanyId"=>$CompanyID);
-					Contact::create($ContactData);
+					$ContactID = Contact::insertGetId($ContactData);
+					TicketsTable::find($TicketID)->update(array("ContactID"=>$ContactID));
+
 				}	 
 				 $TicketData['email_from']  	= 	$email_from;
 				 $TicketData['email_from_name'] = 	$email_from_name;
@@ -1087,7 +1089,9 @@ private $validlicense;
 					$ContactData = array("Email"=>$RequesterEmail,"CompanyId"=>$CompanyID);
 					log::info("--Contact Email -- ".$RequesterEmail);
 					log::info("--Contact CompanyId -- ".$CompanyID);
-					Contact::create($ContactData);
+					$ContactID = Contact::insertGetId($ContactData);
+					TicketsTable::find($TicketID)->update(array("ContactID"=>$ContactID));
+
 				}
 
 				log::info("--Contact over --");

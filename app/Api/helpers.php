@@ -269,7 +269,7 @@ function email_log_data_Ticket($data,$view = '',$status){
         $data['EmailTo'] = implode(',',$data['EmailTo']);
     }
 
-    if(!isset($data['cc']))
+    if(!isset($data['cc']) || empty($data['cc']))
     {
         $data['cc'] = '';
     }
@@ -332,7 +332,6 @@ function email_log_data_Ticket($data,$view = '',$status){
 		"TicketID"=>$data['TicketID'],
 		"EmailType"=>\Api\Model\AccountEmailLog::TicketEmail 
     ];
-	
     $data =  \Api\Model\AccountEmailLog::insertGetId($logData);
     return $data;
 }

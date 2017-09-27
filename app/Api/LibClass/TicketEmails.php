@@ -289,7 +289,8 @@ class TicketEmails{
 	protected function  RequesterNewTicketCreated(){
 		$this->slug					=		"RequesterNewTicketCreated";
 		if(!$this->CheckBasicRequirments())
-		{ 
+		{
+			Log::info(print_r($this->Error,true));
 			return $this->Error;
 		}
 		$CompanyID = User::get_companyID();
@@ -395,7 +396,7 @@ class TicketEmails{
 			$status 					= 		sendMail($finalBody,$emailData,0);
 
 			if($status['status']){
-				//email_log_data_Ticket($emailData,'',$status);						
+				email_log_data_Ticket($emailData,'',$status);
 			}else{
 				$this->SetError($status['message']);
 			}
