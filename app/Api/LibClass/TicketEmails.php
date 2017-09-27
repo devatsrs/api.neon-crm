@@ -467,6 +467,7 @@ class TicketEmails{
             $emailData['CompanyName'] 	= 		$this->Group->GroupName;
 			$emailData['AddReplyTo'] 	= 		isset($this->Group->GroupReplyAddress)?$this->Group->GroupReplyAddress:$this->Group->GroupEmailAddress;
 			$emailData['Message-ID']	= 		$this->TicketID;
+			$emailData['Auto-Submitted']= 		"auto-generated";
 			$status 					= 		sendMail($finalBody,$emailData,0);
 			$emailData['TicketID'] 		= 		$this->TicketID;
 			
@@ -498,6 +499,7 @@ class TicketEmails{
             $emailData['CompanyName'] 	= 		$this->Group->GroupName;
 			$emailData['AddReplyTo'] 	= 		isset($this->Group->GroupReplyAddress)?$this->Group->GroupReplyAddress:$this->Group->GroupEmailAddress;
 			$emailData['Message-ID']	= 		$this->TicketID;
+			$emailData['Auto-Submitted']= 		"auto-generated";
 			$status 					= 		sendMail($finalBody,$emailData,0);
 			$emailData['TicketID'] 		= 		$this->TicketID;
 			$emailData['UserID']		=		User::get_userID();			
@@ -528,6 +530,7 @@ class TicketEmails{
 		$emailData['AddReplyTo'] 	= 		isset($this->Group->GroupReplyAddress)?$this->Group->GroupReplyAddress:$this->Group->GroupEmailAddress;
 		$emailData['TicketID'] 		= 		$this->TicketID;
 		$emailData['Message-ID']	= 		$this->TicketID;
+		$emailData['Auto-Submitted']= 		"auto-generated";
 		$status 					= 		sendMail($finalBody,$emailData,0);
 		$emailData['EmailParent']	=		0;
 		
@@ -557,6 +560,7 @@ class TicketEmails{
 		$emailData['AddReplyTo'] 	= 		isset($this->Group->GroupReplyAddress)?$this->Group->GroupReplyAddress:$this->Group->GroupEmailAddress;
 		$emailData['TicketID'] 		= 		$this->TicketID;
 		$emailData['Message-ID']	= 		$this->TicketID;
+		$emailData['Auto-Submitted']= 		"auto-generated";
 		$status 					= 		sendMail($finalBody,$emailData,0);
 		$emailData['EmailParent']	=		0;
 		if($status['status']){

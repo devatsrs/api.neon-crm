@@ -774,6 +774,7 @@ private $validlicense;
 					 $data['cc'] 				= 	trim(TicketsTable::filterEmailAddressFromName($data['cc']));
 					 $data['bcc'] 				= 	trim(TicketsTable::filterEmailAddressFromName($data['bcc']));
 					 $data['Message-ID']		= 	$ticketdata->TicketID;
+					 $data['Auto-Submitted']= 		"auto-generated";
 					 $status 					= 	sendMail('emails.tickets.ticket', $data);
 					 
 					if($status['status'] == 1)

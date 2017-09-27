@@ -95,9 +95,8 @@ class PHPMAILERIntegtration{
 		$mail =  self::add_email_address($mail,$data,'cc');
 		$mail =  self::add_email_address($mail,$data,'bcc');
 
-		if(isset($data["Auto-Submitted"])) {
-			$mail->addCustomHeader("Auto-Submitted","auto-generated");
-		}
+		$mail->addCustomHeader("Auto-Submitted","auto-generated");
+
 		$mail->MessageID = self::generate_email_message_id($data,$config);
 
 		if(SiteIntegration::CheckIntegrationConfiguration(false,SiteIntegration::$imapSlug,$companyID))
