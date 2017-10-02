@@ -215,7 +215,7 @@ private $validlicense;
 					}
 				}	
 
-                TicketLog::AddLog($TicketID,($data['LoginType']=='user')?0:1);
+                TicketLog::insertTicketLog($TicketID,TicketLog::NEW_TICKET,($data['LoginType']=='user')?0:1);
 				//create contact if email not found in system
 			 	$AllEmails  =   Messages::GetAllSystemEmails();
 				if(!in_array($RequesterEmail,$AllEmails))
@@ -1075,8 +1075,8 @@ private $validlicense;
 
 				log::info("--Ticket log --");
 
-                TicketLog::AddLog($TicketID,($data['LoginType']=='user')?0:1);
-                TicketLog::updateEmailLog($TicketID,($data['LoginType']=='user')?0:1,$Ticketfields['default_status']);
+				TicketLog::insertTicketLog($TicketID,TicketLog::NEW_TICKET,($data['LoginType']=='user')?0:1);
+                TicketLog::insertTicketLog($TicketID,TicketLog::STATUS_CHANGED,($data['LoginType']=='user')?0:1,$Ticketfields['default_status']);
 
 				log::info("--Ticket log over --");
 				//create contact if email not found in system
