@@ -74,6 +74,12 @@ class DBSelector
                     Config::set('database.connections.cdr_db.username', $DBSetting['CDRDB']['DB_USERNAME']);
                     Config::set('database.connections.cdr_db.password', substr($DBSetting['CDRDB']['DB_PASSWORD'],5));
                     Config::set('database.connections.cdr_db.database', $DBSetting['CDRDB']['DB_DATABASE']);
+
+                    Config::set('database.connections.neon_report.host',     $DBSetting['REPORTDB']['DB_HOST']);
+                    Config::set('database.connections.neon_report.username', $DBSetting['REPORTDB']['DB_USERNAME']);
+                    Config::set('database.connections.neon_report.password', substr($DBSetting['REPORTDB']['DB_PASSWORD'],5));
+                    Config::set('database.connections.neon_report.database', $DBSetting['REPORTDB']['DB_DATABASE']);
+
                 }else{
                     return response()->json(['Company not found'], 404);
                 }
