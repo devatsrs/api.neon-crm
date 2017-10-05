@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Log;
 
 class AmazonS3 {
 
+    public static $isAmazonS3;
     public static $dir = array(
         'CODEDECK_UPLOAD' =>  'CodedecksUploads',
         'VENDOR_UPLOAD' =>  'VendorUploads',
@@ -86,9 +87,10 @@ class AmazonS3 {
         }
 
         if(empty($AMAZONS3_KEY) || empty($AMAZONS3_SECRET) || empty($AWS_REGION) ){
+            self::$isAmazonS3='NoAmazon';
             return 'NoAmazon';
         }else {
-
+            self::$isAmazonS3='Amazon';
             return $s3Client = S3Client::factory(array(
                 'region' => $AWS_REGION,
                 'credentials' => array(
@@ -149,7 +151,7 @@ class AmazonS3 {
         try {
             $resource = fopen($file, 'r');
             $s3->upload($bucket, $dir.basename($file), $resource, 'public-read');
-            @unlink($file);
+            @unlink($file); // remove from local
             return true;
         } catch (S3Exception $e) {
             return false ; //"There was an error uploading the file.\n";
@@ -161,47 +163,55 @@ class AmazonS3 {
         $s3 = self::getS3Client();
 
         //When no amazon ;
-        if($s3 == 'NoAmazon'){
-            $status = RemoteSSH::downloadFile($key); 
+        $status = RemoteSSH::downloadFile($key);
+        if(file_exists($status['filePath']))
+        {
             return $status['filePath'];
         }
-        $bucket = self::getBucket();
-        // Get a command object from the client and pass in any options
-        // available in the GetObject command (e.g. ResponseContentDisposition)
-        $command = $s3->getCommand('GetObject', array(
-            'Bucket' => $bucket,
-            'Key' => $key,
-            'ResponseContentDisposition' => 'attachment; filename="'. basename($key) . '"'
-        ));
+        elseif(self::$isAmazonS3=='Amazon')
+        {
+            $bucket = self::getBucket();
+            // Get a command object from the client and pass in any options
+            // available in the GetObject command (e.g. ResponseContentDisposition)
+            $command = $s3->getCommand('GetObject', array(
+                'Bucket' => $bucket,
+                'Key' => $key,
+                'ResponseContentDisposition' => 'attachment; filename="'. basename($key) . '"'
+            ));
 
-        // Create a signed URL from the command object that will last for
-        // 10 minutes from the current time
-        $signedUrl = $command->createPresignedUrl('+10 minutes');
-        return $signedUrl;
+            // Create a signed URL from the command object that will last for
+            // 10 minutes from the current time
+            return $command->createPresignedUrl('+10 minutes');
+        }
+        else
+        {
+            return "";
+        }
+
 
     }
 
     static function unSignedUrl($key=''){
-        $s3 = self::getS3Client();
+//        $s3 = self::getS3Client();
 
         //When no amazon ;
-        if($s3 == 'NoAmazon'){
+//        if($s3 == 'NoAmazon'){
             return  self::preSignedUrl($key);
-        }
+        /*}
         $bucket = self::getBucket();
         $unsignedUrl = '';
         if(!empty($key)){
 
             $unsignedUrl = $s3->getObjectUrl($bucket, $key);
         } 
-        return $unsignedUrl;
+        return $unsignedUrl;*/
 
     }
 
     //@TODO: need to update when needed
     static function unSignedImageUrl($key=''){
 
-        $s3 = self::getS3Client();
+        /*$s3 = self::getS3Client();
 
         //When no amazon ;
         if($s3 == 'NoAmazon'){
@@ -211,7 +221,20 @@ class AmazonS3 {
             return combile_url_path($site_url,$key);
 
         }
-        return self::unSignedUrl($key);
+
+        return self::unSignedUrl($key);*/
+
+        $imagepath=self::preSignedUrl($key);
+        if(file_exists($imagepath)){
+            return  get_image_data($imagepath);
+        }
+        elseif (self::$isAmazonS3=="Amazon") {
+            return  $imagepath;
+        }
+        else{
+            return get_image_data("http://placehold.it/250x100");
+        }
+
     }
 
     /** Delete file from amazon or ssh.
@@ -219,31 +242,33 @@ class AmazonS3 {
      * @return bool
      */
     static function delete($file){
+        $return=false;
 
         if(strlen($file)>0) {
             // Instantiate an S3 client
             $s3 = self::getS3Client();
 
             //When no amazon ;
-            if($s3 == 'NoAmazon'){
 
-                $upload_path = CompanyConfiguration::get("UPLOAD_PATH");
-                $file_path = rtrim($upload_path,'/').'/'. $file;
-                return RemoteSSH::deleteFile($file_path);
+            $upload_path = CompanyConfiguration::get("UPLOAD_PATH");
+            $file_path = rtrim($upload_path,'/').'/'. $file;
+            $return=RemoteSSH::deleteFile($file_path);
 
-            }
-
-            $bucket = self::getBucket();
-            // Upload a publicly accessible file. The file size, file type, and MD5 hash
-            // are automatically calculated by the SDK.
-            try {
-                $result = $s3->deleteObject(array('Bucket' => $bucket, 'Key' => $file));
-                return true;
-            } catch (S3Exception $e) {
-                return false; //"There was an error uploading the file.\n";
+            if(self::$isAmazonS3=="Amazon")
+            {
+                $bucket = self::getBucket();
+                // Upload a publicly accessible file. The file size, file type, and MD5 hash
+                // are automatically calculated by the SDK.
+                try {
+                    $result = $s3->deleteObject(array('Bucket' => $bucket, 'Key' => $file));
+                    $return = true;
+                } catch (S3Exception $e) {
+                    $return = false; //"There was an error uploading the file.\n";
+                }
             }
         }else{
-            return false;
+            $return=false;
         }
+        return $return;
     }
 }
