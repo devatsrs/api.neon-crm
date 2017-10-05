@@ -11,7 +11,7 @@ use \App\SiteIntegration;
 class PHPMAILERIntegtration{ 
 
 	public function __construct(){
-	 } 
+	 }
 
 
 	public static function SetEmailConfiguration($config,$companyID,$data)
@@ -94,25 +94,26 @@ class PHPMAILERIntegtration{
 		$mail =  self::add_email_address($mail,$data,'EmailTo'); 
 		$mail =  self::add_email_address($mail,$data,'cc');
 		$mail =  self::add_email_address($mail,$data,'bcc');
-		
-		if(SiteIntegration::CheckIntegrationConfiguration(false,SiteIntegration::$imapSlug))
+
+		$mail->addCustomHeader("Auto-Submitted","auto-generated");
+
+		$mail->MessageID = self::generate_email_message_id($data,$config);
+
+		if(SiteIntegration::CheckIntegrationConfiguration(false,SiteIntegration::$imapSlug,$companyID))
 		{
-			$ImapData =  SiteIntegration::CheckIntegrationConfiguration(true,SiteIntegration::$imapSlug);
+			$ImapData =  SiteIntegration::CheckIntegrationConfiguration(true,SiteIntegration::$imapSlug,$companyID);
 			
 			$mail->AddReplyTo($ImapData->EmailTrackingEmail, $FromName);
 		}
-		
-		$message_id		  =  "<".md5(time().$config->EmailFrom) . '@'.$_SERVER['SERVER_NAME'].">";
-        $mail->MessageID  =  $message_id;
-		 	
-	if(isset($data['AttachmentPaths']) && !empty($data['AttachmentPaths'])) {
-        foreach($data['AttachmentPaths'] as $attachment_data) { 
-            $file = \Webpatser\Uuid\Uuid::generate()."_". basename($attachment_data['filepath']); 
-            $Attachmenturl = \App\AmazonS3::unSignedUrl($attachment_data['filepath']);
-            file_put_contents($file,file_get_contents($Attachmenturl));
-            $mail->AddAttachment($file,$attachment_data['filename']);
-        }
-    } 
+
+		if(isset($data['AttachmentPaths']) && !empty($data['AttachmentPaths'])) {
+			foreach($data['AttachmentPaths'] as $attachment_data) {
+				$file = \Webpatser\Uuid\Uuid::generate()."_". basename($attachment_data['filepath']);
+				$Attachmenturl = \App\AmazonS3::unSignedUrl($attachment_data['filepath']);
+				file_put_contents($file,file_get_contents($Attachmenturl));
+				$mail->AddAttachment($file,$attachment_data['filename']);
+			}
+		}
 
 		$emailto = is_array($data['EmailTo'])?implode(",",$data['EmailTo']):$data['EmailTo'];
 		if (!$mail->send()) {
@@ -156,5 +157,25 @@ class PHPMAILERIntegtration{
 		}
 		return $mail;
 	}
+
+	public static function generate_email_message_id($data,$config) {
+
+		if (isset($data['EmailFrom'])) {
+			$from = $data['EmailFrom'];
+		} else {
+			$from = $config->EmailFrom;
+		}
+
+		if(isset($data["Message-ID"]) && !empty($data["Message-ID"])) {
+			$message_id		  = $data["Message-ID"] .'_'.  \Illuminate\Support\Str::random(32) . ''. $from;
+		} else {
+			$message_id		  =  md5(time().$config->EmailFrom) . ''. $from ;
+		}
+
+		return "<".$message_id .">";
+
+	}
+
 }
+
 ?>
