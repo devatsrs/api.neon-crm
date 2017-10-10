@@ -191,14 +191,13 @@ class AmazonS3 {
 
     }
 
-    static function unSignedUrl($key='',$CompanyID){
-        $s3 = self::getS3Client($CompanyID);
-        $Uploadpath = CompanyConfiguration::get($CompanyID,'UPLOAD_PATH') . '/' .$key;
-
-        if ( file_exists($Uploadpath) ) {
-            return $Uploadpath;
+    static function unSignedUrl($key=''){
+        $s3 = self::getS3Client();
+        $status = RemoteSSH::downloadFile($key);
+        if(file_exists($status['filePath'])) {
+            return $status['filePath'];
         } elseif(self::$isAmazonS3=='Amazon') {
-            $bucket = self::getBucket($CompanyID);
+            $bucket = self::getBucket();
             $unsignedUrl = $s3->getObjectUrl($bucket, $key);
             return $unsignedUrl;
         } else {
