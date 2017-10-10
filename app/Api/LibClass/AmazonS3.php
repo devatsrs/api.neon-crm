@@ -191,21 +191,19 @@ class AmazonS3 {
 
     }
 
-    static function unSignedUrl($key=''){
-//        $s3 = self::getS3Client();
+    static function unSignedUrl($key='',$CompanyID){
+        $s3 = self::getS3Client($CompanyID);
+        $Uploadpath = CompanyConfiguration::get($CompanyID,'UPLOAD_PATH') . '/' .$key;
 
-        //When no amazon ;
-//        if($s3 == 'NoAmazon'){
-            return  self::preSignedUrl($key);
-        /*}
-        $bucket = self::getBucket();
-        $unsignedUrl = '';
-        if(!empty($key)){
-
+        if ( file_exists($Uploadpath) ) {
+            return $Uploadpath;
+        } elseif(self::$isAmazonS3=='Amazon') {
+            $bucket = self::getBucket($CompanyID);
             $unsignedUrl = $s3->getObjectUrl($bucket, $key);
-        } 
-        return $unsignedUrl;*/
-
+            return $unsignedUrl;
+        } else {
+            return "";
+        }
     }
 
     //@TODO: need to update when needed
