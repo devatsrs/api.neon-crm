@@ -192,20 +192,17 @@ class AmazonS3 {
     }
 
     static function unSignedUrl($key=''){
-//        $s3 = self::getS3Client();
-
-        //When no amazon ;
-//        if($s3 == 'NoAmazon'){
-            return  self::preSignedUrl($key);
-        /*}
-        $bucket = self::getBucket();
-        $unsignedUrl = '';
-        if(!empty($key)){
-
+        $s3 = self::getS3Client();
+        $status = RemoteSSH::downloadFile($key);
+        if(file_exists($status['filePath'])) {
+            return $status['filePath'];
+        } elseif(self::$isAmazonS3=='Amazon') {
+            $bucket = self::getBucket();
             $unsignedUrl = $s3->getObjectUrl($bucket, $key);
-        } 
-        return $unsignedUrl;*/
-
+            return $unsignedUrl;
+        } else {
+            return "";
+        }
     }
 
     //@TODO: need to update when needed
