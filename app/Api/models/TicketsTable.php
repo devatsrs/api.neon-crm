@@ -381,4 +381,19 @@ class TicketsTable extends \Eloquent
 		return false;
 	}
 
+	static function MoveTicketToDeletedLog($opt = array()){
+
+		if(isset($opt["TicketIDs"]) && is_array($opt["TicketIDs"])) {
+
+				DB::query("INSERT INTO  tblTicketsDeletedLog SELECT * FROM tblTickets WHERE TicketID IN (" . explode(',', $opt["TicketIDs"]) . ')');
+				DB::query("INSERT INTO AccountEmailLogDeletedLog SELECT * FROM AccountEmailLog WHERE TicketID IN (" . explode(',', $opt["TicketIDs"]) . ')');
+
+		} else if(isset($opt["TicketID"]) && is_numeric($opt["TicketID"]) ) {
+
+			DB::query("INSERT INTO tblTicketsDeletedLog SELECT * FROM tblTickets WHERE TicketID = " . $opt["TicketID"]);
+			DB::query("INSERT INTO AccountEmailLogDeletedLog SELECT * FROM AccountEmailLog WHERE TicketID = " . $opt["TicketID"]);
+		}
+
+
+	}
 }
