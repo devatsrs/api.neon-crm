@@ -389,15 +389,13 @@ class TicketsTable extends \Eloquent
 				$q1 = "INSERT INTO  tblTicketsDeletedLog SELECT * FROM tblTickets WHERE TicketID IN (" . $opt["TicketIDs"] . ')';
 				$q2 = "INSERT INTO AccountEmailLogDeletedLog SELECT * FROM AccountEmailLog WHERE TicketID IN (" . $opt["TicketIDs"] . ')';
 
-				Log::info($q1);
-				Log::info($q2);
-				DB::query($q1);
-				DB::query($q2);
+				DB::insert($q1);
+				DB::insert($q2);
 
 		} else if(isset($opt["TicketID"]) && is_numeric($opt["TicketID"]) ) {
 
-			DB::query("INSERT INTO tblTicketsDeletedLog SELECT * FROM tblTickets WHERE TicketID = " . $opt["TicketID"]);
-			DB::query("INSERT INTO AccountEmailLogDeletedLog SELECT * FROM AccountEmailLog WHERE TicketID = " . $opt["TicketID"]);
+			DB::insert("INSERT INTO tblTicketsDeletedLog SELECT * FROM tblTickets WHERE TicketID = " . $opt["TicketID"]);
+			DB::insert("INSERT INTO AccountEmailLogDeletedLog SELECT * FROM AccountEmailLog WHERE TicketID = " . $opt["TicketID"]);
 		}
 
 
