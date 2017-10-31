@@ -212,6 +212,7 @@ class TicketEmails{
 	protected function AgentNewTicketCreated(){
 		
 			$this->slug					=		"AgentNewTicketCreated";
+			Log::info('AgentNewTicketCreated');
 			if(!$this->CheckBasicRequirments())
 			{
 				return $this->Error;
@@ -241,7 +242,7 @@ class TicketEmails{
 	
 		protected function Noteaddedtoticket(){
 			$this->slug					=		"Noteaddedtoticket";
-			
+			Log::info('Noteaddedtoticket');
 			if(!$this->CheckBasicRequirments())
 			{
 				return $this->Error;
@@ -288,6 +289,7 @@ class TicketEmails{
 	
 	protected function  RequesterNewTicketCreated(){
 		$this->slug					=		"RequesterNewTicketCreated";
+		Log::info('RequesterNewTicketCreated');
 		if(!$this->CheckBasicRequirments())
 		{
 			Log::info(print_r($this->Error,true));
@@ -322,6 +324,7 @@ class TicketEmails{
 	protected function AgentAddsCommenttoTicket(){
 		
 			$this->slug					=		"AgentAddsCommenttoTicket";
+			Log::info('AgentAddsCommenttoTicket');
 			
 			if(!$this->CheckBasicRequirments())
 			{
@@ -363,6 +366,7 @@ class TicketEmails{
 			
 		$emailto					=		array();
 		$this->slug					=		"CCNewTicketCreated";
+		Log::info('CCNewTicketCreated');
 		
 		if(!$this->CheckBasicRequirments())
 		{
@@ -407,6 +411,7 @@ class TicketEmails{
 	{	
 		$emailto					=		array();
 		$this->slug					=		"CCNoteaddedtoticket";
+		Log::info('CCNoteaddedtoticket');
 		
 		if(!$this->CheckBasicRequirments())
 		{
@@ -451,6 +456,7 @@ class TicketEmails{
 	protected function TicketAssignedtoAgent(){
 		
 			$this->slug					=		"TicketAssignedtoAgent";
+			Log::info('TicketAssignedtoAgent');
 			if(!$this->CheckBasicRequirments())
 			{
 				return $this->Error;
@@ -480,6 +486,7 @@ class TicketEmails{
 	
 	protected function AgentAssignedGroup(){
 			$slug					=		"AgentAssignedGroup";
+			Log::info('AgentAssignedGroup');
 			
 			if(!$this->CheckBasicRequirments())
 			{
@@ -513,6 +520,7 @@ class TicketEmails{
 	
 	protected function AgentSolvestheTicket(){
 		$this->slug					=		"AgentSolvestheTicket";
+		Log::info('AgentSolvestheTicket');
 		if(!$this->CheckBasicRequirments())
 		{
 			return $this->Error;
@@ -543,6 +551,7 @@ class TicketEmails{
 	
 	protected function AgentClosestheTicket(){
 		$this->slug					=		"AgentClosestheTicket";
+		Log::info('AgentClosestheTicket');
 		if(!$this->CheckBasicRequirments())
 		{
 			return $this->Error;
@@ -641,6 +650,7 @@ class TicketEmails{
 
 		$emailto					=		array();
 		$this->slug					=		"CCEmailTicketCreated";
+		Log::info('CCEmailTicketCreated');
 		/*
 		if(!$this->CheckBasicRequirments())
 		{
