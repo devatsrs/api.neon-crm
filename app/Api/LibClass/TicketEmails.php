@@ -212,6 +212,7 @@ class TicketEmails{
 	protected function AgentNewTicketCreated(){
 		
 			$this->slug					=		"AgentNewTicketCreated";
+			Log::info('AgentNewTicketCreated');
 			if(!$this->CheckBasicRequirments())
 			{
 				return $this->Error;
@@ -228,6 +229,8 @@ class TicketEmails{
             $emailData['CompanyName'] 	= 		$this->Group->GroupName;
 			$emailData['AddReplyTo'] 	= 		isset($this->Group->GroupReplyAddress)?$this->Group->GroupReplyAddress:$this->Group->GroupEmailAddress;
 			$emailData['TicketID'] 		= 		$this->TicketID;
+			$emailData['Auto-Submitted']= 		"auto-generated";
+			$emailData['Message-ID']	= 		$this->TicketID;
 			$status 					= 		sendMail($finalBody,$emailData,0);
 			
 			if($status['status']){
@@ -239,7 +242,7 @@ class TicketEmails{
 	
 		protected function Noteaddedtoticket(){
 			$this->slug					=		"Noteaddedtoticket";
-			
+			Log::info('Noteaddedtoticket');
 			if(!$this->CheckBasicRequirments())
 			{
 				return $this->Error;
@@ -273,6 +276,8 @@ class TicketEmails{
             $emailData['CompanyName'] 	= 		$this->Group->GroupName;
 			$emailData['AddReplyTo'] 	= 		isset($this->Group->GroupReplyAddress)?$this->Group->GroupReplyAddress:$this->Group->GroupEmailAddress;
 			$emailData['TicketID'] 		= 		$this->TicketID;
+			$emailData['Auto-Submitted']= 		"auto-generated";
+			$emailData['Message-ID']	= 		$this->TicketID;
 			$status 					= 		sendMail($finalBody,$emailData,0);
 			
 			if($status['status']){
@@ -284,26 +289,33 @@ class TicketEmails{
 	
 	protected function  RequesterNewTicketCreated(){
 		$this->slug					=		"RequesterNewTicketCreated";
+		Log::info('RequesterNewTicketCreated');
 		if(!$this->CheckBasicRequirments())
-		{ 
+		{
+			Log::info(print_r($this->Error,true));
 			return $this->Error;
 		}
-		
+		$CompanyID = User::get_companyID();
+		$Requester = explode(",",$this->TicketData->Requester);
+		$Requester = self::remove_group_emails_from_array($CompanyID,$Requester);
+
 		$replace_array				= 		$this->ReplaceArray($this->TicketData);
 		$finalBody 					= 		$this->template_var_replace($this->EmailTemplate->TemplateBody,$replace_array);
 		$finalSubject				= 		$this->template_var_replace($this->EmailTemplate->Subject,$replace_array);	
 		$emailData['Subject']		=		$finalSubject;
 		$emailData['Message'] 		= 		$finalBody;
-		$emailData['CompanyID'] 	= 		User::get_companyID();
-		$emailData['EmailTo'] 		= 		$this->TicketData->Requester;
+		$emailData['CompanyID'] 	= 		$CompanyID;
+		$emailData['EmailTo'] 		= 		$Requester;
 		$emailData['EmailFrom'] 	= 		$this->Group->GroupEmailAddress;
 		$emailData['CompanyName'] 	= 		$this->Group->GroupName;
 		$emailData['AddReplyTo'] 	= 		isset($this->Group->GroupReplyAddress)?$this->Group->GroupReplyAddress:$this->Group->GroupEmailAddress;
 		$emailData['TicketID'] 		= 		$this->TicketID;
+		$emailData['Auto-Submitted']= 		"auto-generated";
+		$emailData['Message-ID']	= 		$this->TicketID;
 		$status 					= 		sendMail($finalBody,$emailData,0);
 		
 		if($status['status']){
-			//email_log_data_Ticket($emailData,'',$status);						
+			email_log_data_Ticket($emailData,'',$status);
 		}else{
 			$this->SetError($status['message']);
 		}		
@@ -312,6 +324,7 @@ class TicketEmails{
 	protected function AgentAddsCommenttoTicket(){
 		
 			$this->slug					=		"AgentAddsCommenttoTicket";
+			Log::info('AgentAddsCommenttoTicket');
 			
 			if(!$this->CheckBasicRequirments())
 			{
@@ -323,7 +336,10 @@ class TicketEmails{
 				$this->SetError("No Note added");
 				return;
 			}
-			
+			$CompanyID = User::get_companyID();
+			$Requester = explode(",",$this->TicketData->Requester);
+			$Requester = self::remove_group_emails_from_array($CompanyID,$Requester);
+
 		 	$replace_array				= 		$this->ReplaceArray($this->TicketData);
 		    $finalBody 					= 		$this->template_var_replace($this->EmailTemplate->TemplateBody,$replace_array);
 			$finalBody 					= 		str_replace('{{Notebody}}',$NoteData->Note,$finalBody);			
@@ -331,11 +347,13 @@ class TicketEmails{
             $emailData['Subject']		=		$finalSubject;
             $emailData['Message'] 		= 		$finalBody;
             $emailData['CompanyID'] 	= 		User::get_companyID();
-            $emailData['EmailTo'] 		= 		$this->TicketData->Requester;
+            $emailData['EmailTo'] 		= 		$Requester;
             $emailData['EmailFrom'] 	= 		$this->Group->GroupEmailAddress;
             $emailData['CompanyName'] 	= 		$this->Group->GroupName;
 			$emailData['AddReplyTo'] 	= 		isset($this->Group->GroupReplyAddress)?$this->Group->GroupReplyAddress:$this->Group->GroupEmailAddress;
 			$emailData['TicketID'] 		= 		$this->TicketID;
+			$emailData['Auto-Submitted']= 		"auto-generated";
+			$emailData['Message-ID']	= 		$this->TicketID;
 			$status 					= 		sendMail($finalBody,$emailData,0);
 			
 			if($status['status']){
@@ -348,6 +366,7 @@ class TicketEmails{
 			
 		$emailto					=		array();
 		$this->slug					=		"CCNewTicketCreated";
+		Log::info('CCNewTicketCreated');
 		
 		if(!$this->CheckBasicRequirments())
 		{
@@ -357,24 +376,31 @@ class TicketEmails{
 			$emailto = explode(",",$this->TicketData->RequesterCC);
 		}else{
 			return;
-		}	
-			
+		}
+		$CompanyID = User::get_companyID();
+
+
 		if(count($emailto)>0){
+
+			$emailto = self::remove_group_emails_from_array($CompanyID,$emailto);
+
 			$replace_array				= 		$this->ReplaceArray($this->TicketData);
 			$finalBody 					= 		$this->template_var_replace($this->EmailTemplate->TemplateBody,$replace_array);
 			$finalSubject				= 		$this->template_var_replace($this->EmailTemplate->Subject,$replace_array);	
 			$emailData['Subject']		=		$finalSubject;
 			$emailData['Message'] 		= 		$finalBody;
-			$emailData['CompanyID'] 	= 		User::get_companyID();
+			$emailData['CompanyID'] 	= 		$CompanyID;
 			$emailData['EmailTo'] 		= 		$emailto;
 			$emailData['EmailFrom'] 	= 		$this->Group->GroupEmailAddress;
 			$emailData['CompanyName'] 	= 		$this->Group->GroupName;
 			$emailData['AddReplyTo'] 	= 		isset($this->Group->GroupReplyAddress)?$this->Group->GroupReplyAddress:$this->Group->GroupEmailAddress;
 			$emailData['TicketID'] 		= 		$this->TicketID;
+			$emailData['Auto-Submitted']= 		"auto-generated";
+			$emailData['Message-ID']	= 		$this->TicketID;
 			$status 					= 		sendMail($finalBody,$emailData,0);
 
 			if($status['status']){
-				//email_log_data_Ticket($emailData,'',$status);						
+				email_log_data_Ticket($emailData,'',$status);
 			}else{
 				$this->SetError($status['message']);
 			}
@@ -385,6 +411,7 @@ class TicketEmails{
 	{	
 		$emailto					=		array();
 		$this->slug					=		"CCNoteaddedtoticket";
+		Log::info('CCNoteaddedtoticket');
 		
 		if(!$this->CheckBasicRequirments())
 		{
@@ -394,15 +421,18 @@ class TicketEmails{
 			$emailto = explode(",",$this->TicketEmailData->Cc);
 		}else{
 			return;
-		}	
-			
+		}
+		$CompanyID = User::get_companyID();
+
+
 		if(count($emailto)>0){
+			$emailto = self::remove_group_emails_from_array($emailto);
 			$replace_array				= 		$this->ReplaceArray($this->TicketData);
 			$finalBody 					= 		$this->template_var_replace($this->EmailTemplate->TemplateBody,$replace_array);
 			$finalSubject				= 		$this->template_var_replace($this->EmailTemplate->Subject,$replace_array);	
 			$emailData['Subject']		=		$finalSubject;
 			$emailData['Message'] 		= 		$finalBody;
-			$emailData['CompanyID'] 	= 		User::get_companyID();
+			$emailData['CompanyID'] 	= 		$CompanyID;
 			$emailData['EmailTo'] 		= 		$emailto;
 			$emailData['EmailFrom'] 	= 		$this->Group->GroupEmailAddress;
 			$emailData['CompanyName'] 	= 		$this->Group->GroupName;
@@ -410,6 +440,8 @@ class TicketEmails{
 			$emailData['TicketID'] 		= 		$this->TicketID;
 			$emailData['Comment'] 		= 		$this->Comment;
 			$emailData['NoteUser'] 		= 		$this->NoteUser;
+			$emailData['Auto-Submitted']= 		"auto-generated";
+			$emailData['Message-ID']	= 		$this->TicketID;
 			$status 					= 		sendMail($finalBody,$emailData,0);
 
 			if($status['status']){
@@ -424,6 +456,7 @@ class TicketEmails{
 	protected function TicketAssignedtoAgent(){
 		
 			$this->slug					=		"TicketAssignedtoAgent";
+			Log::info('TicketAssignedtoAgent');
 			if(!$this->CheckBasicRequirments())
 			{
 				return $this->Error;
@@ -439,6 +472,8 @@ class TicketEmails{
             $emailData['EmailFrom'] 	= 		$this->Group->GroupEmailAddress;
             $emailData['CompanyName'] 	= 		$this->Group->GroupName;
 			$emailData['AddReplyTo'] 	= 		isset($this->Group->GroupReplyAddress)?$this->Group->GroupReplyAddress:$this->Group->GroupEmailAddress;
+			$emailData['Message-ID']	= 		$this->TicketID;
+			$emailData['Auto-Submitted']= 		"auto-generated";
 			$status 					= 		sendMail($finalBody,$emailData,0);
 			$emailData['TicketID'] 		= 		$this->TicketID;
 			
@@ -451,6 +486,7 @@ class TicketEmails{
 	
 	protected function AgentAssignedGroup(){
 			$slug					=		"AgentAssignedGroup";
+			Log::info('AgentAssignedGroup');
 			
 			if(!$this->CheckBasicRequirments())
 			{
@@ -469,6 +505,8 @@ class TicketEmails{
             $emailData['EmailFrom'] 	= 		$this->Group->GroupEmailAddress;
             $emailData['CompanyName'] 	= 		$this->Group->GroupName;
 			$emailData['AddReplyTo'] 	= 		isset($this->Group->GroupReplyAddress)?$this->Group->GroupReplyAddress:$this->Group->GroupEmailAddress;
+			$emailData['Message-ID']	= 		$this->TicketID;
+			$emailData['Auto-Submitted']= 		"auto-generated";
 			$status 					= 		sendMail($finalBody,$emailData,0);
 			$emailData['TicketID'] 		= 		$this->TicketID;
 			$emailData['UserID']		=		User::get_userID();			
@@ -482,6 +520,7 @@ class TicketEmails{
 	
 	protected function AgentSolvestheTicket(){
 		$this->slug					=		"AgentSolvestheTicket";
+		Log::info('AgentSolvestheTicket');
 		if(!$this->CheckBasicRequirments())
 		{
 			return $this->Error;
@@ -498,6 +537,8 @@ class TicketEmails{
 		$emailData['CompanyName'] 	= 		$this->Group->GroupName;
 		$emailData['AddReplyTo'] 	= 		isset($this->Group->GroupReplyAddress)?$this->Group->GroupReplyAddress:$this->Group->GroupEmailAddress;
 		$emailData['TicketID'] 		= 		$this->TicketID;
+		$emailData['Message-ID']	= 		$this->TicketID;
+		$emailData['Auto-Submitted']= 		"auto-generated";
 		$status 					= 		sendMail($finalBody,$emailData,0);
 		$emailData['EmailParent']	=		0;
 		
@@ -510,6 +551,7 @@ class TicketEmails{
 	
 	protected function AgentClosestheTicket(){
 		$this->slug					=		"AgentClosestheTicket";
+		Log::info('AgentClosestheTicket');
 		if(!$this->CheckBasicRequirments())
 		{
 			return $this->Error;
@@ -526,6 +568,8 @@ class TicketEmails{
 		$emailData['CompanyName'] 	= 		$this->Group->GroupName;
 		$emailData['AddReplyTo'] 	= 		isset($this->Group->GroupReplyAddress)?$this->Group->GroupReplyAddress:$this->Group->GroupEmailAddress;
 		$emailData['TicketID'] 		= 		$this->TicketID;
+		$emailData['Message-ID']	= 		$this->TicketID;
+		$emailData['Auto-Submitted']= 		"auto-generated";
 		$status 					= 		sendMail($finalBody,$emailData,0);
 		$emailData['EmailParent']	=		0;
 		if($status['status']){
@@ -606,6 +650,7 @@ class TicketEmails{
 
 		$emailto					=		array();
 		$this->slug					=		"CCEmailTicketCreated";
+		Log::info('CCEmailTicketCreated');
 		/*
 		if(!$this->CheckBasicRequirments())
 		{
@@ -623,7 +668,12 @@ class TicketEmails{
 		$CompanyID = User::get_companyID();
 		$CompanyName = Company::getName($CompanyID);
 
+
+
 		if(count($emailto)>0){
+
+			$emailto = self::remove_group_emails_from_array($CompanyID,$emailto);
+
 			$replace_array				= 		$this->ReplaceArray($this->TicketData);
 			$finalBody 					= 		$this->template_var_replace($this->TicketData->Description,$replace_array);
 			$finalSubject				= 		$this->template_var_replace($this->TicketData->Subject,$replace_array);
@@ -633,20 +683,40 @@ class TicketEmails{
 			$emailData['EmailTo'] 		= 		$emailto;
 			if(isset($this->TicketData->RequesterCC) && !empty($this->TicketData->RequesterCC)){
 				$emailcc = explode(",",$this->TicketData->RequesterCC);
+
+				$emailcc = self::remove_group_emails_from_array($emailcc);
+
+
 				$emailData['cc'] 		= 		$emailcc;
 			}
 			$emailData['EmailFrom'] 	= 		$this->EmailSenderFrom;
 			$emailData['CompanyName'] 	= 		isset($this->Group->GroupName)? $this->Group->GroupName:$CompanyName ;
 			$emailData['AddReplyTo'] 	= 		isset($this->Group->GroupReplyAddress)?$this->Group->GroupReplyAddress:$this->EmailSenderFrom;
 			$emailData['TicketID'] 		= 		$this->TicketID;
+			$emailData['Auto-Submitted']= 		"auto-generated";
+			$emailData['Message-ID']	= 		$this->TicketID;
 			$status 					= 		sendMail($finalBody,$emailData,0);
 			if($status['status']){
-				//email_log_data_Ticket($emailData,'',$status);
+				email_log_data_Ticket($emailData,'',$status);
 			}else{
 				$this->SetError($status['message']);
 			}
 		}
 	}
-	
+
+	public static function remove_group_emails_from_array($CompanyID,$email_array = array()) {
+
+		$GroupEmailAddress 	=	TicketGroups::where(array("CompanyID"=>$CompanyID,"GroupEmailStatus"=>1))->get(["GroupEmailAddress"])->toArray();
+
+		$group_emails = [];
+		foreach($GroupEmailAddress as $GEmailAddress){
+			$group_emails[]  = $GEmailAddress["GroupEmailAddress"];
+		}
+
+		//$GroupEmailAddress 	=	TicketGroups::get(["GroupEmailAddress"])->lists('GroupEmailAddress');
+
+		return array_diff((array) $email_array, $group_emails);
+
+	}
 }
 ?>
