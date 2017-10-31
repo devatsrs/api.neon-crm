@@ -1,6 +1,7 @@
 <?php
 namespace Api\Model;
 use App\TicketEmails;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Input;
@@ -381,4 +382,22 @@ class TicketsTable extends \Eloquent
 		return false;
 	}
 
+	static function MoveTicketToDeletedLog($opt = array()){
+
+		if(isset($opt["TicketIDs"]) ) {
+
+				$q1 = "INSERT INTO  tblTicketsDeletedLog SELECT * FROM tblTickets WHERE TicketID IN (" . $opt["TicketIDs"] . ')';
+				$q2 = "INSERT INTO AccountEmailLogDeletedLog SELECT * FROM AccountEmailLog WHERE TicketID IN (" . $opt["TicketIDs"] . ')';
+
+				DB::insert($q1);
+				DB::insert($q2);
+
+		} else if(isset($opt["TicketID"]) && is_numeric($opt["TicketID"]) ) {
+
+			DB::insert("INSERT INTO tblTicketsDeletedLog SELECT * FROM tblTickets WHERE TicketID = " . $opt["TicketID"]);
+			DB::insert("INSERT INTO AccountEmailLogDeletedLog SELECT * FROM AccountEmailLog WHERE TicketID = " . $opt["TicketID"]);
+		}
+
+
+	}
 }

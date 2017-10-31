@@ -82,7 +82,8 @@ class TicketImportRulesController extends BaseController {
 			 {		
 			 		//saving conditions
 					
-					$condition = $data['condition'];
+
+					 $condition = isset($data['condition'])?$data['condition'] : array();
 					
 					foreach($condition as $key => $ConditionData)
 					{
@@ -121,7 +122,7 @@ class TicketImportRulesController extends BaseController {
 					}
 					
 					//saving rules
-					$rule = $data['rule'];
+				    $rule = isset($data['rule']) ? $data['rule'] : array();
 					foreach($rule as $key => $RuleData)
 					{
 						$Value = "";
@@ -201,8 +202,8 @@ class TicketImportRulesController extends BaseController {
 				
 				TicketImportRuleCondition::where(['TicketImportRuleID'=>$id])->delete(); //deleting old				
 				//saving conditions
-					
-				$condition = $data['condition'];
+
+			 	$condition = isset($data['condition'])?$data['condition'] : array();
 
 				 foreach($condition as $key => $ConditionData)
 				 {
@@ -233,7 +234,7 @@ class TicketImportRulesController extends BaseController {
 						 'Operand' =>   'required',
 						 'Order' =>   'required',
 					 );
-					 if (Validator::make($data,$rules)->fails()) {
+					 if (Validator::make($SaveConditionData,$rules)->fails()) {
 						 return generateResponse($validator->errors(),true);
 					 }
 
@@ -243,7 +244,7 @@ class TicketImportRulesController extends BaseController {
 				TicketImportRuleAction::where(['TicketImportRuleID'=>$id])->delete(); //delete old
 				
 				//saving rules
-				$rule = $data['rule'];
+			    $rule = isset($data['rule']) ? $data['rule'] : array();
 				 foreach($rule as $key => $RuleData)
 				 {
 					 $Value = "";
@@ -270,7 +271,7 @@ class TicketImportRulesController extends BaseController {
 						 'Value' =>   'required',
 						 'Order' =>   'required',
 					 );
-					 if (Validator::make($data,$rules)->fails()) {
+					 if (Validator::make($SaveRuleData,$rules)->fails()) {
 						 return generateResponse($validator->errors(),true);
 					 }
 					 TicketImportRuleAction::create($SaveRuleData);
