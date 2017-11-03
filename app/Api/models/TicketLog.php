@@ -19,7 +19,25 @@ class TicketLog extends \Eloquent
     ];
 
 
-    public static function AddLog($TicketID,$isCustomer = 0){
+    const NEW_TICKET = 'new_ticket';
+    const STATUS_CHANGED = 'status_changed';
+
+    public static function insertTicketLog($TicketID,$Action,$isCustomer = 0 , $status  = 0 ) {
+
+
+        if($Action == self::NEW_TICKET){
+
+            self::NewTicketTicketLog($TicketID,$isCustomer);
+
+        } else if($Action == self::STATUS_CHANGED ) {
+
+            self::StatusChangedTicketLog($TicketID,$isCustomer ,$status );
+        }
+
+
+    }
+    public static function NewTicketTicketLog($TicketID,$isCustomer = 0) {
+
         if($isCustomer == 1){
             $UserID = 0;
             $AccountID = User::get_userID();
@@ -37,11 +55,11 @@ class TicketLog extends \Eloquent
         TicketLog::insert($data);
     }
 
-    public static function updateEmailLog($TicketID,$isCustomer = 0,$status){
+    public static function StatusChangedTicketLog($TicketID,$isCustomer = 0,$status) { //updateEmailLog
         if($isCustomer == 1){
             $UserID = 0;
             $AccountID = User::get_userID();
-        }else {
+        } else {
             $UserID = User::get_userID();
             $AccountID = 0;
         }
