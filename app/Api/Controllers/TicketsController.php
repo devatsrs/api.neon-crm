@@ -558,6 +558,7 @@ private $validlicense;
         if( $id > 0){
             try{
                 DB::beginTransaction();
+				TicketsTable::MoveTicketToDeletedLog(["TicketID" => $id]);
                 TicketsTable::where(["TicketID"=>$id])->delete();
               	TicketsDetails::where(["TicketID"=>$id])->delete();
 				TicketDashboardTimeline::where(['TicketID'=>$id])->delete();
@@ -1243,7 +1244,8 @@ private $validlicense;
         }
         try {
             DB::beginTransaction();
-            TicketLog::whereIn('TicketID', explode(',',$data['SelectedIDs']))->delete();
+			TicketsTable::MoveTicketToDeletedLog(["TicketIDs" => $data['SelectedIDs']]);
+			TicketLog::whereIn('TicketID', explode(',',$data['SelectedIDs']))->delete();
 			TicketDashboardTimeline::whereIn('TicketID', explode(',',$data['SelectedIDs']))->delete();
             TicketsDetails::whereIn('TicketID', explode(',',$data['SelectedIDs']))->delete();
             TicketsTable::whereIn('TicketID', explode(',',$data['SelectedIDs']))->delete();			
