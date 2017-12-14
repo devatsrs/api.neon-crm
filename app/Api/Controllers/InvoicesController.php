@@ -76,16 +76,16 @@ class InvoicesController extends BaseController
 
         try{
             Log::info($query);
-            return DataTableSql::of($query,'billing_db')->make();
+            $invoices = DataTableSql::of($query,'billing_db')->make();
             /*$invoices = DB::connection('billing_db')->select($query);
-            $cnt = count($invoices);
-            $message = $cnt." Invoices found!";*/
+            $cnt = count($invoices);*/
+            $message = "";
         }catch (\Exception $ex){
             Log::info($ex);
             $message = $ex->getMessage();
             return generateResponse($message,true,false,[]);
         }
-        //return generateResponse($message,false,false,$invoices);
+        return generateResponse($message,false,false,$invoices);
     }
 
     public function getVendorInvoices(){
@@ -137,9 +137,11 @@ class InvoicesController extends BaseController
         }
 
         try{
-            $invoices = DB::connection('billing_db')->select($query);
-            $cnt = count($invoices);
-            $message = $cnt." Invoices found!";
+            Log::info($query);
+            $invoices = DataTableSql::of($query,'billing_db')->make();
+            /*$invoices = DB::connection('billing_db')->select($query);
+            $cnt = count($invoices);*/
+            $message = "";
         }catch (\Exception $ex){
             Log::info($ex);
             $message = $ex->getMessage();
