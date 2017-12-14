@@ -281,7 +281,14 @@ $api->version('v1', function ($api) {
 
     		});
 
-		});
+
+            //customer invoice
+            $api->any('invoice/getCustomerInvoices', 'InvoicesController@getCustomerInvoices');
+            //vendor invoice
+            $api->any('invoice/getVendorInvoices', 'InvoicesController@getVendorInvoices');
+
+
+        });
 
 
         // VOS Account Audit Export API
@@ -321,6 +328,7 @@ $api->version('v1', function ($api) {
          * end_time
          */
         $api->post('mark_processedips_audit_export_logs', "AccountAuditExportLogController@markProcessedIP");
+
     });
 
 });
