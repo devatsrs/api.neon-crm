@@ -160,7 +160,7 @@ private $validlicense;
 			
 			if($data['LoginType']=='user')
 			{	
-				$email_from		   =  TicketGroups::where(["GroupID"=>$Ticketfields['default_group']])->pluck('GroupEmailAddress'); 
+				$email_from		   =  TicketGroups::where(["GroupID"=>$Ticketfields['default_group']])->pluck('GroupReplyAddress');
 				$email_from_name   =  TicketGroups::where(["GroupID"=>$Ticketfields['default_group']])->pluck('GroupName'); 
 				$TicketData = array(
 					"CompanyID"=>$CompanyID,
@@ -384,7 +384,7 @@ private $validlicense;
 					$RequesterData 	   =  explode(" <",$Ticketfields['default_requester']);
 					$RequesterName	   =  $RequesterData[0];
 					$RequesterEmail	   =  substr($RequesterData[1],0,strlen($RequesterData[1])-1);		
-					$email_from		   =  TicketGroups::where(["GroupID"=>$Ticketfields['default_group']])->pluck('GroupEmailAddress'); 
+					$email_from		   =  TicketGroups::where(["GroupID"=>$Ticketfields['default_group']])->pluck('GroupReplyAddress');
 					$email_from_name   =  TicketGroups::where(["GroupID"=>$Ticketfields['default_group']])->pluck('GroupName'); 
 					
 					$TicketData = array(
@@ -655,7 +655,7 @@ private $validlicense;
 				$postdata['Cc'] 				= 	  $postdata['response_data']->RequesterCC;	
 				$postdata['Bcc'] 				= 	  $postdata['response_data']->RequesterBCC;	
 				$postdata['parent_id']			=	  0;
-				$postdata['GroupEmail']			=	  TicketGroups::where(["GroupID"=>$postdata['response_data']->Group])->pluck('GroupEmailAddress');
+				$postdata['GroupEmail']			=	  TicketGroups::where(["GroupID"=>$postdata['response_data']->Group])->pluck('GroupReplyAddress');
 				
 			}else{
 				$postdata['response_data']      =     AccountEmailLog::find($ticket_number);
@@ -667,7 +667,7 @@ private $validlicense;
 				$postdata['parent_id']			=	  '';
 				$postdata['response_data']->Description		=	  $postdata['response_data']->Message;
 				$postdata['GroupEmail']			=	  "";
-				$postdata['GroupEmail']			=	  TicketGroups::where(["GroupID"=>$TicketData->Group])->pluck('GroupEmailAddress');				
+				$postdata['GroupEmail']			=	  TicketGroups::where(["GroupID"=>$TicketData->Group])->pluck('GroupReplyAddress');
 			}
 				
 				return generateResponse('success', false, false, $postdata);
@@ -757,7 +757,7 @@ private $validlicense;
 					
 					DB::beginTransaction();
 					
-					$email_from_data   =  TicketGroups::where(["GroupEmailAddress"=>$data['email-from']])->select('GroupEmailAddress','GroupName')->get(); 
+					$email_from_data   =  TicketGroups::where(["GroupReplyAddress"=>$data['email-from']])->select( 'GroupReplyAddress','GroupName')->get();
 					//$email_from_name   =  TicketGroups::where(["GroupID"=>$ticketdata->Group])->pluck('GroupName'); 
 					
 					 $files = '';
@@ -782,7 +782,7 @@ private $validlicense;
 					{	
 						$message_id = isset($status['message_id'])?$status['message_id']:'';
 						
-						$logData = ['EmailFrom'=>$data['email-from'],
+						$logData = ['EmailFrom'=>$data['EmailFrom'],
 						'EmailTo'=>trim($data['EmailTo']),
 						'Subject'=>trim($data['Subject']),
 						'Message'=>trim($data['Message']),
@@ -867,7 +867,7 @@ private $validlicense;
 					
 					DB::beginTransaction();
 					
-					$email_from_data   =  TicketGroups::where(["GroupEmailAddress"=>$data['email-to']])->select('GroupEmailAddress','GroupName')->get(); 
+					$email_from_data   =  TicketGroups::where(["GroupReplyAddress"=>$data['email-to']])->select('GroupReplyAddress','GroupName')->get();
 					
 					 $files = '';
 					 $FilesArray = array();
@@ -875,15 +875,15 @@ private $validlicense;
 						 $FilesArray = json_decode($data['file'],true);
 						$files = serialize(json_decode($data['file'],true));
 					}
-					 
+
 					 $data['EmailFrom']  		=   $data['email-from'];
 					 $data['CompanyName'] 	    =   $email_from_data[0]->GroupName;
 					 $data['EmailTo']  		  	= 	$data['email-to'];
 					 $data['AttachmentPaths'] 	= 	$FilesArray;
 					 $data['cc'] 				= 	trim($data['cc']);
 					 $data['bcc'] 				= 	trim($data['bcc']);		
-					// $data['In-Reply-To'] 		= 	AccountEmailLog::where(['AccountEmailLogID'=>$ticketdata->AccountEmailLogID])->pluck('MessageID');
-					 $data['In-Reply-To'] 		= 	"Ticket__".base64_encode($id)."__".base64_encode($ticketdata->Requester);
+					 $data['In-Reply-To'] 		= 	AccountEmailLog::where(['AccountEmailLogID'=>$ticketdata->AccountEmailLogID])->pluck('MessageID');
+					 //$data['In-Reply-To'] 		= 	"Ticket__".base64_encode($id)."__".base64_encode($ticketdata->Requester);
 					 $data['Message-ID']		= 	$ticketdata->TicketID;
 					 $status 					= 	sendMail('emails.tickets.ticket', $data);
 					if($status['status'] == 1)
@@ -994,7 +994,7 @@ private $validlicense;
 		
 			//$email_from		   =  TicketGroups::where(["GroupID"=>$data['email-from']])->pluck('GroupReplyAddress'); 
 			//$email_from_name   =  TicketGroups::where(["GroupID"=>$data['email-from']])->pluck('GroupName'); 
-			$email_from_data   				= 	TicketGroups::where(["GroupEmailAddress"=>$data['email-from']])->get(array('GroupEmailAddress','GroupName','GroupID','GroupReplyAddress'));  
+			$email_from_data   				= 	TicketGroups::where(["GroupReplyAddress"=>$data['email-from']])->get(array('GroupEmailAddress','GroupName','GroupID','GroupReplyAddress'));
 			$Ticketfields      				= 	$data['Ticket'];
 			
 			if(count($email_from_data)>0){
