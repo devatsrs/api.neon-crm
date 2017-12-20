@@ -194,6 +194,7 @@ $api->version('v1', function ($api) {
             $api->post('report/store', 'ReportController@Store');
             $api->put('report/update/{AlertID}', 'ReportController@Update');
             $api->delete('report/delete/{AlertID}', 'ReportController@Delete');
+            $api->put('report/update_schedule/{AlertID}', 'ReportController@UpdateSchedule');
 
             // Mailbox Class
             $api->post('email/sendemail', 'MailboxController@sendMail');

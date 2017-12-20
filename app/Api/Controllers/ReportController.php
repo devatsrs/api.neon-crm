@@ -121,6 +121,70 @@ class ReportController extends BaseController {
             return generateResponse('Provide Valid Integer Value.',true,true);
         }
     }
+    public function UpdateSchedule($ReportID){
+        if ($ReportID > 0) {
+            $post_data = Input::all();
+            $post_data['Schedule'] = isset($post_data['Schedule'])?1:0;
+            if(isset($post_data['LicenceKey'])){unset($post_data['LicenceKey']);};
+            if(isset($post_data['CompanyName'])){unset($post_data['CompanyName']);};
+            if(isset($post_data['LoginType'])){unset($post_data['LoginType']);};
+
+            if (empty($post_data['Report']['Interval'])) {
+                $error_message = 'Schedule Interval is required.';
+            }
+            if (empty($post_data['Report']['Time'])) {
+                $error_message = 'Schedule Time is required.';
+            }
+            if(empty($post_data['Report']['NotificationEmail'])){
+                $error_message = 'Email Address is required.';
+            }
+            if(!empty($error_message)){
+                return generateResponse($error_message, true, true);
+            }
+            try {
+                try {
+                    $Report = Report::findOrFail($ReportID);
+                } catch (\Exception $e) {
+                    Log::info($e);
+                    return generateResponse('Report not found.',true,true);
+                }
+
+                $settings = json_decode($Report->ScheduleSettings,true);
+                if(isset($settings['LastRunTime'])){
+                    if($Report->Status == 0 && $post_data['Schedule'] == 1){
+                        if ($settings['Time'] == 'DAILY') {
+                            $post_data['Report']['LastRunTime'] = date("Y-m-d 00:00:00", strtotime('-' . $settings['Interval'] . ' day'));
+                        } else if ($settings['Time'] == 'WEEKLY') {
+                            $post_data['Report']['LastRunTime'] = date("Y-m-d 00:00:00", strtotime('-' . $settings['Interval'] . ' week'));
+                        } else if ($settings['Time'] == 'MONTHLY') {
+                            $post_data['Report']['LastRunTime'] = date("Y-m-d 00:00:00", strtotime('-' . $settings['Interval'] . ' month'));
+                        } else if ($settings['Time'] == 'YEARLY') {
+                            $post_data['Report']['LastRunTime'] = date("Y-m-d 00:00:00", strtotime('-' . $settings['Interval'] . ' year'));
+                        }
+                        $post_data['Report']['NextRunTime'] = next_run_time($settings);
+                    }else{
+                        $post_data['Report']['LastRunTime'] = $settings['LastRunTime'];
+                        $post_data['Report']['NextRunTime'] = $settings['NextRunTime'];
+                    }
+                }
+
+                $updatedata = array();
+                $updatedata['ScheduleSettings'] = json_encode($post_data['Report']);
+                $updatedata['Schedule'] = $post_data['Schedule'];
+                $updatedata['UpdatedBy'] = User::get_user_full_name();
+                $Report->update($updatedata);
+                Log::info($updatedata);
+                Log::info($post_data);
+
+                return generateResponse('Report updated successfully');
+            } catch (\Exception $e) {
+                Log::info($e);
+                return $this->response->errorInternal('Internal Server');
+            }
+        } else {
+            return generateResponse('Provide Valid Integer Value.',true,true);
+        }
+    }
 
 
 
