@@ -882,8 +882,7 @@ private $validlicense;
 					 $data['AttachmentPaths'] 	= 	$FilesArray;
 					 $data['cc'] 				= 	trim($data['cc']);
 					 $data['bcc'] 				= 	trim($data['bcc']);		
-					 $data['In-Reply-To'] 		= 	AccountEmailLog::where(['AccountEmailLogID'=>$ticketdata->AccountEmailLogID])->pluck('MessageID');
-					 //$data['In-Reply-To'] 		= 	"Ticket__".base64_encode($id)."__".base64_encode($ticketdata->Requester);
+					 $data['In-Reply-To'] 		= 	AccountEmailLog::getLastMessageIDByTicketID($ticketdata->TicketID);
 					 $data['Message-ID']		= 	$ticketdata->TicketID;
 					 $status 					= 	sendMail('emails.tickets.ticket', $data);
 					if($status['status'] == 1)
