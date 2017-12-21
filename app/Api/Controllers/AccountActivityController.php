@@ -95,7 +95,7 @@ class AccountActivityController extends BaseController {
 			 Contact::CheckEmailContact($data['bcc'],isset($data['AccountID'])?$data['AccountID']:0);		
 			 
 			 if(isset($data['createticket']) && TicketsTable::getTicketLicense()){ //check and create ticket
-			 	$email_from_data   	= 	TicketGroups::where(["GroupReplyAddress"=>$data['email-from']])->select('GroupEmailAddress','GroupName','GroupID','GroupReplyAddress')->get();
+			 	$email_from_data   	= 	TicketGroups::where(["GroupReplyAddress"=>$data['email-from']])->select('GroupName','GroupID','GroupReplyAddress')->get();
 				$TicketData = array(
 					"CompanyID"=>User::get_companyID(),
 					"Requester"=>$data['EmailTo'],
@@ -116,7 +116,6 @@ class AccountActivityController extends BaseController {
 				
 				$TicketID = TicketsTable::insertGetId($TicketData);	
 				if(count($email_from_data)>0){
-				 	$data['In-Reply-To']	  = 	$email_from_data[0]->GroupReplyAddress;
 				 	$data['EmailFrom']	   	  = 	$email_from_data[0]->GroupReplyAddress;
 				 	$data['CompanyName']  	  = 	$email_from_data[0]->GroupName;		
 				}else{

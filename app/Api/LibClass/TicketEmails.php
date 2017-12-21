@@ -621,7 +621,7 @@ class TicketEmails{
 		}
 		else
 		{
-			$group  = 	TicketGroups::where(["GroupEmailAddress"=>$this->EmailFrom])->Orwhere(["GroupReplyAddress"=>$this->EmailFrom])->first();
+			$group  = 	TicketGroups::where(["GroupReplyAddress"=>$this->EmailFrom])->first();
 			if(!$group)
 			{
 				$this->SetError("Invalid Group");				
