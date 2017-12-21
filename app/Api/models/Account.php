@@ -8,6 +8,9 @@ use Api\Model\CompanySetting;
 use Api\Model\Integration;
 use Api\Model\IntegrationConfiguration;
 
+use Api\Models\DynamicFields;
+use Api\Models\DynamicFieldsValue;
+
 class Account extends Model
 {
     protected $guarded = array("AccountID");
@@ -28,6 +31,7 @@ class Account extends Model
     const  NO_CDR = 3;
     public static $cdr_type = array('' => 'Select a CDR Type', self::DETAIL_CDR => 'Detail CDR', self::SUMMARY_CDR => 'Summary CDR');
 
+    const DynamicFields_Type = 'account';
 
     public static $rules = array(
         'Owner' => 'required',
@@ -104,20 +108,17 @@ class Account extends Model
 
     public static function getAccountIDList($data = array())
     {
-
-        if (User::is('AccountManager')) {
+        /*if (User::is('AccountManager')) {
             $data['Owner'] = User::get_userID();
-        }
+        }*/
         $data['Status'] = 1;
         if (!isset($data['AccountType'])) {
             $data['AccountType'] = 1;
             $data['VerificationStatus'] = Account::VERIFIED;
         }
         $data['CompanyID'] = User::get_companyID();
-        $row = Account::where($data)->select(array('AccountName', 'AccountID'))->orderBy('AccountName')->lists('AccountName', 'AccountID');
-        if (!empty($row)) {
-            $row = array("" => "Select an Account") + $row;
-        }
+        $row = Account::where($data)->select(array('AccountName', 'AccountID'))->orderBy('AccountName')->lists('AccountName', 'AccountID')->all();
+
         return $row;
     }
 
@@ -423,4 +424,30 @@ class Account extends Model
 	if($ArrayReturn){return $array;}		
 	  return implode(",",$array);
 	}
+
+    public static function accountVendorFieldID() {
+        $DynamicFields = DynamicFields::where('Type', Account::DynamicFields_Type)->where('FieldSlug','vendorname')->where('Status',1);
+
+        if($DynamicFields->count() > 0) {
+            return $DynamicFields->first()->DynamicFieldsID;
+        } else {
+            return '';
+        }
+    }
+
+    public static function accountVendorName($AccountID) {
+        $DynamicFieldsID = Account::accountVendorFieldID();
+//        echo "<pre>";print_r($DynamicFieldsID);exit();
+        if(isset($DynamicFieldsID) && !empty($DynamicFieldsID)) {
+            $VendorName = DynamicFieldsValue::where('DynamicFieldsID', $DynamicFieldsID)->where('ParentID',$AccountID);
+            if($VendorName->count() > 0) {
+                return $VendorName->first()->FieldValue;
+            } else {
+                return '';
+            }
+
+        } else {
+            return '';
+        }
+    }
 }

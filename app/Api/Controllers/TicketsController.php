@@ -160,7 +160,7 @@ private $validlicense;
 			
 			if($data['LoginType']=='user')
 			{	
-				$email_from		   =  TicketGroups::where(["GroupID"=>$Ticketfields['default_group']])->pluck('GroupEmailAddress'); 
+				$email_from		   =  TicketGroups::where(["GroupID"=>$Ticketfields['default_group']])->pluck('GroupReplyAddress');
 				$email_from_name   =  TicketGroups::where(["GroupID"=>$Ticketfields['default_group']])->pluck('GroupName'); 
 				$TicketData = array(
 					"CompanyID"=>$CompanyID,
@@ -215,22 +215,23 @@ private $validlicense;
 					}
 				}	
 
-                TicketLog::AddLog($TicketID,($data['LoginType']=='user')?0:1);
+                TicketLog::insertTicketLog($TicketID,TicketLog::NEW_TICKET,($data['LoginType']=='user')?0:1);
 				//create contact if email not found in system
 			 	$AllEmails  =   Messages::GetAllSystemEmails();
 				if(!in_array($RequesterEmail,$AllEmails))
 				{
 					$ContactData = array("Email"=>$RequesterEmail,"CompanyId"=>$CompanyID);
-					Contact::create($ContactData);
+					$ContactID = Contact::insertGetId($ContactData);
+					TicketsTable::find($TicketID)->update(array("ContactID"=>$ContactID));
+
 				}	 
 				 $TicketData['email_from']  	= 	$email_from;
 				 $TicketData['email_from_name'] = 	$email_from_name;
 				 $TicketData['AttachmentPaths'] =   $files;
-				 
 				/* $logID =  SendTicketEmail('store',$TicketID,$TicketData);
 				 TicketsTable::find($TicketID)->update(array("AccountEmailLogID"=>$logID));
-				
-				
+
+
 				 if(!isset($logID['status'])){
 				  	TicketsTable::find($TicketID)->update(array("AccountEmailLogID"=>$logID));
 				 }else{
@@ -268,7 +269,15 @@ private $validlicense;
 			
 			if ($id > 0){           
 				try {
-					$ticketdata = TicketsTable::find($id);
+
+					//$ticketdata = TicketsTable::find($id);
+					$ticketdata_query  =      	"call prc_GetSingleTicket (".$id.")";
+					$ticketdata		   =		DB::select($ticketdata_query);
+					if(isset($ticketdata[0])){
+						$ticketdata = $ticketdata[0];
+					}else {
+						return generateResponse('Ticket not found.',true,true);
+					}
 				} catch (\Exception $e) {
 					Log::info($e);
 					return generateResponse('Ticket not found.',true,true);
@@ -375,7 +384,7 @@ private $validlicense;
 					$RequesterData 	   =  explode(" <",$Ticketfields['default_requester']);
 					$RequesterName	   =  $RequesterData[0];
 					$RequesterEmail	   =  substr($RequesterData[1],0,strlen($RequesterData[1])-1);		
-					$email_from		   =  TicketGroups::where(["GroupID"=>$Ticketfields['default_group']])->pluck('GroupEmailAddress'); 
+					$email_from		   =  TicketGroups::where(["GroupID"=>$Ticketfields['default_group']])->pluck('GroupReplyAddress');
 					$email_from_name   =  TicketGroups::where(["GroupID"=>$Ticketfields['default_group']])->pluck('GroupName'); 
 					
 					$TicketData = array(
@@ -549,6 +558,7 @@ private $validlicense;
         if( $id > 0){
             try{
                 DB::beginTransaction();
+				TicketsTable::MoveTicketToDeletedLog(["TicketID" => $id]);
                 TicketsTable::where(["TicketID"=>$id])->delete();
               	TicketsDetails::where(["TicketID"=>$id])->delete();
 				TicketDashboardTimeline::where(['TicketID'=>$id])->delete();
@@ -645,7 +655,7 @@ private $validlicense;
 				$postdata['Cc'] 				= 	  $postdata['response_data']->RequesterCC;	
 				$postdata['Bcc'] 				= 	  $postdata['response_data']->RequesterBCC;	
 				$postdata['parent_id']			=	  0;
-				$postdata['GroupEmail']			=	  TicketGroups::where(["GroupID"=>$postdata['response_data']->Group])->pluck('GroupEmailAddress');
+				$postdata['GroupEmail']			=	  TicketGroups::where(["GroupID"=>$postdata['response_data']->Group])->pluck('GroupReplyAddress');
 				
 			}else{
 				$postdata['response_data']      =     AccountEmailLog::find($ticket_number);
@@ -657,7 +667,7 @@ private $validlicense;
 				$postdata['parent_id']			=	  '';
 				$postdata['response_data']->Description		=	  $postdata['response_data']->Message;
 				$postdata['GroupEmail']			=	  "";
-				$postdata['GroupEmail']			=	  TicketGroups::where(["GroupID"=>$TicketData->Group])->pluck('GroupEmailAddress');				
+				$postdata['GroupEmail']			=	  TicketGroups::where(["GroupID"=>$TicketData->Group])->pluck('GroupReplyAddress');
 			}
 				
 				return generateResponse('success', false, false, $postdata);
@@ -747,7 +757,7 @@ private $validlicense;
 					
 					DB::beginTransaction();
 					
-					$email_from_data   =  TicketGroups::where(["GroupEmailAddress"=>$data['email-from']])->select('GroupEmailAddress','GroupName')->get(); 
+					$email_from_data   =  TicketGroups::where(["GroupReplyAddress"=>$data['email-from']])->select( 'GroupReplyAddress','GroupName')->get();
 					//$email_from_name   =  TicketGroups::where(["GroupID"=>$ticketdata->Group])->pluck('GroupName'); 
 					
 					 $files = '';
@@ -763,14 +773,16 @@ private $validlicense;
 					 $data['EmailTo']  		  	= 	TicketsTable::filterEmailAddressFromName($data['email-to']);
 					 $data['AttachmentPaths'] 	= 	$FilesArray;
 					 $data['cc'] 				= 	trim(TicketsTable::filterEmailAddressFromName($data['cc']));
-					 $data['bcc'] 				= 	trim(TicketsTable::filterEmailAddressFromName($data['bcc']));					 
+					 $data['bcc'] 				= 	trim(TicketsTable::filterEmailAddressFromName($data['bcc']));
+					 $data['Message-ID']		= 	$ticketdata->TicketID;
+					 $data['Auto-Submitted']= 		"auto-generated";
 					 $status 					= 	sendMail('emails.tickets.ticket', $data);
 					 
 					if($status['status'] == 1)
 					{	
 						$message_id = isset($status['message_id'])?$status['message_id']:'';
 						
-						$logData = ['EmailFrom'=>$data['email-from'],
+						$logData = ['EmailFrom'=>$data['EmailFrom'],
 						'EmailTo'=>trim($data['EmailTo']),
 						'Subject'=>trim($data['Subject']),
 						'Message'=>trim($data['Message']),
@@ -855,7 +867,7 @@ private $validlicense;
 					
 					DB::beginTransaction();
 					
-					$email_from_data   =  TicketGroups::where(["GroupEmailAddress"=>$data['email-to']])->select('GroupEmailAddress','GroupName')->get(); 
+					$email_from_data   =  TicketGroups::where(["GroupReplyAddress"=>$data['email-to']])->select('GroupReplyAddress','GroupName')->get();
 					
 					 $files = '';
 					 $FilesArray = array();
@@ -863,15 +875,16 @@ private $validlicense;
 						 $FilesArray = json_decode($data['file'],true);
 						$files = serialize(json_decode($data['file'],true));
 					}
-					 
+
 					 $data['EmailFrom']  		=   $data['email-from'];
 					 $data['CompanyName'] 	    =   $email_from_data[0]->GroupName;
 					 $data['EmailTo']  		  	= 	$data['email-to'];
 					 $data['AttachmentPaths'] 	= 	$FilesArray;
 					 $data['cc'] 				= 	trim($data['cc']);
 					 $data['bcc'] 				= 	trim($data['bcc']);		
-					// $data['In-Reply-To'] 		= 	AccountEmailLog::where(['AccountEmailLogID'=>$ticketdata->AccountEmailLogID])->pluck('MessageID');
-					 $data['In-Reply-To'] 		= 	"Ticket__".base64_encode($id)."__".base64_encode($ticketdata->Requester);			 
+					 $data['In-Reply-To'] 		= 	AccountEmailLog::where(['AccountEmailLogID'=>$ticketdata->AccountEmailLogID])->pluck('MessageID');
+					 //$data['In-Reply-To'] 		= 	"Ticket__".base64_encode($id)."__".base64_encode($ticketdata->Requester);
+					 $data['Message-ID']		= 	$ticketdata->TicketID;
 					 $status 					= 	sendMail('emails.tickets.ticket', $data);
 					if($status['status'] == 1)
 					{	
@@ -981,7 +994,7 @@ private $validlicense;
 		
 			//$email_from		   =  TicketGroups::where(["GroupID"=>$data['email-from']])->pluck('GroupReplyAddress'); 
 			//$email_from_name   =  TicketGroups::where(["GroupID"=>$data['email-from']])->pluck('GroupName'); 
-			$email_from_data   				= 	TicketGroups::where(["GroupEmailAddress"=>$data['email-from']])->get(array('GroupEmailAddress','GroupName','GroupID','GroupReplyAddress'));  
+			$email_from_data   				= 	TicketGroups::where(["GroupEmailAddress"=>$data['email-from']])->get(array('GroupID'));
 			$Ticketfields      				= 	$data['Ticket'];
 			
 			if(count($email_from_data)>0){
@@ -1063,8 +1076,8 @@ private $validlicense;
 
 				log::info("--Ticket log --");
 
-                TicketLog::AddLog($TicketID,($data['LoginType']=='user')?0:1);
-                TicketLog::updateEmailLog($TicketID,($data['LoginType']=='user')?0:1,$Ticketfields['default_status']);
+				TicketLog::insertTicketLog($TicketID,TicketLog::NEW_TICKET,($data['LoginType']=='user')?0:1);
+                TicketLog::insertTicketLog($TicketID,TicketLog::STATUS_CHANGED,($data['LoginType']=='user')?0:1,$Ticketfields['default_status']);
 
 				log::info("--Ticket log over --");
 				//create contact if email not found in system
@@ -1078,7 +1091,9 @@ private $validlicense;
 					$ContactData = array("Email"=>$RequesterEmail,"CompanyId"=>$CompanyID);
 					log::info("--Contact Email -- ".$RequesterEmail);
 					log::info("--Contact CompanyId -- ".$CompanyID);
-					Contact::create($ContactData);
+					$ContactID = Contact::insertGetId($ContactData);
+					TicketsTable::find($TicketID)->update(array("ContactID"=>$ContactID));
+
 				}
 
 				log::info("--Contact over --");
@@ -1204,7 +1219,8 @@ private $validlicense;
                 if(isset($update['Status']) && ($update['Status'] != 0) && $data['isSendEmail'] == 1){
                     TicketsTable::CheckTicketStatus($ticket->Status,$update['Status'],$id);
                 }
-                TicketsTable::where(['TicketID'=>$id])->update($update);
+                //TicketsTable::where(['TicketID'=>$id])->update($update);
+				$ticket->update($update);
 				DB::commit();
 				try {
 					$TicketID=$id;
@@ -1228,7 +1244,8 @@ private $validlicense;
         }
         try {
             DB::beginTransaction();
-            TicketLog::whereIn('TicketID', explode(',',$data['SelectedIDs']))->delete();
+			TicketsTable::MoveTicketToDeletedLog(["TicketIDs" => $data['SelectedIDs']]);
+			TicketLog::whereIn('TicketID', explode(',',$data['SelectedIDs']))->delete();
 			TicketDashboardTimeline::whereIn('TicketID', explode(',',$data['SelectedIDs']))->delete();
             TicketsDetails::whereIn('TicketID', explode(',',$data['SelectedIDs']))->delete();
             TicketsTable::whereIn('TicketID', explode(',',$data['SelectedIDs']))->delete();			

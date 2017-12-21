@@ -535,7 +535,13 @@ class AccountController extends BaseController
 			 if (strpbrk($data['AccountName'], '\/?*:|"<>')) {
                  return generateResponse("Account Name contains illegal character",true);
             }
-			
+
+            $AccountVerification =  CompanySetting::getKeyVal('AccountVerification');
+            if($AccountVerification==0)
+            {
+                $data['VerificationStatus'] = Account::VERIFIED;
+            }
+
 			 $data = cleanarray($data,['token']);
 
 			

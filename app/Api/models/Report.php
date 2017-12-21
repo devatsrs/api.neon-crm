@@ -71,5 +71,9 @@ class Report extends Model {
 
     public static $date_fields = ['date'];
 
+    public static function checkForeignKeyById($ReportID){
+        return false;
+    }
+
 
 }

@@ -7,7 +7,10 @@ $api = app('Dingo\Api\Routing\Router');
 $api->version('v1', function ($api) {
 
 	// Set our namespace for the underlying routes
-	$api->group(['namespace' => 'Api\Controllers', 'middleware' => ['cors','dbselector']], function ($api) {
+	$api->group(/**
+     * @param $api
+     */
+        ['namespace' => 'Api\Controllers', 'middleware' => ['cors','dbselector']], function ($api) {
 
 		// Login route
 		$api->post('login', 'AuthController@authenticate');
@@ -15,14 +18,14 @@ $api->version('v1', function ($api) {
 		$api->post('register', 'AuthController@register');
 		$api->post('l/{id}', 'AuthController@authenticate');
 
-       $postdata    =  Input::all(); 
-        if(isset($postdata['LoginType']) && $postdata['LoginType']=='customer') { //set customer configuration  
+       $postdata    =  Input::all();
+        if(isset($postdata['LoginType']) && $postdata['LoginType']=='customer') { //set customer configuration
               \Config::set('jwt.user' , "Api\Model\Customer");
               \Config::set('auth.table', 'tblAccount');
               \Config::set('auth.model', Api\Model\Customer::class);
 			  \Config::set('jwt.identifier', 'AccountID');
         }
-		
+
 		// Dogs! All routes in here are protected and thus need a valid token
 		//$api->group( [ 'protected' => true, 'middleware' => 'jwt.refresh' ], function ($api) {
         $api->group( [ 'middleware' => ['jwt.refresh','jwt.auth','DefaultSettingLoad'] ], function ($api) {
@@ -44,16 +47,16 @@ $api->version('v1', function ($api) {
             $api->get('account/GetAccountLeadByContactNumber', 'AccountController@GetAccountLeadByContactNumber');
 
             $api->post('emailattachment/{id}/getattachment/{attachmentID}', 'AccountActivityController@getAttachment');
-			
-			//dashboard			
+
+			//dashboard
 			$api->post('dashboard/GetUsersTasks', 'DashboardController@GetUsersTasks');
 			$api->post('dashboard/GetPipleLineData', 'DashboardController@GetPipleLineData');
 			$api->post('dashboard/GetSalesdata', 'DashboardController@GetSalesdata');
-			$api->post('dashboard/GetForecastData', 'DashboardController@GetForecastData');			
-			$api->post('dashboard/get_opportunities_grid','DashboardController@getOpportunitiesGrid');			
+			$api->post('dashboard/GetForecastData', 'DashboardController@GetForecastData');
+			$api->post('dashboard/get_opportunities_grid','DashboardController@getOpportunitiesGrid');
 			$api->post('dashboard/CrmDashboardSalesRevenue','DashboardController@CrmDashboardSalesRevenue');
 			$api->post('dashboard/CrmDashboardUserRevenue','DashboardController@CrmDashboardUserRevenue');
-			
+
 
 
 			// account credit
@@ -78,20 +81,20 @@ $api->version('v1', function ($api) {
             $api->post('accounts/sendemail', 'AccountActivityController@sendMail');
             $api->get('account/get_email','AccountActivityController@GetMail');
             $api->post('account/delete_email','AccountActivityController@DeleteMail');
-			
+
 
 			// account threshold credit
 			$api->get('account/get_account_threshold', 'AccountController@GetAccountThreshold');
 			$api->post('account/update_account_threshold', 'AccountController@UpdateAccountThreshold');
 			$api->delete('account/delete_temp_credit', 'AccountController@DeleteAccountThreshold');
-			
-			
+
+
 			$api->get('contact/GetTimeLine', 'ContactsController@GetTimeLine');
 			$api->post('contact/add_note', 'ContactsController@add_note');
             $api->get('contact/get_note','ContactsController@GetNote');
             $api->post('contact/delete_note','ContactsController@DeleteNote');
 			$api->post('contact/update_note','ContactsController@UpdateNote');
-			
+
             //Opportunity Board
             $api->get('opportunityboard/get_boards','OpportunityBoardController@getBoards');
             $api->post('opportunityboard/add_board','OpportunityBoardController@addBoard');
@@ -132,7 +135,7 @@ $api->version('v1', function ($api) {
             $api->get('task/{id}/get_dropdownleadaccount','TaskController@getDropdownLeadAccount');
             $api->get('task/get_priorities','TaskController@getPriority');
             $api->get('task/GetTask','TaskController@GetTask');
-			$api->post('task/deletetask','TaskController@DeleteTask');		
+			$api->post('task/deletetask','TaskController@DeleteTask');
 
             $api->post('task/{id}/getattachment/{attachmentid}', 'TaskController@getAttachment');
 
@@ -240,7 +243,7 @@ $api->version('v1', function ($api) {
                 $api->post('tickets/bulkactions', 'TicketsController@BulkAction');
                 $api->post('tickets/bulkdelete', 'TicketsController@BulkDelete');
 				$api->post('tickets/ticketlog/{id}', 'TicketsController@TicketLogs');
-				
+
 
                 $api->post('tickets/get_ticket_dashboard_summary', 'TicketDashboard@ticketSummaryWidget');
                 $api->post('tickets/get_ticket_dashboard_timeline_widget', 'TicketDashboard@ticketTimeLineWidget');
@@ -265,8 +268,8 @@ $api->version('v1', function ($api) {
                 $api->post('tickets/businesshours/delete/{id}', 'TicketsBusinessHoursController@delete');
                 $api->post('tickets/businesshours/{id}/edit', 'TicketsBusinessHoursController@edit');
                 $api->post('tickets/businesshours/update/{id}', "TicketsBusinessHoursController@update");
-				
-				
+
+
 				$api->post('tickets/importrules', "TicketImportRulesController@index");
                 $api->post('tickets/importrules/{id}/edit', "TicketImportRulesController@index");
                 $api->post('tickets/importrules/ajax_datagrid', "TicketImportRulesController@ajax_datagrid");
@@ -279,8 +282,54 @@ $api->version('v1', function ($api) {
 
     		});
 
-		});
 
-	});
+            //customer invoice
+            $api->any('invoice/getCustomerInvoices', 'InvoicesController@getCustomerInvoices');
+            //vendor invoice
+            $api->any('invoice/getVendorInvoices', 'InvoicesController@getVendorInvoices');
+
+
+        });
+
+
+        // VOS Account Audit Export API
+        /**
+         * Parameters:
+         * CompanyID
+         * GatewayID
+         */
+        $api->post('import_account_audit_export_logs', "AccountAuditExportLogController@get");
+
+        // Change log status after VOS Account Export
+        /**
+         * Parameters:
+         * CompanyID
+         * GatewayID
+         * export_time
+         * start_time
+         * end_time
+         */
+        $api->post('mark_processed_audit_export_logs', "AccountAuditExportLogController@markProcessed");
+
+        // VOS AccountIP Audit Export API
+        /**
+         * Parameters:
+         * CompanyID
+         * GatewayID
+         */
+        $api->post('import_accountip_audit_export_logs', "AccountAuditExportLogController@getAccountIPAuditLogs");
+
+        // Change log status after VOS AccountIP Export
+        /**
+         * Parameters:
+         * CompanyID
+         * GatewayID
+         * export_time
+         * start_time
+         * end_time
+         */
+        $api->post('mark_processedips_audit_export_logs', "AccountAuditExportLogController@markProcessedIP");
+
+    });
 
 });

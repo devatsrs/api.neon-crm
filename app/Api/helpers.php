@@ -51,7 +51,10 @@ function sendMail($view,$data,$ViewType=1)
 		$body  = $view;
 	}
 
-	if(\App\SiteIntegration::CheckCategoryConfiguration(false,\App\SiteIntegration::$EmailSlug)){
+    if(isset($data['isAPI']) && $data['isAPI'] == 1){
+        $config = \Api\Model\Company::select('SMTPServer','SMTPUsername','CompanyName','SMTPPassword','Port','IsSSL','EmailFrom')->where("CompanyID", '=', $companyID)->first();
+        $status = 	 \App\PHPMAILERIntegtration::SendMail($view,$data,$config,$companyID,$body);
+    }else if(\App\SiteIntegration::CheckCategoryConfiguration(false,\App\SiteIntegration::$EmailSlug)){
 		$status = 	 \App\SiteIntegration::SendMail($view,$data,$companyID,$body);		
 	}
 	else{
@@ -258,16 +261,15 @@ function email_log_data_Ticket($data,$view = '',$status){
         $status_return['message'] = 'Subject not set in Account mail log';
         return $status_return;
     }
-    if(!isset($data['Message']) && empty($data['Message'])){
-        $status_return['message'] = 'Message not set in Account mail log';
-        return $status_return;
+    if(isset($status['body']) && (!isset($data['Message']) || empty($data['Message']) )){
+        $data['Message'] = $status['body'];
     }
 
     if(is_array($data['EmailTo'])){
         $data['EmailTo'] = implode(',',$data['EmailTo']);
     }
 
-    if(!isset($data['cc']))
+    if(!isset($data['cc']) || empty($data['cc']))
     {
         $data['cc'] = '';
     }
@@ -330,7 +332,6 @@ function email_log_data_Ticket($data,$view = '',$status){
 		"TicketID"=>$data['TicketID'],
 		"EmailType"=>\Api\Model\AccountEmailLog::TicketEmail 
     ];
-	
     $data =  \Api\Model\AccountEmailLog::insertGetId($logData);
     return $data;
 }
@@ -459,7 +460,21 @@ function site_configration_cache($request){
 }
 
 
-
+/** Send Amazone url or image data for <img src=
+ * @param $path
+ * @return string
+ */
+// not in use - this is wrong way
+function get_image_src($path){
+    $path = \App\AmazonS3::unSignedUrl($path);
+    if(file_exists($path)){
+        if (copy($path, './uploads/' . basename($path))) {
+            $path = URL::to('/') . '/uploads/' . basename($path);
+        }
+        //$path = get_image_data($path);
+    }
+    return $path;
+}
 
 
 /** Send logo url
@@ -624,7 +639,7 @@ function SendTicketEmail($Type='store',$id,$data = array()){
 		return false;		
 	} */
 }
-
+    // not in use
 	function SendComposeTicketEmail($data){
 		
 		$EmailData['EmailTo']     	  =   $data['Requester'];
