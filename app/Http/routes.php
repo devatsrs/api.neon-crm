@@ -198,6 +198,7 @@ $api->version('v1', function ($api) {
             $api->put('report/update/{AlertID}', 'ReportController@Update');
             $api->delete('report/delete/{AlertID}', 'ReportController@Delete');
             $api->put('report/update_schedule/{AlertID}', 'ReportController@UpdateSchedule');
+            $api->get('report/history', 'ReportController@History');
 
             // Mailbox Class
             $api->post('email/sendemail', 'MailboxController@sendMail');

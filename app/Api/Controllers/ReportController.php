@@ -1,6 +1,7 @@
 <?php
 namespace Api\Controllers;
 
+use Api\Model\DataTableSql;
 use Api\Model\Report;
 use Api\Model\User;
 use Illuminate\Support\Facades\App;
@@ -183,6 +184,52 @@ class ReportController extends BaseController {
             }
         } else {
             return generateResponse('Provide Valid Integer Value.',true,true);
+        }
+    }
+    /**
+     * Show Report History
+     *
+     * Get a JSON representation of all
+     *
+     * @History('/')
+     */
+    public function History()
+    {
+        $post_data = Input::all();
+        try {
+            $CompanyID = User::get_companyID();
+            $rules['iDisplayStart'] = 'required|Min:1';
+            $rules['iDisplayLength'] = 'required';
+            $rules['iDisplayLength'] = 'required';
+            $rules['sSortDir_0'] = 'required';
+            $validator = Validator::make($post_data, $rules);
+            if ($validator->fails()) {
+                return generateResponse($validator->errors(),true);
+            }
+            $post_data['iDisplayStart'] += 1;
+            $columns = ['Name', 'CreatedBy', 'created_at'];
+            $ReportID = '0';
+            if (isset($post_data['ReportID'])) {
+                $ReportID = $post_data['ReportID'];
+            }
+
+            $post_data['StartDate'] = !empty($post_data['StartTime'])?$post_data['StartDate'].' '.$post_data['StartTime']:$post_data['StartDate'];
+            $post_data['EndDate'] = !empty($post_data['EndTime'])?$post_data['EndDate'].' '.$post_data['EndTime']:$post_data['EndDate'];
+            $post_data['Search'] = !empty($post_data['Search'])?$post_data['Search']:'';
+
+            $sort_column = $columns[$post_data['iSortCol_0']];
+            $query = "call prc_getReportHistory(" . $CompanyID . ",'" . intval($ReportID) . "','".$post_data['StartDate']."','".$post_data['EndDate']."','".$post_data['Search']."'," . (ceil($post_data['iDisplayStart'] / $post_data['iDisplayLength'])) . " ," . $post_data['iDisplayLength'] . ",'" . $sort_column . "','" . $post_data['sSortDir_0'] . "'";
+            if (isset($post_data['Export']) && $post_data['Export'] == 1) {
+                $result = DB::select($query . ',1)');
+            } else {
+                $query .= ',0)';
+                Log::info($query);
+                $result = DataTableSql::of($query,'neon_report')->make();
+            }
+            return generateResponse('',false,false,$result);
+        } catch (\Exception $e) {
+            Log::info($e);
+            return $this->response->errorInternal('Internal Server');
         }
     }
 
