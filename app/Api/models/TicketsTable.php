@@ -420,4 +420,38 @@ class TicketsTable extends \Eloquent
 
 
 	}
+
+	/** Delete Group and Related Tickets
+	 * @param $CompanyID
+	 * @param $GroupID
+	 */
+	static function GroupDelete( $CompanyID, $GroupID ) {
+
+		Log::info( "DELETING COMPLETE GROUP AND RELATED TICKETS AND LOGS" );
+
+		$DeleteTicketGroup  =      	"call prc_DeleteTicketGroup (".$CompanyID.",".$GroupID.")";
+		DB::query($DeleteTicketGroup);
+
+		Log::info("
+					-- 1
+					-- delete tblTicketLog
+					-- 2
+					-- delete tblTicketDashboardTimeline
+					-- 3
+					-- delete tblTicketsDetails
+					-- 4
+					-- delete tblTicketsDeletedLog
+					-- 5
+					-- delete AccountEmailLogDeletedLog
+					-- 6
+					-- delete tblTicketsDetails
+					-- 7
+					-- delete tblTickets
+					-- 8
+					-- delete tblTicketGroups
+		");
+
+	}
+
+
 }
