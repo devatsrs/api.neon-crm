@@ -639,7 +639,7 @@ function SendTicketEmail($Type='store',$id,$data = array()){
 		return false;		
 	} */
 }
-
+    // not in use
 	function SendComposeTicketEmail($data){
 		
 		$EmailData['EmailTo']     	  =   $data['Requester'];

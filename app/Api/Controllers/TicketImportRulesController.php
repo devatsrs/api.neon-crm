@@ -111,9 +111,11 @@ class TicketImportRulesController extends BaseController {
 								'TicketImportRuleID' => 'required',
 								'TicketImportRuleConditionTypeID' => 'required',
 								'Operand' => 'required',
+								'Value' => 'required',
 								'Order' => 'required',
 							);
-							if (Validator::make($SaveConditionData, $rules)->fails()) {
+							$validator 	= 	Validator::make($SaveConditionData,$rules);
+							if ($validator->fails()) {
 								return generateResponse($validator->errors(), true);
 							}
 
@@ -126,11 +128,12 @@ class TicketImportRulesController extends BaseController {
 					foreach($rule as $key => $RuleData)
 					{
 						$Value = "";
-
+						$ValueRequired = 1;
 						if($RuleData['rule_action'] > 0) {
 							$RuleDbData = TicketImportRuleActionType::find($RuleData['rule_action']);
 							if (TicketImportRuleActionType::$ActionArrayValue[$RuleDbData->Action] == 'skip') {
 								$Value = '';
+								$ValueRequired = 0;
 							} else {
 								$Value = implode(",", $RuleData['action_value']);
 							}
@@ -146,12 +149,18 @@ class TicketImportRulesController extends BaseController {
 							$rules = array(
 								'TicketImportRuleID' => 'required',
 								'TicketImportRuleActionTypeID' => 'required',
-								'Value' => 'required',
 								'Order' => 'required',
 							);
-							if (Validator::make($SaveRuleData, $rules)->fails()) {
-								return generateResponse($validator->errors(), true);
+
+							if($ValueRequired==1){
+								$rules['Value'] = 'required';
 							}
+
+							$validator 	= 	Validator::make($SaveRuleData,$rules);
+							if ($validator->fails()) {
+								return generateResponse($validator->errors(),true);
+							}
+
 							TicketImportRuleAction::create($SaveRuleData);
 						}
 					}					
@@ -218,27 +227,31 @@ class TicketImportRulesController extends BaseController {
 							 $operandValue = $ConditionData['condition_value'];
 						 }
 
+						 $SaveConditionData = array(
+							 "TicketImportRuleID"=>$id,
+							 "TicketImportRuleConditionTypeID"=>$ConditionData['rule_condition'],
+							 "Operand"=>$operandCondition,
+							 "Value"=>$operandValue,
+							 "Order"=>$ConditionData['condition_order']
+						 );
+
+
+						 $rules = array(
+							 'TicketImportRuleID' =>   'required',
+							 'TicketImportRuleConditionTypeID' =>   'required',
+							 'Operand' =>   'required',
+							 'Value' =>   'required',
+							 'Order' =>   'required',
+						 );
+
+						 $validator 	= 	Validator::make($SaveConditionData,$rules);
+						 if ($validator->fails()) {
+							 return generateResponse($validator->errors(),true);
+						 }
+
+						 TicketImportRuleCondition::create($SaveConditionData);
 					 }
-					 $SaveConditionData = array(
-						 "TicketImportRuleID"=>$id,
-						 "TicketImportRuleConditionTypeID"=>$ConditionData['rule_condition'],
-						 "Operand"=>$operandCondition,
-						 "Value"=>$operandValue,
-						 "Order"=>$ConditionData['condition_order']
-					 );
 
-
-					 $rules = array(
-						 'TicketImportRuleID' =>   'required',
-						 'TicketImportRuleConditionTypeID' =>   'required',
-						 'Operand' =>   'required',
-						 'Order' =>   'required',
-					 );
-					 if (Validator::make($SaveConditionData,$rules)->fails()) {
-						 return generateResponse($validator->errors(),true);
-					 }
-
-					 TicketImportRuleCondition::create($SaveConditionData);
 				 }
 				
 				TicketImportRuleAction::where(['TicketImportRuleID'=>$id])->delete(); //delete old
@@ -248,11 +261,12 @@ class TicketImportRulesController extends BaseController {
 				 foreach($rule as $key => $RuleData)
 				 {
 					 $Value = "";
-
+					 $ValueRequired = 1;
 					 if($RuleData['rule_action'] > 0) {
 						 $RuleDbData = TicketImportRuleActionType::find($RuleData['rule_action']);
 						 if (TicketImportRuleActionType::$ActionArrayValue[$RuleDbData->Action] == 'skip') {
 							 $Value = '';
+							 $ValueRequired = 0;
 						 } else {
 							 $Value = implode(",", $RuleData['action_value']);
 						 }
@@ -268,10 +282,15 @@ class TicketImportRulesController extends BaseController {
 					 $rules = array(
 						 'TicketImportRuleID' =>   'required',
 						 'TicketImportRuleActionTypeID' =>   'required',
-						 'Value' =>   'required',
 						 'Order' =>   'required',
 					 );
-					 if (Validator::make($SaveRuleData,$rules)->fails()) {
+
+					 if($ValueRequired==1){
+						 $rules['Value'] = 'required';
+					 }
+
+					 $validator 	= 	Validator::make($SaveRuleData,$rules);
+					 if ($validator->fails()) {
 						 return generateResponse($validator->errors(),true);
 					 }
 					 TicketImportRuleAction::create($SaveRuleData);
