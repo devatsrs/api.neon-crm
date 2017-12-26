@@ -356,11 +356,10 @@ class TicketsTable extends \Eloquent
 	static function deleteTicket($TicketID) {
 		$Ticket = TicketsTable::find($TicketID);
 		if(!empty($Ticket) && isset($Ticket->TicketID) && $Ticket->TicketID > 0 ) {
-			TicketsDetails::where(["TicketID"=>$TicketID])->delete();
-			TicketLog::where(["TicketID"=>$TicketID])->delete();
-			AccountEmailLog::where(["TicketID"=>$TicketID])->delete();
-			$Ticket->delete();
-			Log::info("TicketDeleted " . $TicketID);
+
+			self::MoveTicketToDeletedLog(["TicketID"=>$Ticket->TicketID]);
+
+
 			return true;
 		}
 		return false;
@@ -392,11 +391,32 @@ class TicketsTable extends \Eloquent
 				DB::insert($q1);
 				DB::insert($q2);
 
+				// Delete Ticket Logs
+				TicketLog::whereIn('TicketID', explode(',',$opt["TicketIDs"]))->delete();
+				TicketDashboardTimeline::whereIn('TicketID', explode(',',$opt["TicketIDs"]))->delete();
+				TicketsDetails::whereIn('TicketID', explode(',',$opt["TicketIDs"]))->delete();
+				TicketsTable::whereIn('TicketID', explode(',',$opt["TicketIDs"]))->delete();
+				AccountEmailLog::whereIn('TicketID', explode(',',$opt["TicketIDs"]))->delete();
+
+
+
 		} else if(isset($opt["TicketID"]) && is_numeric($opt["TicketID"]) ) {
 
 			DB::insert("INSERT INTO tblTicketsDeletedLog SELECT * FROM tblTickets WHERE TicketID = " . $opt["TicketID"]);
 			DB::insert("INSERT INTO AccountEmailLogDeletedLog SELECT * FROM AccountEmailLog WHERE TicketID = " . $opt["TicketID"]);
+
+			// Delete Ticket Logs
+			TicketLog::where('TicketID', $opt["TicketID"])->delete();
+			TicketDashboardTimeline::where('TicketID', $opt["TicketID"])->delete();
+			TicketsDetails::where('TicketID', $opt["TicketID"])->delete();
+			TicketsTable::where('TicketID', $opt["TicketID"])->delete();
+			AccountEmailLog::where('TicketID', $opt["TicketID"])->delete();
+
+
 		}
+
+		Log::info( "Ticket Deleted" );
+		Log::info( print_r($opt,true) );
 
 
 	}
