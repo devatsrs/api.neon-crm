@@ -12,7 +12,7 @@ class Report extends Model {
     protected $primaryKey = "ReportID";
     protected $connection = 'neon_report';
     protected $fillable = array(
-        'CompanyID','Name','Settings','created_at','UpdatedBy','updated_at','CreatedBy','Schedule','ScheduleSettings'
+        'CompanyID','Name','Settings','created_at','UpdatedBy','updated_at','CreatedBy'
     );
 
 
