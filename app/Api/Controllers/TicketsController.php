@@ -559,10 +559,6 @@ private $validlicense;
             try{
                 DB::beginTransaction();
 				TicketsTable::MoveTicketToDeletedLog(["TicketID" => $id]);
-                TicketsTable::where(["TicketID"=>$id])->delete();
-              	TicketsDetails::where(["TicketID"=>$id])->delete();
-				TicketDashboardTimeline::where(['TicketID'=>$id])->delete();
-				//TicketsConversation::where(array('TicketID'=>$id))->delete();
                 DB::commit();
 				return generateResponse("Ticket Successfully Deleted");
             }catch (Exception $e){
@@ -1243,12 +1239,9 @@ private $validlicense;
         }
         try {
             DB::beginTransaction();
+
 			TicketsTable::MoveTicketToDeletedLog(["TicketIDs" => $data['SelectedIDs']]);
-			TicketLog::whereIn('TicketID', explode(',',$data['SelectedIDs']))->delete();
-			TicketDashboardTimeline::whereIn('TicketID', explode(',',$data['SelectedIDs']))->delete();
-            TicketsDetails::whereIn('TicketID', explode(',',$data['SelectedIDs']))->delete();
-            TicketsTable::whereIn('TicketID', explode(',',$data['SelectedIDs']))->delete();			
-            DB::commit();
+			DB::commit();
             return generateResponse('Tickets deleted successfully.');
         }catch (Exception $e) {
             DB::rollback();

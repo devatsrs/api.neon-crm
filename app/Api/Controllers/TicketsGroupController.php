@@ -293,14 +293,11 @@ private $validlicense;
         if( intval($id) > 0)
 		{
                try{
-				   TicketGroupAgents::where(['GroupID'=>$id])->delete();
-				   //log deleted
-				   TicketLog::where(['TicketFieldValueFromID'=>$id,"TicketFieldID"=>Ticketfields::default_group])->delete();
-				   TicketLog::where(['TicketFieldValueToID'=>$id,"TicketFieldID"=>Ticketfields::default_group])->delete();				   
-				   TicketDashboardTimeline::where(['TicketFieldValueFromID'=>$id,"TicketFieldID"=>Ticketfields::default_group])->delete();
-				   TicketDashboardTimeline::where(['TicketFieldValueToID'=>$id,"TicketFieldID"=>Ticketfields::default_group])->delete();
-				   
-			       TicketGroups::find($id)->delete();
+
+				   $CompanyID 				= 	User::get_companyID();
+
+				   TicketsTable::GroupDelete($CompanyID,$id);
+
 				   return generateResponse('Ticket Group Successfully Deleted');
                 }catch (Exception $ex){
 					return generateResponse('Problem Deleting. Exception:'.$ex->getMessage(), true, true);
