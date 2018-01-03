@@ -195,8 +195,12 @@ $api->version('v1', function ($api) {
 
             // Report
             $api->post('report/store', 'ReportController@Store');
-            $api->put('report/update/{AlertID}', 'ReportController@Update');
-            $api->delete('report/delete/{AlertID}', 'ReportController@Delete');
+            $api->put('report/update/{ReportID}', 'ReportController@Update');
+            $api->delete('report/delete/{ReportID}', 'ReportController@Delete');
+            $api->put('report/update_schedule/{ReportScheduleID}', 'ReportController@UpdateSchedule');
+            $api->put('report/delete_schedule/{ReportScheduleID}', 'ReportController@DeleteSchedule');
+            $api->put('report/add_schedule', 'ReportController@AddSchedule');
+            $api->get('report/history_schedule', 'ReportController@HistorySchedule');
 
             // Mailbox Class
             $api->post('email/sendemail', 'MailboxController@sendMail');
