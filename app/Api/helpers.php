@@ -639,7 +639,7 @@ function SendTicketEmail($Type='store',$id,$data = array()){
 		return false;		
 	} */
 }
-
+    // not in use
 	function SendComposeTicketEmail($data){
 		
 		$EmailData['EmailTo']     	  =   $data['Requester'];
@@ -836,11 +836,31 @@ function next_run_time($data){
                 return date('Y-m-d',$strtotime).' '.date("H:i:00", strtotime("$StartTime"));
             }
             return date('Y-m-d H:i:00',$strtotime);
+        case 'WEEKLY':
+            if($LastRunTime == ''){
+                $strtotime = strtotime('+'.$Interval.' week');
+            }else{
+                $strtotime = strtotime("+$Interval week", strtotime($LastRunTime));
+            }
+            if(isset($StartTime)){
+                return date('Y-m-d',$strtotime).' '.date("H:i:00", strtotime("$StartTime"));
+            }
+            return date('Y-m-d H:i:00',$strtotime);
         case 'MONTHLY':
             if($LastRunTime == ''){
                 $strtotime = strtotime('+'.$Interval.' month');
             }else{
                 $strtotime = strtotime("+$Interval month", strtotime($LastRunTime));
+            }
+            if(isset($StartTime)){
+                return date('Y-m-d',$strtotime).' '.date("H:i:00", strtotime("$StartTime"));
+            }
+            return date('Y-m-d H:i:00',$strtotime);
+        case 'YEARLY':
+            if($LastRunTime == ''){
+                $strtotime = strtotime('+'.$Interval.' year');
+            }else{
+                $strtotime = strtotime("+$Interval year", strtotime($LastRunTime));
             }
             if(isset($StartTime)){
                 return date('Y-m-d',$strtotime).' '.date("H:i:00", strtotime("$StartTime"));

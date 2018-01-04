@@ -108,20 +108,17 @@ class Account extends Model
 
     public static function getAccountIDList($data = array())
     {
-
-        if (User::is('AccountManager')) {
+        /*if (User::is('AccountManager')) {
             $data['Owner'] = User::get_userID();
-        }
+        }*/
         $data['Status'] = 1;
         if (!isset($data['AccountType'])) {
             $data['AccountType'] = 1;
             $data['VerificationStatus'] = Account::VERIFIED;
         }
         $data['CompanyID'] = User::get_companyID();
-        $row = Account::where($data)->select(array('AccountName', 'AccountID'))->orderBy('AccountName')->lists('AccountName', 'AccountID');
-        if (!empty($row)) {
-            $row = array("" => "Select an Account") + $row;
-        }
+        $row = Account::where($data)->select(array('AccountName', 'AccountID'))->orderBy('AccountName')->lists('AccountName', 'AccountID')->all();
+
         return $row;
     }
 

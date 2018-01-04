@@ -20,4 +20,10 @@ class AccountEmailLog extends \Eloquent {
     const CallBlackListAlert = 8;
     const VendorBalanceReport = 9;
 	const TicketEmail = 10;
+
+    public static function getLastMessageIDByTicketID($TicketID){
+
+        return AccountEmailLog::where(["TicketID"=>$TicketID])->orderby("AccountEmailLogID","desc")->pluck("MessageID");
+    }
+
 }
