@@ -276,15 +276,15 @@ private $validlicense;
 					if(isset($ticketdata[0])){
 						$ticketdata = $ticketdata[0];
 					}else {
-						return generateResponse('Ticket not found.',true,true);
+						return generateResponse(cus_lang("PAGE_TICKET_MSG_TICKET_NOT_FOUND"),true,true);
 					}
 				} catch (\Exception $e) {
 					Log::info($e);
-					return generateResponse('Ticket not found.',true,true);
+					return generateResponse(cus_lang("PAGE_TICKET_MSG_TICKET_NOT_FOUND"),true,true);
 				}
 				return generateResponse('success', false, false, $ticketdata);
 			}else{
-				return generateResponse('Provide Valid Integer Value.', true, true);
+				return generateResponse(cus_lang("PAGE_TICKET_MSG_PROVIDE_VALID_INTEGER_VALUE"), true, true);
 			}
 	   }
 		
