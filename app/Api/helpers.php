@@ -871,3 +871,12 @@ function next_run_time($data){
 
     }
 }
+function cus_lang($key=""){
+    if(isset($_REQUEST["Language"])){
+        App::setLocale($_REQUEST["Language"]);
+    }else{
+        App::setLocale("en");
+    }
+
+    return trans('routes.'.strtoupper($key));
+}
