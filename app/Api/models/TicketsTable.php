@@ -125,18 +125,28 @@ class TicketsTable extends \Eloquent
 
 
 						 * */
-						$FieldValues = TicketfieldsValues::getFieldValueIDLIst();
+						$FieldValuesArray = TicketfieldsValues::select(['FieldValueAgent','ValuesID'])->lists('FieldValueAgent','ValuesID')->toArray();
+						$FieldValues = $FieldValuesArray ; // TicketfieldsValues::getFieldValueIDLIst();
+
+						$FromValue = $ToValue = '' ;
+						if(isset($FieldValues[$obj->original[$index]])){
+							$FromValue =  'from ' . $FieldValues[$obj->original[$index]];
+						}
+						if(isset($FieldValues[$obj->attributes[$index]])){
+							$ToValue = 'to ' .  $FieldValues[$obj->attributes[$index]];
+						}
+
+
 
 						$FieldName = $index;
-						$FromValue = $FieldValues[$obj->original[$index]];
-						$ToValue = $FieldValues[$obj->original[$index]];
+
 						$data = [
 							'CompanyID' => $CompanyID,
 							'TicketID' => $obj->TicketID,
 							"ParentID" =>$UserID,
 							"ParentType" =>TicketLog::TICKET_USER_TYPE_USER,
 							"Action" =>TicketLog::TICKET_ACTION_FIELD_CHANGED,
-							"ActionText" => $FieldName .' Changed from ' . $FromValue . ' ' . $ToValue ,
+							"ActionText" => $FieldName .' Changed  ' . $FromValue . ' ' . $ToValue ,
 							'created_at' => date("Y-m-d H:i:s")
 						];
 
