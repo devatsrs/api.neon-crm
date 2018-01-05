@@ -43,13 +43,104 @@ class TicketsTable extends \Eloquent
             foreach($obj->original as $index=>$value){
                 if(array_key_exists($index,TicketLog::$defaultTicketLogFields)) {
                     if($obj->attributes[$index] != $value){
-                        $data = ['UserID' => $UserID,
-                            'CompanyID' => $CompanyID,
-                            'TicketID' => $obj->TicketID,
-                            'TicketFieldID' => Ticketfields::$defaultTicketFields[$index],
-                            'TicketFieldValueFromID' => $obj->original[$index],
-                            'TicketFieldValueToID' => $obj->attributes[$index],
-                            "created_at" => date("Y-m-d H:i:s")];
+
+
+/*
+[2018-01-05 12:54:03] Staging.INFO: index - Type
+[2018-01-05 12:54:03] Staging.INFO: obj->original
+[2018-01-05 12:54:03] Staging.INFO: Array
+(
+    [TicketID] => 269
+    [CompanyID] => 1
+    [Requester] => jobs.shriramsoft@gmail.com
+    [RequesterName] => Deven Sitapara
+    [RequesterCC] =>
+    [RequesterBCC] =>
+    [AccountID] => 0
+    [ContactID] => 22
+    [UserID] => 0
+    [Subject] => New Log testing 05-1-2018
+    [Type] => 0
+    [Status] => 13
+    [Priority] => 1
+    [Group] => 2
+    [Agent] => 0
+    [Description] => <div dir="ltr"><br>New Log testing 05-1-2018<br><br></div>
+
+    [AttachmentPaths] => a:0:{}
+    [TicketType] => 0
+    [AccountEmailLogID] => 7525
+    [Read] => 1
+    [EscalationEmail] => 0
+    [TicketSlaID] => 4
+    [RespondSlaPolicyVoilationEmailStatus] => 0
+    [ResolveSlaPolicyVoilationEmailStatus] => 0
+    [DueDate] => 2018-01-05 12:36:32
+    [CustomDueDate] => 0
+    [AgentRepliedDate] =>
+    [CustomerRepliedDate] =>
+    [created_at] => 2018-01-05 12:21:32
+    [created_by] => RMScheduler
+    [updated_at] => 2018-01-05 12:21:32
+    [updated_by] =>
+)
+
+[2018-01-05 12:54:03] Staging.INFO: obj->attributes
+[2018-01-05 12:54:03] Staging.INFO: Array
+(
+    [TicketID] => 269
+    [CompanyID] => 1
+    [Requester] => jobs.shriramsoft@gmail.com
+    [RequesterName] => Deven Sitapara
+    [RequesterCC] =>
+    [RequesterBCC] =>
+    [AccountID] => 0
+    [ContactID] => 22
+    [UserID] => 0
+    [Subject] => New Log testing 05-1-2018
+    [Type] => 11
+    [Status] => 14
+    [Priority] => 1
+    [Group] => 2
+    [Agent] => 66
+    [Description] => <div dir="ltr"><br>New Log testing 05-1-2018<br><br></div>
+
+    [AttachmentPaths] => a:0:{}
+    [TicketType] => 0
+    [AccountEmailLogID] => 7525
+    [Read] => 1
+    [EscalationEmail] => 0
+    [TicketSlaID] => 4
+    [RespondSlaPolicyVoilationEmailStatus] => 0
+    [ResolveSlaPolicyVoilationEmailStatus] => 0
+    [DueDate] => 2018-01-05 12:36:32
+    [CustomDueDate] => 0
+    [AgentRepliedDate] =>
+    [CustomerRepliedDate] =>
+    [created_at] => 2018-01-05 12:21:32
+    [created_by] => RMScheduler
+    [updated_at] => 2018-01-05 12:54:03
+    [updated_by] => Sumera Khan
+)
+
+
+						 * */
+						$FieldValues = TicketfieldsValues::getFieldValueIDLIst();
+
+						$FieldName = $index;
+						$FromValue = $FieldValues[$obj->original[$index]];
+						$ToValue = $FieldValues[$obj->original[$index]];
+						$data = [
+							'CompanyID' => $CompanyID,
+							'TicketID' => $obj->TicketID,
+							"ParentID" =>$UserID,
+							"ParentType" =>TicketLog::TICKET_USER_TYPE_USER,
+							"Action" =>TicketLog::TICKET_ACTION_FIELD_CHANGED,
+							"ActionText" => $FieldName .' Changed from ' . $FromValue . ' ' . $ToValue ,
+							'created_at' => date("Y-m-d H:i:s")
+						];
+
+
                         TicketLog::insert($data);
 
 						$TicketID = $obj->TicketID;

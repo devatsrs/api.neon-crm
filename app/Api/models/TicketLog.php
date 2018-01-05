@@ -29,6 +29,7 @@ class TicketLog extends \Eloquent
     const TICKET_ACTION_CUSTOMER_REPLIED = 4;
     const TICKET_ACTION_STATUS_CHANGED = 5;
     const TICKET_ACTION_NOTE_ADDED = 6;
+    const TICKET_ACTION_FIELD_CHANGED = 7;
 
     const TICKET_USER_TYPE_ACCOUNT = 1;
     const TICKET_USER_TYPE_CONTACT = 2;
