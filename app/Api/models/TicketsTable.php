@@ -393,7 +393,7 @@ class TicketsTable extends \Eloquent
 
 				// Delete Ticket Logs
 				TicketLog::whereIn('TicketID', explode(',',$opt["TicketIDs"]))->delete();
-				TicketDashboardTimeline::whereIn('TicketID', explode(',',$opt["TicketIDs"]))->delete();
+				//TicketDashboardTimeline::whereIn('TicketID', explode(',',$opt["TicketIDs"]))->delete();
 				TicketsDetails::whereIn('TicketID', explode(',',$opt["TicketIDs"]))->delete();
 				TicketsTable::whereIn('TicketID', explode(',',$opt["TicketIDs"]))->delete();
 				AccountEmailLog::whereIn('TicketID', explode(',',$opt["TicketIDs"]))->delete();
@@ -407,7 +407,7 @@ class TicketsTable extends \Eloquent
 
 			// Delete Ticket Logs
 			TicketLog::where('TicketID', $opt["TicketID"])->delete();
-			TicketDashboardTimeline::where('TicketID', $opt["TicketID"])->delete();
+			//TicketDashboardTimeline::where('TicketID', $opt["TicketID"])->delete();
 			TicketsDetails::where('TicketID', $opt["TicketID"])->delete();
 			TicketsTable::where('TicketID', $opt["TicketID"])->delete();
 			AccountEmailLog::where('TicketID', $opt["TicketID"])->delete();
