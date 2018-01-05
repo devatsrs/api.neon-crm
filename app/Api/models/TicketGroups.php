@@ -27,7 +27,8 @@ class TicketGroups extends \Eloquent{
    
    static function getTicketGroups(){
 		//TicketfieldsValues::WHERE
-		   $row =  TicketGroups::orderBy('GroupID', 'asc')->lists('GroupName','GroupID'); 
+	   	   $CompanyID = User::get_companyID();
+		   $row =  TicketGroups::where(["CompanyID"=>$CompanyID])->orderBy('GroupID', 'asc')->lists('GroupName','GroupID');
 		   $row =  array("0"=> "Select")+json_decode(json_encode($row),true);
 		   return $row;
 	}
@@ -37,7 +38,8 @@ class TicketGroups extends \Eloquent{
         if (empty($remember_token)) {
             return FALSE;
         }
-        $result = TicketGroups::where(["remember_token"=>$remember_token])->first();
+		$CompanyID = User::get_companyID();
+		$result = TicketGroups::where(["CompanyID"=>$CompanyID])->where(["remember_token"=>$remember_token])->first();
         if (!empty($result)) {
             return $result;
         } else {

@@ -125,15 +125,48 @@ class TicketsTable extends \Eloquent
 
 
 						 * */
-						$FieldValuesArray = TicketfieldsValues::select(['FieldValueAgent','ValuesID'])->lists('FieldValueAgent','ValuesID')->toArray();
-						$FieldValues = $FieldValuesArray ; // TicketfieldsValues::getFieldValueIDLIst();
 
 						$FromValue = $ToValue = '' ;
-						if(isset($FieldValues[$obj->original[$index]])){
-							$FromValue =  'from ' . $FieldValues[$obj->original[$index]];
-						}
-						if(isset($FieldValues[$obj->attributes[$index]])){
-							$ToValue = 'to ' .  $FieldValues[$obj->attributes[$index]];
+						$fromID =$obj->original[$index];
+						$toID =$obj->attributes[$index];
+
+						if($index == 'Type' || $index == 'Status') {
+
+							$FieldValuesArray = TicketfieldsValues::select(['FieldValueAgent','ValuesID'])->lists('FieldValueAgent','ValuesID')->toArray();
+							$FieldValues = $FieldValuesArray ; // TicketfieldsValues::getFieldValueIDLIst();
+
+							if (isset($FieldValues[$fromID])) {
+								$FromValue = 'from ' . $FieldValues[$fromID];
+							}
+							$ToValue = 'to ' . $FieldValues[$toID];
+						} else if($index == 'Agent' ) {
+
+							$FromUser  = User::where(["UserID"=>$fromID])->select(["FirstName","LastName"])->first();
+							$ToUser  = User::where(["UserID"=>$toID])->select(["FirstName","LastName"])->first();
+							if(!empty($FromUser["FirstName"] . ' '. $FromUser["LastName"])) {
+								$FromValue = 'from ' . $FromUser["FirstName"] . ' ' . $FromUser["LastName"];
+							}
+							$ToValue = 'to ' . $ToUser["FirstName"] . ' '. $ToUser["LastName"];
+
+						} else if($index == 'Priority' ) {
+
+							$FromPriorityValue  = TicketPriority::getPriorityStatusByID($fromID);
+							$ToPriorityValue  = TicketPriority::getPriorityStatusByID($toID);
+
+							if(!empty($FromPriorityValue)) {
+								$FromValue = 'from ' . $FromPriorityValue;
+							}
+							$ToValue = 'to ' . $ToPriorityValue;
+
+						} else if($index == 'Group' ) {
+
+							$Groups = TicketGroups::getTicketGroups();
+
+							if (isset($Groups[$fromID])) {
+								$FromValue = 'from ' . $Groups[$fromID];
+							}
+							$ToValue = 'to ' . $Groups[$toID];
+
 						}
 
 
