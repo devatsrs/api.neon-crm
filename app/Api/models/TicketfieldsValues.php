@@ -2,6 +2,8 @@
 namespace Api\Model;
 
 use Illuminate\Database\Eloquent\Model;
+use Symfony\Component\Console\Input\Input;
+
 class TicketfieldsValues extends \Eloquent {
 
     protected $table 		= 	"tblTicketfieldsValues";
