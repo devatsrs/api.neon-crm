@@ -872,8 +872,8 @@ function next_run_time($data){
     }
 }
 function cus_lang($key=""){
-    if(isset($_REQUEST["Language"])){
-        App::setLocale($_REQUEST["Language"]);
+    if(Input::has('Language')){
+        App::setLocale(Input::get('Language'));
     }else{
         App::setLocale("en");
     }

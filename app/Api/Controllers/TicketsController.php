@@ -107,7 +107,7 @@ private $validlicense;
 		$CompanyID 		= 	User::get_companyID();
 
 		  if(!isset($data['Ticket'])){
-			return generateResponse("Please submit required fields.",true);
+			return generateResponse(cus_lang("PAGE_TICKET_MSG_SUBMIT_REQUIRED_FIELDS"),true);
 		}
 		//Log::info(print_r($data,true)); exit;
 		
@@ -256,7 +256,7 @@ private $validlicense;
 					Log::info("fail TicketSla::assignSlaToTicket");
 					Log::info($ex);
 				}
-				return generateResponse('Ticket Successfully Created');
+				return generateResponse(cus_lang("PAGE_TICKET_MSG_TICKET_SUCCESSFULLY_CREATED"));
       		 }catch (Exception $ex){ 	
 			      DB::rollback();
 				  return generateResponse($ex->getMessage(), true, true);
@@ -297,11 +297,11 @@ private $validlicense;
 					$ticketdata =TicketsDetails::where(["TicketID"=>$id])->get();
 				} catch (\Exception $e) {
 					Log::info($e);
-					return generateResponse('Ticket not found.',true,true);
+					return generateResponse(cus_lang("PAGE_TICKET_MSG_TICKET_NOT_FOUND"),true,true);
 				}
 				return generateResponse('success', false, false, $ticketdata);
 			}else{
-				return generateResponse('Provide Valid Integer Value.', true, true);
+				return generateResponse(cus_lang("PAGE_TICKET_MSG_PROVIDE_VALID_INTEGER_VALUE"), true, true);
 			}
 	  }
 	  
@@ -341,7 +341,7 @@ private $validlicense;
 			//echo "<pre>";			print_r($agentsAll);			echo "</pre>";					exit;
 			return generateResponse('success', false, false, $data);
 		}else{
-		    return generateResponse("invalid Ticket.",true);
+		    return generateResponse(cus_lang("PAGE_TICKET_MSG_INVALID_TICKET"),true);
 		}
 	}
 	  
@@ -355,7 +355,7 @@ private $validlicense;
 		{
 			if(!isset($data['Ticket']))
 			{
-				return generateResponse("Please submit required fields.",true);
+				return generateResponse(cus_lang("MESSAGE_PLEASE_SUBMIT_REQUIRED_FIELDS"),true);
 			}
 			
 			
@@ -446,13 +446,13 @@ private $validlicense;
 						Log::info("fail TicketSla::assignSlaToTicket");
 						Log::info($ex);
 					}
-					 return generateResponse('Ticket Successfully Updated');
+					 return generateResponse(cus_lang("PAGE_TICKET_MSG_TICKET_SUCCESSFULLY_UPDATED"));
 				 }catch (Exception $ex){ 	
 					  DB::rollback();
 					  return generateResponse($ex->getMessage(), true, true);
 				 } 
 		  }else{
-		  	return generateResponse("invalid Ticket",true,true);
+		  	return generateResponse(cus_lang("PAGE_TICKET_MSG_INVALID_TICKET"),true,true);
 		  }
 	  }
 	
@@ -470,7 +470,7 @@ private $validlicense;
 			$group = $ticketdata->Group;
 			if(!isset($data['Ticket']))
 			{
-				return generateResponse("Please submit required fields.",true);
+				return generateResponse(cus_lang("MESSAGE_PLEASE_SUBMIT_REQUIRED_FIELDS"),true);
 			}
 			$DetailPage 		=   isset($data['Page'])?$data['Page']:'all'; 
 			if(isset($data['LoginType']) && $data['LoginType']=='customer'){
@@ -543,13 +543,13 @@ private $validlicense;
 							Log::info("fail TicketSla::assignSlaToTicket");
 							Log::info($ex);
 						}
-					 return generateResponse('Ticket Successfully Updated');
+					 return generateResponse(cus_lang("PAGE_TICKET_MSG_TICKET_SUCCESSFULLY_UPDATED"));
 				 }catch (Exception $ex){ 	
 					  DB::rollback();
 					  return generateResponse($ex->getMessage(), true, true);
 				 } 
 		  }else{
-		  	return generateResponse("invalid Ticket",true,true);
+		  	return generateResponse(cus_lang("PAGE_TICKET_MSG_INVALID_TICKET"),true,true);
 		  }
 	  }
 	
@@ -560,7 +560,7 @@ private $validlicense;
                 DB::beginTransaction();
 				TicketsTable::MoveTicketToDeletedLog(["TicketID" => $id]);
                 DB::commit();
-				return generateResponse("Ticket Successfully Deleted");
+				return generateResponse(cus_lang("PAGE_TICKET_MSG_TICKET_SUCCESSFULLY_DELETED"));
             }catch (Exception $e){
                 DB::rollback();
 				return generateResponse($e->getMessage(),true,true);
@@ -689,12 +689,12 @@ private $validlicense;
 						 $emails 		=	Account::GetAccountAllEmails(User::get_userID(),true);		
 						  if(!in_array($ticketdata->Requester,$emails))
 						  {
-									return generateResponse("You have not access to update this ticket",true,true);
+									return generateResponse(cus_lang("PAGE_TICKET_MSG_YOU_HAVE_NOT_ACCESS_TO_UPDATE_THIS_TICKET"),true,true);
 						  }
 					   }else{
 						  if($ticketdata->Agent!=user::get_userID())
 						  {
-								return generateResponse("You have not access to update this ticket",true,true);
+								return generateResponse(cus_lang("PAGE_TICKET_MSG_YOU_HAVE_NOT_ACCESS_TO_UPDATE_THIS_TICKET"),true,true);
 						  }
 					   }
 				   }
@@ -718,10 +718,10 @@ private $validlicense;
 				   }
 				 TicketsTable::CheckTicketStatus($ticketdata->Status,$data['status'],$id);
 						
-				return generateResponse("Ticket Successfully Updated");
+				return generateResponse(cus_lang("PAGE_TICKET_MSG_TICKET_SUCCESSFULLY_UPDATED"));
 			}			
 		 }
-	    return generateResponse("invalid Ticket",true,true);
+	    return generateResponse(cus_lang("PAGE_TICKET_MSG_INVALID_TICKET"),true,true);
 	}
 	
 	function ActionSubmit($id){
@@ -741,9 +741,9 @@ private $validlicense;
 					);
 					
 				 $messages = [
-					 "email-to.required" => "The email recipient is required",
-					 "Subject.required" => "The email Subject is required",
-					 "Message.required" => "The email message field is required",				 
+					 "email-to.required" => cus_lang("PAGE_TICKET_MSG_EMAIL_RECIPIENT_REQUIRED"),
+					 "Subject.required" => cus_lang("PAGE_TICKET_MSG_EMAIL_SUBJECT_REQUIRED"),
+					 "Message.required" => cus_lang("PAGE_TICKET_MSG_EMAIL_MESSAGE_REQUIRED"),
 				];
 		
 					$validator = Validator::make($data, $rules,$messages);
@@ -819,9 +819,9 @@ private $validlicense;
 						//}
 						
 						 DB::commit();	
-						return generateResponse("Successfully Updated");
+						return generateResponse(cus_lang("MESSAGE_SUCCESSFULLY_UPDATED"));
 					}else{
-						 return generateResponse("Problem Sending Email",true);
+						 return generateResponse(cus_lang("PAGE_TICKET_MSG_PROBLEM_SENDING_EMAIL"),true);
 					}
 				}
 				catch (Exception $e){
@@ -829,7 +829,7 @@ private $validlicense;
 					return generateResponse($e->getMessage(),true);
 				}
 			}	
-			 return generateResponse("invalid Ticket.",true);
+			 return generateResponse(cus_lang("PAGE_TICKET_MSG_INVALID_TICKET"),true);
 		}
 		   
 	}
@@ -851,9 +851,9 @@ private $validlicense;
 					);
 					
 				 $messages = [
-					 "email-to.required" => "The email recipient is required",
-					 "Subject.required" => "The email Subject is required",
-					 "Message.required" => "The email message field is required",				 
+					 "email-to.required" => cus_lang("PAGE_TICKET_MSG_EMAIL_RECIPIENT_REQUIRED"),
+					 "Subject.required" => cus_lang("PAGE_TICKET_MSG_EMAIL_SUBJECT_REQUIRED"),
+					 "Message.required" => cus_lang("PAGE_TICKET_MSG_EMAIL_MESSAGE_REQUIRED"),
 				];
 		
 					$validator = Validator::make($data, $rules,$messages);
@@ -906,9 +906,9 @@ private $validlicense;
 						$ticketdata->update(["CustomerRepliedDate"=>date('Y-m-d H:i:s')]);
 						
 						 DB::commit();	
-						return generateResponse("Successfully Updated");
+						return generateResponse(cus_lang("MESSAGE_SUCCESSFULLY_UPDATED"));
 					}else{
-						 return generateResponse("Problem Sending Email",true);
+						 return generateResponse(cus_lang("PAGE_TICKET_MSG_PROBLEM_SENDING_EMAIL"),true);
 					}
 				}
 				catch (Exception $e){
@@ -916,7 +916,7 @@ private $validlicense;
 					return generateResponse($e->getMessage(),true);
 				}
 			}	
-			 return generateResponse("invalid Ticket.",true);
+				 return generateResponse(cus_lang("PAGE_TICKET_MSG_INVALID_TICKET"),true);
 		}
 		   
 	
@@ -953,10 +953,10 @@ private $validlicense;
 			if(isset($data['isSendEmail']) && $data['isSendEmail']>0){ 
 				$TicketEmails 	=  new TicketEmails(array("TicketID"=>$ticketID,"TriggerType"=>"AgentClosestheTicket"));
 			}
-			 return generateResponse('Ticket Successfully Closed');
+			 return generateResponse(cus_lang("PAGE_TICKET_MSG_TICKET_SUCCESSFULLY_CLOSED"));
 			 //return generateResponse("Ticket Successfully Closed");
 		}
-		return generateResponse("invalid Ticket",true,true);
+		return generateResponse(cus_lang("PAGE_TICKET_MSG_INVALID_TICKET"),true,true);
 	}
 	
 	
@@ -967,7 +967,7 @@ private $validlicense;
 		$CompanyID = User::get_companyID();
 
 		if(!isset($data['Ticket'])){
-			return generateResponse("Please submit required fields.",true);
+			return generateResponse(cus_lang("MESSAGE_PLEASE_SUBMIT_REQUIRED_FIELDS"),true);
 		}
 
 		//$RulesMessages      = 	TicketsTable::GetAgentSubmitRules();       
@@ -1133,7 +1133,7 @@ private $validlicense;
 					Log::info("fail TicketSla::assignSlaToTicket");
 					Log::info($ex);
 				}
-				 return generateResponse('Ticket Successfully Created');
+				 return generateResponse(cus_lang("PAGE_TICKET_MSG_TICKET_SUCCESSFULLY_CREATED"));
       		 }catch (Exception $ex){ 	
 			      DB::rollback();
 				  return generateResponse($ex->getMessage(), true, true);
@@ -1171,7 +1171,7 @@ private $validlicense;
 		//		$TicketEmails 	=  new TicketEmails(array("TicketID"=>$data['TicketID'],"TriggerType"=>"AgentAddsCommenttoTicket","Comment"=>$data['Note']));
 					$TicketEmails 	=  new TicketEmails(array("TicketID"=>$data['TicketID'],"TriggerType"=>"Noteaddedtoticket","Comment"=>$data['Note'],"NoteUser"=>User::get_user_full_name()));
 				}
-				return generateResponse('Note Successfully Created');	
+				return generateResponse(cus_lang("PAGE_TICKET_MSG_NOTE_SUCCESSFULLY_CREATED"));
 			} catch (\Exception $ex) {
 				 return generateResponse($ex->getMessage(), true, true);			
 			}
@@ -1272,10 +1272,10 @@ private $validlicense;
 
 		if($TicketID > 0){
 			if(TicketsTable::find($TicketID)->update(["DueDate"=>$due_date,"CustomDueDate"=>1])){
-				return generateResponse('Successfully Updated');
+				return generateResponse(cus_lang("MESSAGE_SUCCESSFULLY_UPDATED"));
 			}
 		}
-		return generateResponse('Failed To Updated Due Date.');
+		return generateResponse(cus_lang("PAGE_TICKET_MSG_FAILED_TO_UPDATED_DUE_DATE"));
 
 	}
 }
