@@ -2,6 +2,8 @@
 namespace Api\Model;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
+
 class TicketfieldsValues extends \Eloquent {
 
     protected $table 		= 	"tblTicketfieldsValues";
@@ -22,10 +24,11 @@ class TicketfieldsValues extends \Eloquent {
 
     public static function getFieldValueIDLIst(){
 
-        $data = Input::all();
+        /*$data = Input::all();
         $LicenceKey = $data['LicenceKey'];
         $CompanyName = $data['CompanyName'];
-        $TicketfieldsValues = 'TicketfieldsValues' . $LicenceKey.$CompanyName;
+        $TicketfieldsValues = 'TicketfieldsValues' . $LicenceKey.$CompanyName;*/
+        $TicketfieldsValues = 'TicketfieldsValues';
 
         if (self::$enable_cache && Cache::has('ticketfieldsvalues_cache')) {
             //check if the cache has already the ```user_defaults``` item
@@ -34,7 +37,6 @@ class TicketfieldsValues extends \Eloquent {
             self::$cache['ticketfieldsvalues_cache'] = $admin_defaults['ticketfieldsvalues_cache'];
         } else {
             //if the cache doesn't have it yet
-            $companyID = User::get_companyID();
             self::$cache['ticketfieldsvalues_cache'] = TicketfieldsValues::select(['FieldValueAgent','ValuesID'])->lists('FieldValueAgent','ValuesID');
 
             $CACHE_EXPIRE = CompanyConfiguration::get('CACHE_EXPIRE');
