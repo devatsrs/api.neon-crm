@@ -46,7 +46,7 @@ private $validlicense;
 			return generateResponse('success', false, false, $Ticketfields);
 		}catch (\Exception $e) {
          	Log::info($e);
-            return generateResponse('Some problem occurred.',true,true);
+            return generateResponse(cus_lang("MESSAGE_SOME_PROBLEM_OCCURRED"),true,true);
         }		
 	}
 	
