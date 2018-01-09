@@ -36,6 +36,7 @@ class AuthController extends BaseController
         Log::info("UserID ". print_r($UserID,true));
         Log::info("credentials ". print_r($credentials,true));
         Log::info("license ". print_r($license,true));
+        Log::info("LoginType ".print_r($LoginType,true));
         try { 
 			 if(!empty($LoginType) && $LoginType['LoginType']=='customer') {
 				//$user = Account::where(['BillingEmail'=>$credentials['LoggedEmailAddress']])->first(); 
@@ -47,8 +48,15 @@ class AuthController extends BaseController
                     Log::info($credentials);
 					return response()->json(['error' => 'invalid_credentials'], 401);
 				 } 
-			 }
-			 else{
+			 }elseif(!empty($LoginType) && $LoginType['LoginType']=='reseller') {
+                 $user = User::where(['EmailAddress'=>$credentials['LoggedEmailAddress'],'Status'=>1])->first();
+                 if(!Hash::check($credentials['password'], $user->password)){
+                     Log::info("class AuthController");
+                     Log::info($credentials);
+                     Log::info("password " . $user->password);
+                     return response()->json(['error' => 'invalid_credentials'], 401);
+                 }
+             }else{
 				if(!empty($UserID['LoggedUserID'])){
 					$user = User::find($UserID['LoggedUserID']);
                     Log::info(print_r($user,true));
