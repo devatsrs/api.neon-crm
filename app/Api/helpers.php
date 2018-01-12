@@ -872,11 +872,5 @@ function next_run_time($data){
     }
 }
 function cus_lang($key=""){
-    if(Input::has('Language')){
-        App::setLocale(Input::get('Language'));
-    }else{
-        App::setLocale("en");
-    }
-
     return trans('routes.'.strtoupper($key));
 }
