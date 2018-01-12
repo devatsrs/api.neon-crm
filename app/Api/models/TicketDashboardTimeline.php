@@ -1,6 +1,6 @@
 <?php
 namespace Api\Model;
-
+// not in use
 class TicketDashboardTimeline extends \Eloquent
 {
     protected $guarded = array("TicketDashboardTimelineID");
