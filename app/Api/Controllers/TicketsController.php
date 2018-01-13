@@ -213,9 +213,9 @@ private $validlicense;
 						$TicketFieldsID =  Ticketfields::where(["FieldType"=>$key])->pluck('TicketFieldsID');
 						TicketsDetails::insert(array("TicketID"=>$TicketID,"FieldID"=>$TicketFieldsID,"FieldValue"=>$TicketfieldsData));
 					}
-				}	
+				}
 
-                TicketLog::insertTicketLog($TicketID,TicketLog::NEW_TICKET,($data['LoginType']=='user')?0:1);
+                TicketLog::insertTicketLog($TicketID,TicketLog::TICKET_ACTION_CREATED,($data['LoginType']=='user')?0:1);
 				//create contact if email not found in system
 			 	$AllEmails  =   Messages::GetAllSystemEmails();
 				if(!in_array($RequesterEmail,$AllEmails))
@@ -559,10 +559,6 @@ private $validlicense;
             try{
                 DB::beginTransaction();
 				TicketsTable::MoveTicketToDeletedLog(["TicketID" => $id]);
-                TicketsTable::where(["TicketID"=>$id])->delete();
-              	TicketsDetails::where(["TicketID"=>$id])->delete();
-				TicketDashboardTimeline::where(['TicketID'=>$id])->delete();
-				//TicketsConversation::where(array('TicketID'=>$id))->delete();
                 DB::commit();
 				return generateResponse("Ticket Successfully Deleted");
             }catch (Exception $e){
@@ -821,8 +817,12 @@ private $validlicense;
 						//if($ticketdata->Agent==User::get_userID()){ //removed as mam said
 							$ticketdataAll->update(["AgentRepliedDate"=>date('Y-m-d H:i:s')]);
 						//}
-						
-						 DB::commit();	
+
+
+						TicketLog::insertTicketLog($id,TicketLog::TICKET_ACTION_AGENT_REPLIED,($data['LoginType']=='user')?0:1);
+
+
+						DB::commit();
 						return generateResponse("Successfully Updated");
 					}else{
 						 return generateResponse("Problem Sending Email",true);
@@ -882,8 +882,7 @@ private $validlicense;
 					 $data['AttachmentPaths'] 	= 	$FilesArray;
 					 $data['cc'] 				= 	trim($data['cc']);
 					 $data['bcc'] 				= 	trim($data['bcc']);		
-					 $data['In-Reply-To'] 		= 	AccountEmailLog::where(['AccountEmailLogID'=>$ticketdata->AccountEmailLogID])->pluck('MessageID');
-					 //$data['In-Reply-To'] 		= 	"Ticket__".base64_encode($id)."__".base64_encode($ticketdata->Requester);
+					 $data['In-Reply-To'] 		= 	AccountEmailLog::getLastMessageIDByTicketID($ticketdata->TicketID);
 					 $data['Message-ID']		= 	$ticketdata->TicketID;
 					 $status 					= 	sendMail('emails.tickets.ticket', $data);
 					if($status['status'] == 1)
@@ -1076,8 +1075,8 @@ private $validlicense;
 
 				log::info("--Ticket log --");
 
-				TicketLog::insertTicketLog($TicketID,TicketLog::NEW_TICKET,($data['LoginType']=='user')?0:1);
-                TicketLog::insertTicketLog($TicketID,TicketLog::STATUS_CHANGED,($data['LoginType']=='user')?0:1,$Ticketfields['default_status']);
+				TicketLog::insertTicketLog($TicketID,TicketLog::TICKET_ACTION_CREATED,($data['LoginType']=='user')?0:1);
+                TicketLog::insertTicketLog($TicketID,TicketLog::TICKET_ACTION_STATUS_CHANGED,($data['LoginType']=='user')?0:1,$Ticketfields['default_status']);
 
 				log::info("--Ticket log over --");
 				//create contact if email not found in system
@@ -1244,12 +1243,9 @@ private $validlicense;
         }
         try {
             DB::beginTransaction();
+
 			TicketsTable::MoveTicketToDeletedLog(["TicketIDs" => $data['SelectedIDs']]);
-			TicketLog::whereIn('TicketID', explode(',',$data['SelectedIDs']))->delete();
-			TicketDashboardTimeline::whereIn('TicketID', explode(',',$data['SelectedIDs']))->delete();
-            TicketsDetails::whereIn('TicketID', explode(',',$data['SelectedIDs']))->delete();
-            TicketsTable::whereIn('TicketID', explode(',',$data['SelectedIDs']))->delete();			
-            DB::commit();
+			DB::commit();
             return generateResponse('Tickets deleted successfully.');
         }catch (Exception $e) {
             DB::rollback();
