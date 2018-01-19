@@ -517,10 +517,14 @@ class TicketsTable extends \Eloquent
 
 	static function MoveTicketToDeletedLog($opt = array()){
 
+		$TicketsFieldsList = "`TicketID`,	`CompanyID`,	`Requester`,	`RequesterName`,	`RequesterCC`,	`RequesterBCC`,	`AccountID`,	`ContactID`,	`UserID`,	`Subject`,	`Type`,	`Status`,	`Priority`,	`Group`,	`Agent`,	`Description`,	`AttachmentPaths`,	`TicketType`,	`AccountEmailLogID`,	`Read`,	`EscalationEmail`,	`TicketSlaID`,	`RespondSlaPolicyVoilationEmailStatus`,	`ResolveSlaPolicyVoilationEmailStatus`,	`DueDate`,	`CustomDueDate`,	`AgentRepliedDate`,	`CustomerRepliedDate`,	`created_at`,	`created_by`,	`updated_at`,	`updated_by`";
+		$AccountEmailLogFieldsList =  "`AccountEmailLogID`,	`CompanyID`,	`AccountID`,	`ContactID`,	`UserType`,	`UserID`,	`JobId`,	`ProcessID`,	`CreatedBy`,	`ModifiedBy`,	`created_at`,	`updated_at`,	`Emailfrom`,	`EmailTo`,	`Subject`,	`Message`,	`Cc`,	`Bcc`,	`AttachmentPaths`,	`EmailType`,	`EmailfromName`,	`MessageID`,	`EmailParent`,	`EmailID`,	`EmailCall`,	`TicketID`";
+
 		if(isset($opt["TicketIDs"]) ) {
 
-				$q1 = "INSERT INTO  tblTicketsDeletedLog SELECT * FROM tblTickets WHERE TicketID IN (" . $opt["TicketIDs"] . ')';
-				$q2 = "INSERT INTO AccountEmailLogDeletedLog SELECT * FROM AccountEmailLog WHERE TicketID IN (" . $opt["TicketIDs"] . ')';
+
+				$q1 = "INSERT INTO  tblTicketsDeletedLog (".$TicketsFieldsList.")  SELECT ".$TicketsFieldsList." FROM tblTickets WHERE TicketID IN (" . $opt["TicketIDs"] . ')';
+				$q2 = "INSERT INTO AccountEmailLogDeletedLog (".$AccountEmailLogFieldsList.")  SELECT ".$AccountEmailLogFieldsList."  FROM AccountEmailLog WHERE TicketID IN (" . $opt["TicketIDs"] . ')';
 
 				DB::insert($q1);
 				DB::insert($q2);
@@ -536,8 +540,8 @@ class TicketsTable extends \Eloquent
 
 		} else if(isset($opt["TicketID"]) && is_numeric($opt["TicketID"]) ) {
 
-			DB::insert("INSERT INTO tblTicketsDeletedLog SELECT * FROM tblTickets WHERE TicketID = " . $opt["TicketID"]);
-			DB::insert("INSERT INTO AccountEmailLogDeletedLog SELECT * FROM AccountEmailLog WHERE TicketID = " . $opt["TicketID"]);
+			DB::insert("INSERT INTO tblTicketsDeletedLog (".$TicketsFieldsList.")  SELECT ".$TicketsFieldsList." FROM tblTickets WHERE TicketID = " . $opt["TicketID"]);
+			DB::insert("INSERT INTO AccountEmailLogDeletedLog (".$AccountEmailLogFieldsList.")  SELECT ".$AccountEmailLogFieldsList."  FROM AccountEmailLog WHERE TicketID = " . $opt["TicketID"]);
 
 			// Delete Ticket Logs
 			TicketLog::where('TicketID', $opt["TicketID"])->delete();
