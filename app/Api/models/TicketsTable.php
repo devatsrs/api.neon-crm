@@ -43,13 +43,147 @@ class TicketsTable extends \Eloquent
             foreach($obj->original as $index=>$value){
                 if(array_key_exists($index,TicketLog::$defaultTicketLogFields)) {
                     if($obj->attributes[$index] != $value){
-                        $data = ['UserID' => $UserID,
-                            'CompanyID' => $CompanyID,
-                            'TicketID' => $obj->TicketID,
-                            'TicketFieldID' => Ticketfields::$defaultTicketFields[$index],
-                            'TicketFieldValueFromID' => $obj->original[$index],
-                            'TicketFieldValueToID' => $obj->attributes[$index],
-                            "created_at" => date("Y-m-d H:i:s")];
+
+
+/*
+[2018-01-05 12:54:03] Staging.INFO: index - Type
+[2018-01-05 12:54:03] Staging.INFO: obj->original
+[2018-01-05 12:54:03] Staging.INFO: Array
+(
+    [TicketID] => 269
+    [CompanyID] => 1
+    [Requester] => jobs.shriramsoft@gmail.com
+    [RequesterName] => Deven Sitapara
+    [RequesterCC] =>
+    [RequesterBCC] =>
+    [AccountID] => 0
+    [ContactID] => 22
+    [UserID] => 0
+    [Subject] => New Log testing 05-1-2018
+    [Type] => 0
+    [Status] => 13
+    [Priority] => 1
+    [Group] => 2
+    [Agent] => 0
+    [Description] => <div dir="ltr"><br>New Log testing 05-1-2018<br><br></div>
+
+    [AttachmentPaths] => a:0:{}
+    [TicketType] => 0
+    [AccountEmailLogID] => 7525
+    [Read] => 1
+    [EscalationEmail] => 0
+    [TicketSlaID] => 4
+    [RespondSlaPolicyVoilationEmailStatus] => 0
+    [ResolveSlaPolicyVoilationEmailStatus] => 0
+    [DueDate] => 2018-01-05 12:36:32
+    [CustomDueDate] => 0
+    [AgentRepliedDate] =>
+    [CustomerRepliedDate] =>
+    [created_at] => 2018-01-05 12:21:32
+    [created_by] => RMScheduler
+    [updated_at] => 2018-01-05 12:21:32
+    [updated_by] =>
+)
+
+[2018-01-05 12:54:03] Staging.INFO: obj->attributes
+[2018-01-05 12:54:03] Staging.INFO: Array
+(
+    [TicketID] => 269
+    [CompanyID] => 1
+    [Requester] => jobs.shriramsoft@gmail.com
+    [RequesterName] => Deven Sitapara
+    [RequesterCC] =>
+    [RequesterBCC] =>
+    [AccountID] => 0
+    [ContactID] => 22
+    [UserID] => 0
+    [Subject] => New Log testing 05-1-2018
+    [Type] => 11
+    [Status] => 14
+    [Priority] => 1
+    [Group] => 2
+    [Agent] => 66
+    [Description] => <div dir="ltr"><br>New Log testing 05-1-2018<br><br></div>
+
+    [AttachmentPaths] => a:0:{}
+    [TicketType] => 0
+    [AccountEmailLogID] => 7525
+    [Read] => 1
+    [EscalationEmail] => 0
+    [TicketSlaID] => 4
+    [RespondSlaPolicyVoilationEmailStatus] => 0
+    [ResolveSlaPolicyVoilationEmailStatus] => 0
+    [DueDate] => 2018-01-05 12:36:32
+    [CustomDueDate] => 0
+    [AgentRepliedDate] =>
+    [CustomerRepliedDate] =>
+    [created_at] => 2018-01-05 12:21:32
+    [created_by] => RMScheduler
+    [updated_at] => 2018-01-05 12:54:03
+    [updated_by] => Sumera Khan
+)
+
+
+						 * */
+
+						$FromValue = $ToValue = '' ;
+						$fromID =$obj->original[$index];
+						$toID =$obj->attributes[$index];
+
+						if($index == 'Type' || $index == 'Status') {
+
+							$FieldValuesArray = TicketfieldsValues::select(['FieldValueAgent','ValuesID'])->lists('FieldValueAgent','ValuesID')->toArray();
+							$FieldValues = $FieldValuesArray ; // TicketfieldsValues::getFieldValueIDLIst();
+
+							if (isset($FieldValues[$fromID])) {
+								$FromValue = 'from ' . $FieldValues[$fromID];
+							}
+							$ToValue = 'to ' . $FieldValues[$toID];
+						} else if($index == 'Agent' ) {
+
+							$FromUser  = User::where(["UserID"=>$fromID])->select(["FirstName","LastName"])->first();
+							$ToUser  = User::where(["UserID"=>$toID])->select(["FirstName","LastName"])->first();
+							if(!empty($FromUser["FirstName"] . ' '. $FromUser["LastName"])) {
+								$FromValue = 'from ' . $FromUser["FirstName"] . ' ' . $FromUser["LastName"];
+							}
+							$ToValue = 'to ' . $ToUser["FirstName"] . ' '. $ToUser["LastName"];
+
+						} else if($index == 'Priority' ) {
+
+							$FromPriorityValue  = TicketPriority::getPriorityStatusByID($fromID);
+							$ToPriorityValue  = TicketPriority::getPriorityStatusByID($toID);
+
+							if(!empty($FromPriorityValue)) {
+								$FromValue = 'from ' . $FromPriorityValue;
+							}
+							$ToValue = 'to ' . $ToPriorityValue;
+
+						} else if($index == 'Group' ) {
+
+							$Groups = TicketGroups::getTicketGroups();
+
+							if (isset($Groups[$fromID])) {
+								$FromValue = 'from ' . $Groups[$fromID];
+							}
+							$ToValue = 'to ' . $Groups[$toID];
+
+						}
+
+
+
+						$FieldName = $index;
+
+						$data = [
+							'CompanyID' => $CompanyID,
+							'TicketID' => $obj->TicketID,
+							"ParentID" =>$UserID,
+							"ParentType" =>TicketLog::TICKET_USER_TYPE_USER,
+							"Action" =>TicketLog::TICKET_ACTION_FIELD_CHANGED,
+							"ActionText" => $FieldName .' Changed  ' . $FromValue . ' ' . $ToValue ,
+							'created_at' => date("Y-m-d H:i:s")
+						];
+
+
                         TicketLog::insert($data);
 
 						$TicketID = $obj->TicketID;
@@ -326,7 +460,9 @@ class TicketsTable extends \Eloquent
 			if (strpos($emailsData, '<') !== false && strpos($emailsData, '>') !== false)
 			{
 				$RequesterData 	   =  explode(" <",$emailsData);
-				$final[] =  substr($RequesterData[1],0,strlen($RequesterData[1])-1);	
+				if(isset($RequesterData[1])){
+					$final[] =  substr($RequesterData[1],0,strlen($RequesterData[1])-1);
+				}
 			}else{
 				$final[]	   =  trim($emailsData);					
 			}
@@ -383,17 +519,21 @@ class TicketsTable extends \Eloquent
 
 	static function MoveTicketToDeletedLog($opt = array()){
 
+		$TicketsFieldsList = "`TicketID`,	`CompanyID`,	`Requester`,	`RequesterName`,	`RequesterCC`,	`RequesterBCC`,	`AccountID`,	`ContactID`,	`UserID`,	`Subject`,	`Type`,	`Status`,	`Priority`,	`Group`,	`Agent`,	`Description`,	`AttachmentPaths`,	`TicketType`,	`AccountEmailLogID`,	`Read`,	`EscalationEmail`,	`TicketSlaID`,	`RespondSlaPolicyVoilationEmailStatus`,	`ResolveSlaPolicyVoilationEmailStatus`,	`DueDate`,	`CustomDueDate`,	`AgentRepliedDate`,	`CustomerRepliedDate`,	`created_at`,	`created_by`,	`updated_at`,	`updated_by`";
+		$AccountEmailLogFieldsList =  "`AccountEmailLogID`,	`CompanyID`,	`AccountID`,	`ContactID`,	`UserType`,	`UserID`,	`JobId`,	`ProcessID`,	`CreatedBy`,	`ModifiedBy`,	`created_at`,	`updated_at`,	`Emailfrom`,	`EmailTo`,	`Subject`,	`Message`,	`Cc`,	`Bcc`,	`AttachmentPaths`,	`EmailType`,	`EmailfromName`,	`MessageID`,	`EmailParent`,	`EmailID`,	`EmailCall`,	`TicketID`";
+
 		if(isset($opt["TicketIDs"]) ) {
 
-				$q1 = "INSERT INTO  tblTicketsDeletedLog SELECT * FROM tblTickets WHERE TicketID IN (" . $opt["TicketIDs"] . ')';
-				$q2 = "INSERT INTO AccountEmailLogDeletedLog SELECT * FROM AccountEmailLog WHERE TicketID IN (" . $opt["TicketIDs"] . ')';
+
+				$q1 = "INSERT INTO  tblTicketsDeletedLog (".$TicketsFieldsList.")  SELECT ".$TicketsFieldsList." FROM tblTickets WHERE TicketID IN (" . $opt["TicketIDs"] . ')';
+				$q2 = "INSERT INTO AccountEmailLogDeletedLog (".$AccountEmailLogFieldsList.")  SELECT ".$AccountEmailLogFieldsList."  FROM AccountEmailLog WHERE TicketID IN (" . $opt["TicketIDs"] . ')';
 
 				DB::insert($q1);
 				DB::insert($q2);
 
 				// Delete Ticket Logs
 				TicketLog::whereIn('TicketID', explode(',',$opt["TicketIDs"]))->delete();
-				TicketDashboardTimeline::whereIn('TicketID', explode(',',$opt["TicketIDs"]))->delete();
+				//TicketDashboardTimeline::whereIn('TicketID', explode(',',$opt["TicketIDs"]))->delete();
 				TicketsDetails::whereIn('TicketID', explode(',',$opt["TicketIDs"]))->delete();
 				TicketsTable::whereIn('TicketID', explode(',',$opt["TicketIDs"]))->delete();
 				AccountEmailLog::whereIn('TicketID', explode(',',$opt["TicketIDs"]))->delete();
@@ -402,12 +542,12 @@ class TicketsTable extends \Eloquent
 
 		} else if(isset($opt["TicketID"]) && is_numeric($opt["TicketID"]) ) {
 
-			DB::insert("INSERT INTO tblTicketsDeletedLog SELECT * FROM tblTickets WHERE TicketID = " . $opt["TicketID"]);
-			DB::insert("INSERT INTO AccountEmailLogDeletedLog SELECT * FROM AccountEmailLog WHERE TicketID = " . $opt["TicketID"]);
+			DB::insert("INSERT INTO tblTicketsDeletedLog (".$TicketsFieldsList.")  SELECT ".$TicketsFieldsList." FROM tblTickets WHERE TicketID = " . $opt["TicketID"]);
+			DB::insert("INSERT INTO AccountEmailLogDeletedLog (".$AccountEmailLogFieldsList.")  SELECT ".$AccountEmailLogFieldsList."  FROM AccountEmailLog WHERE TicketID = " . $opt["TicketID"]);
 
 			// Delete Ticket Logs
 			TicketLog::where('TicketID', $opt["TicketID"])->delete();
-			TicketDashboardTimeline::where('TicketID', $opt["TicketID"])->delete();
+			//TicketDashboardTimeline::where('TicketID', $opt["TicketID"])->delete();
 			TicketsDetails::where('TicketID', $opt["TicketID"])->delete();
 			TicketsTable::where('TicketID', $opt["TicketID"])->delete();
 			AccountEmailLog::where('TicketID', $opt["TicketID"])->delete();

@@ -213,9 +213,9 @@ private $validlicense;
 						$TicketFieldsID =  Ticketfields::where(["FieldType"=>$key])->pluck('TicketFieldsID');
 						TicketsDetails::insert(array("TicketID"=>$TicketID,"FieldID"=>$TicketFieldsID,"FieldValue"=>$TicketfieldsData));
 					}
-				}	
+				}
 
-                TicketLog::insertTicketLog($TicketID,TicketLog::NEW_TICKET,($data['LoginType']=='user')?0:1);
+                TicketLog::insertTicketLog($TicketID,TicketLog::TICKET_ACTION_CREATED,($data['LoginType']=='user')?0:1);
 				//create contact if email not found in system
 			 	$AllEmails  =   Messages::GetAllSystemEmails();
 				if(!in_array($RequesterEmail,$AllEmails))
@@ -730,7 +730,7 @@ private $validlicense;
 		if($id)
 		{
 			$ticketdata		=	 TicketsTable::find($id);
-			if($ticketdata)
+			if(isset($ticketdata->TicketID) && $ticketdata->TicketID > 0)
 			{
 				try
 				{				 
@@ -791,14 +791,14 @@ private $validlicense;
 						"AttachmentPaths"=>$files,
 						"MessageID"=>$message_id,						
 						"EmailCall"=>Messages::Sent,
-						"TicketID"=>$id,
+						"TicketID"=>$ticketdata->TicketID,
 						"EmailType"=>AccountEmailLog::TicketEmail,
 						"created_at"=>date("Y-m-d H:i:s"),
 						"CreatedBy"=>User::get_user_full_name()
 					];
 						$logid = AccountEmailLog::insertGetId($logData);	
 						AccountEmailLog::find($logid)->update(["EmailParent"=>$logid]);
-						$TicketEmails 	=  new TicketEmails(array("TicketID"=>$id,"TriggerType"=>"CCNoteaddedtoticket","Comment"=>$data['Message'],"NoteUser"=>User::get_user_full_name()));
+						$TicketEmails 	=  new TicketEmails(array("TicketID"=>$ticketdata->TicketID,"TriggerType"=>"CCNoteaddedtoticket","Comment"=>$data['Message'],"NoteUser"=>User::get_user_full_name()));
 						/*if(!empty($files_array) && count($files_array)>0){	
 							foreach($files_array as $key=> $array_file_data){
 							@unlink($array_file_data['filepath']);	
@@ -813,12 +813,16 @@ private $validlicense;
 							}
 						}
 						
-						$ticketdataAll		=	 TicketsTable::find($id);
+						$ticketdataAll		=	 TicketsTable::find($ticketdata->TicketID);
 						//if($ticketdata->Agent==User::get_userID()){ //removed as mam said
 							$ticketdataAll->update(["AgentRepliedDate"=>date('Y-m-d H:i:s')]);
 						//}
-						
-						 DB::commit();	
+
+
+						TicketLog::insertTicketLog($ticketdata->TicketID,TicketLog::TICKET_ACTION_AGENT_REPLIED,($data['LoginType']=='user')?0:1);
+
+
+						DB::commit();
 						return generateResponse("Successfully Updated");
 					}else{
 						 return generateResponse("Problem Sending Email",true);
@@ -1071,8 +1075,8 @@ private $validlicense;
 
 				log::info("--Ticket log --");
 
-				TicketLog::insertTicketLog($TicketID,TicketLog::NEW_TICKET,($data['LoginType']=='user')?0:1);
-                TicketLog::insertTicketLog($TicketID,TicketLog::STATUS_CHANGED,($data['LoginType']=='user')?0:1,$Ticketfields['default_status']);
+				TicketLog::insertTicketLog($TicketID,TicketLog::TICKET_ACTION_CREATED,($data['LoginType']=='user')?0:1);
+                TicketLog::insertTicketLog($TicketID,TicketLog::TICKET_ACTION_STATUS_CHANGED,($data['LoginType']=='user')?0:1,$Ticketfields['default_status']);
 
 				log::info("--Ticket log over --");
 				//create contact if email not found in system
