@@ -730,7 +730,7 @@ private $validlicense;
 		if($id)
 		{
 			$ticketdata		=	 TicketsTable::find($id);
-			if($ticketdata)
+			if(isset($ticketdata->TicketID) && $ticketdata->TicketID > 0)
 			{
 				try
 				{				 
@@ -791,14 +791,14 @@ private $validlicense;
 						"AttachmentPaths"=>$files,
 						"MessageID"=>$message_id,						
 						"EmailCall"=>Messages::Sent,
-						"TicketID"=>$id,
+						"TicketID"=>$ticketdata->TicketID,
 						"EmailType"=>AccountEmailLog::TicketEmail,
 						"created_at"=>date("Y-m-d H:i:s"),
 						"CreatedBy"=>User::get_user_full_name()
 					];
 						$logid = AccountEmailLog::insertGetId($logData);	
 						AccountEmailLog::find($logid)->update(["EmailParent"=>$logid]);
-						$TicketEmails 	=  new TicketEmails(array("TicketID"=>$id,"TriggerType"=>"CCNoteaddedtoticket","Comment"=>$data['Message'],"NoteUser"=>User::get_user_full_name()));
+						$TicketEmails 	=  new TicketEmails(array("TicketID"=>$ticketdata->TicketID,"TriggerType"=>"CCNoteaddedtoticket","Comment"=>$data['Message'],"NoteUser"=>User::get_user_full_name()));
 						/*if(!empty($files_array) && count($files_array)>0){	
 							foreach($files_array as $key=> $array_file_data){
 							@unlink($array_file_data['filepath']);	
@@ -813,13 +813,13 @@ private $validlicense;
 							}
 						}
 						
-						$ticketdataAll		=	 TicketsTable::find($id);
+						$ticketdataAll		=	 TicketsTable::find($ticketdata->TicketID);
 						//if($ticketdata->Agent==User::get_userID()){ //removed as mam said
 							$ticketdataAll->update(["AgentRepliedDate"=>date('Y-m-d H:i:s')]);
 						//}
 
 
-						TicketLog::insertTicketLog($id,TicketLog::TICKET_ACTION_AGENT_REPLIED,($data['LoginType']=='user')?0:1);
+						TicketLog::insertTicketLog($ticketdata->TicketID,TicketLog::TICKET_ACTION_AGENT_REPLIED,($data['LoginType']=='user')?0:1);
 
 
 						DB::commit();
