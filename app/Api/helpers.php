@@ -272,11 +272,15 @@ function email_log_data_Ticket($data,$view = '',$status){
     if(!isset($data['cc']) || empty($data['cc']))
     {
         $data['cc'] = '';
+    }else if(is_array($data['cc'])){
+        $data['cc'] = implode(',',$data['cc']);
     }
 
     if(!isset($data['bcc']))
     {
         $data['bcc'] = '';
+    }else if(is_array($data['bcc'])){
+        $data['bcc'] = implode(',',$data['bcc']);
     }
 
     if(isset($data['AttachmentPaths']) && count($data['AttachmentPaths'])>0)
