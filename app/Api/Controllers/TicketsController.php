@@ -107,7 +107,7 @@ private $validlicense;
 		$CompanyID 		= 	User::get_companyID();
 
 		  if(!isset($data['Ticket'])){
-			return generateResponse(cus_lang("PAGE_TICKET_MSG_SUBMIT_REQUIRED_FIELDS"),true);
+			return generateResponse(cus_lang("MESSAGE_PLEASE_SUBMIT_REQUIRED_FIELDS"),true);
 		}
 		//Log::info(print_r($data,true)); exit;
 		

@@ -55,7 +55,7 @@ class DBSelector
             if(!empty($LICENSE_JSON)) {
 
                 if($request->has('Language')){
-                    App::setLocale($request->only('Language'));
+                    App::setLocale($request->input('Language'));
                     unset($_POST["Language"]);
                 }else{
                     App::setLocale("en");
