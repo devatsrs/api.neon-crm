@@ -225,9 +225,9 @@ class TicketEmails{
             $emailData['Message'] 		= 		$finalBody;
             $emailData['CompanyID'] 	= 		User::get_companyID();
             $emailData['EmailTo'] 		= 		$this->Agent->EmailAddress;
-            $emailData['EmailFrom'] 	= 		$this->Group->GroupEmailAddress;
+            $emailData['EmailFrom'] 	= 		$this->Group->GroupReplyAddress;
             $emailData['CompanyName'] 	= 		$this->Group->GroupName;
-			$emailData['AddReplyTo'] 	= 		isset($this->Group->GroupReplyAddress)?$this->Group->GroupReplyAddress:$this->Group->GroupEmailAddress;
+			$emailData['In-Reply-To'] 	= 		AccountEmailLog::getLastMessageIDByTicketID($this->TicketID);
 			$emailData['TicketID'] 		= 		$this->TicketID;
 			$emailData['Auto-Submitted']= 		"auto-generated";
 			$emailData['Message-ID']	= 		$this->TicketID;
@@ -272,9 +272,9 @@ class TicketEmails{
             $emailData['Message'] 		= 		$finalBody;
             $emailData['CompanyID'] 	= 		User::get_companyID();
             $emailData['EmailTo'] 		= 		$this->Agent->EmailAddress;
-            $emailData['EmailFrom'] 	= 		$this->Group->GroupEmailAddress;
+            $emailData['EmailFrom'] 	= 		$this->Group->GroupReplyAddress;
             $emailData['CompanyName'] 	= 		$this->Group->GroupName;
-			$emailData['AddReplyTo'] 	= 		isset($this->Group->GroupReplyAddress)?$this->Group->GroupReplyAddress:$this->Group->GroupEmailAddress;
+			$emailData['In-Reply-To'] 	= 		AccountEmailLog::getLastMessageIDByTicketID($this->TicketID);
 			$emailData['TicketID'] 		= 		$this->TicketID;
 			$emailData['Auto-Submitted']= 		"auto-generated";
 			$emailData['Message-ID']	= 		$this->TicketID;
@@ -306,9 +306,9 @@ class TicketEmails{
 		$emailData['Message'] 		= 		$finalBody;
 		$emailData['CompanyID'] 	= 		$CompanyID;
 		$emailData['EmailTo'] 		= 		$Requester;
-		$emailData['EmailFrom'] 	= 		$this->Group->GroupEmailAddress;
+		$emailData['EmailFrom'] 	= 		$this->Group->GroupReplyAddress;
 		$emailData['CompanyName'] 	= 		$this->Group->GroupName;
-		$emailData['AddReplyTo'] 	= 		isset($this->Group->GroupReplyAddress)?$this->Group->GroupReplyAddress:$this->Group->GroupEmailAddress;
+		$emailData['In-Reply-To'] 	= 		AccountEmailLog::getLastMessageIDByTicketID($this->TicketID);
 		$emailData['TicketID'] 		= 		$this->TicketID;
 		$emailData['Auto-Submitted']= 		"auto-generated";
 		$emailData['Message-ID']	= 		$this->TicketID;
@@ -348,9 +348,9 @@ class TicketEmails{
             $emailData['Message'] 		= 		$finalBody;
             $emailData['CompanyID'] 	= 		User::get_companyID();
             $emailData['EmailTo'] 		= 		$Requester;
-            $emailData['EmailFrom'] 	= 		$this->Group->GroupEmailAddress;
+            $emailData['EmailFrom'] 	= 		$this->Group->GroupReplyAddress;
             $emailData['CompanyName'] 	= 		$this->Group->GroupName;
-			$emailData['AddReplyTo'] 	= 		isset($this->Group->GroupReplyAddress)?$this->Group->GroupReplyAddress:$this->Group->GroupEmailAddress;
+			$emailData['In-Reply-To'] 	= 		AccountEmailLog::getLastMessageIDByTicketID($this->TicketID);
 			$emailData['TicketID'] 		= 		$this->TicketID;
 			$emailData['Auto-Submitted']= 		"auto-generated";
 			$emailData['Message-ID']	= 		$this->TicketID;
@@ -391,9 +391,9 @@ class TicketEmails{
 			$emailData['Message'] 		= 		$finalBody;
 			$emailData['CompanyID'] 	= 		$CompanyID;
 			$emailData['EmailTo'] 		= 		$emailto;
-			$emailData['EmailFrom'] 	= 		$this->Group->GroupEmailAddress;
+			$emailData['EmailFrom'] 	= 		$this->Group->GroupReplyAddress;
 			$emailData['CompanyName'] 	= 		$this->Group->GroupName;
-			$emailData['AddReplyTo'] 	= 		isset($this->Group->GroupReplyAddress)?$this->Group->GroupReplyAddress:$this->Group->GroupEmailAddress;
+			$emailData['In-Reply-To'] 	= 		AccountEmailLog::getLastMessageIDByTicketID($this->TicketID);
 			$emailData['TicketID'] 		= 		$this->TicketID;
 			$emailData['Auto-Submitted']= 		"auto-generated";
 			$emailData['Message-ID']	= 		$this->TicketID;
@@ -426,7 +426,7 @@ class TicketEmails{
 
 
 		if(count($emailto)>0){
-			$emailto = self::remove_group_emails_from_array($emailto);
+			$emailto = self::remove_group_emails_from_array($CompanyID,$emailto);
 			$replace_array				= 		$this->ReplaceArray($this->TicketData);
 			$finalBody 					= 		$this->template_var_replace($this->EmailTemplate->TemplateBody,$replace_array);
 			$finalSubject				= 		$this->template_var_replace($this->EmailTemplate->Subject,$replace_array);	
@@ -434,9 +434,9 @@ class TicketEmails{
 			$emailData['Message'] 		= 		$finalBody;
 			$emailData['CompanyID'] 	= 		$CompanyID;
 			$emailData['EmailTo'] 		= 		$emailto;
-			$emailData['EmailFrom'] 	= 		$this->Group->GroupEmailAddress;
+			$emailData['EmailFrom'] 	= 		$this->Group->GroupReplyAddress;
 			$emailData['CompanyName'] 	= 		$this->Group->GroupName;
-			$emailData['AddReplyTo'] 	= 		isset($this->Group->GroupReplyAddress)?$this->Group->GroupReplyAddress:$this->Group->GroupEmailAddress;
+			$emailData['In-Reply-To'] 	= 		AccountEmailLog::getLastMessageIDByTicketID($this->TicketID);
 			$emailData['TicketID'] 		= 		$this->TicketID;
 			$emailData['Comment'] 		= 		$this->Comment;
 			$emailData['NoteUser'] 		= 		$this->NoteUser;
@@ -469,9 +469,9 @@ class TicketEmails{
             $emailData['Message'] 		= 		$finalBody;
             $emailData['CompanyID'] 	= 		User::get_companyID();
             $emailData['EmailTo'] 		= 		$this->Agent->EmailAddress;
-            $emailData['EmailFrom'] 	= 		$this->Group->GroupEmailAddress;
+            $emailData['EmailFrom'] 	= 		$this->Group->GroupReplyAddress;
             $emailData['CompanyName'] 	= 		$this->Group->GroupName;
-			$emailData['AddReplyTo'] 	= 		isset($this->Group->GroupReplyAddress)?$this->Group->GroupReplyAddress:$this->Group->GroupEmailAddress;
+			$emailData['In-Reply-To'] 	= 		AccountEmailLog::getLastMessageIDByTicketID($this->TicketID);
 			$emailData['Message-ID']	= 		$this->TicketID;
 			$emailData['Auto-Submitted']= 		"auto-generated";
 			$status 					= 		sendMail($finalBody,$emailData,0);
@@ -502,9 +502,9 @@ class TicketEmails{
             $emailData['Message'] 		= 		$finalBody;
             $emailData['CompanyID'] 	= 		User::get_companyID();
             $emailData['EmailTo'] 		= 		$Groupagents;
-            $emailData['EmailFrom'] 	= 		$this->Group->GroupEmailAddress;
+            $emailData['EmailFrom'] 	= 		$this->Group->GroupReplyAddress;
             $emailData['CompanyName'] 	= 		$this->Group->GroupName;
-			$emailData['AddReplyTo'] 	= 		isset($this->Group->GroupReplyAddress)?$this->Group->GroupReplyAddress:$this->Group->GroupEmailAddress;
+			$emailData['In-Reply-To'] 	= 		AccountEmailLog::getLastMessageIDByTicketID($this->TicketID);
 			$emailData['Message-ID']	= 		$this->TicketID;
 			$emailData['Auto-Submitted']= 		"auto-generated";
 			$status 					= 		sendMail($finalBody,$emailData,0);
@@ -533,9 +533,9 @@ class TicketEmails{
 		$emailData['Message'] 		= 		$finalBody;
 		$emailData['CompanyID'] 	= 		User::get_companyID();
 		$emailData['EmailTo'] 		= 		$this->TicketData->Requester;
-		$emailData['EmailFrom'] 	= 		$this->Group->GroupEmailAddress;
+		$emailData['EmailFrom'] 	= 		$this->Group->GroupReplyAddress;
 		$emailData['CompanyName'] 	= 		$this->Group->GroupName;
-		$emailData['AddReplyTo'] 	= 		isset($this->Group->GroupReplyAddress)?$this->Group->GroupReplyAddress:$this->Group->GroupEmailAddress;
+		$emailData['In-Reply-To'] 	= 		AccountEmailLog::getLastMessageIDByTicketID($this->TicketID);
 		$emailData['TicketID'] 		= 		$this->TicketID;
 		$emailData['Message-ID']	= 		$this->TicketID;
 		$emailData['Auto-Submitted']= 		"auto-generated";
@@ -564,9 +564,9 @@ class TicketEmails{
 		$emailData['Message'] 		= 		$finalBody;
 		$emailData['CompanyID'] 	= 		User::get_companyID();
 		$emailData['EmailTo'] 		= 		$this->TicketData->Requester;
-		$emailData['EmailFrom'] 	= 		$this->Group->GroupEmailAddress;
+		$emailData['EmailFrom'] 	= 		$this->Group->GroupReplyAddress;
 		$emailData['CompanyName'] 	= 		$this->Group->GroupName;
-		$emailData['AddReplyTo'] 	= 		isset($this->Group->GroupReplyAddress)?$this->Group->GroupReplyAddress:$this->Group->GroupEmailAddress;
+		$emailData['In-Reply-To'] 	= 		AccountEmailLog::getLastMessageIDByTicketID($this->TicketID);
 		$emailData['TicketID'] 		= 		$this->TicketID;
 		$emailData['Message-ID']	= 		$this->TicketID;
 		$emailData['Auto-Submitted']= 		"auto-generated";
@@ -621,7 +621,7 @@ class TicketEmails{
 		}
 		else
 		{
-			$group  = 	TicketGroups::where(["GroupEmailAddress"=>$this->EmailFrom])->first();
+			$group  = 	TicketGroups::where(["GroupReplyAddress"=>$this->EmailFrom])->first();
 			if(!$group)
 			{
 				$this->SetError("Invalid Group");				
@@ -684,14 +684,14 @@ class TicketEmails{
 			if(isset($this->TicketData->RequesterCC) && !empty($this->TicketData->RequesterCC)){
 				$emailcc = explode(",",$this->TicketData->RequesterCC);
 
-				$emailcc = self::remove_group_emails_from_array($emailcc);
+				$emailcc = self::remove_group_emails_from_array($CompanyID,$emailcc);
 
 
 				$emailData['cc'] 		= 		$emailcc;
 			}
 			$emailData['EmailFrom'] 	= 		$this->EmailSenderFrom;
 			$emailData['CompanyName'] 	= 		isset($this->Group->GroupName)? $this->Group->GroupName:$CompanyName ;
-			$emailData['AddReplyTo'] 	= 		isset($this->Group->GroupReplyAddress)?$this->Group->GroupReplyAddress:$this->EmailSenderFrom;
+			$emailData['In-Reply-To'] 	= 		AccountEmailLog::getLastMessageIDByTicketID($this->TicketID);
 			$emailData['TicketID'] 		= 		$this->TicketID;
 			$emailData['Auto-Submitted']= 		"auto-generated";
 			$emailData['Message-ID']	= 		$this->TicketID;
@@ -706,11 +706,12 @@ class TicketEmails{
 
 	public static function remove_group_emails_from_array($CompanyID,$email_array = array()) {
 
-		$GroupEmailAddress 	=	TicketGroups::where(array("CompanyID"=>$CompanyID,"GroupEmailStatus"=>1))->get(["GroupEmailAddress"])->toArray();
+		$GroupEmailAddress 	=	TicketGroups::where(array("CompanyID"=>$CompanyID,"GroupEmailStatus"=>1))->get(["GroupReplyAddress","GroupEmailAddress"])->toArray();
 
 		$group_emails = [];
 		foreach($GroupEmailAddress as $GEmailAddress){
 			$group_emails[]  = $GEmailAddress["GroupEmailAddress"];
+			$group_emails[]  = $GEmailAddress["GroupReplyAddress"];
 		}
 
 		//$GroupEmailAddress 	=	TicketGroups::get(["GroupEmailAddress"])->lists('GroupEmailAddress');
