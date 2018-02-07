@@ -426,7 +426,7 @@ class TicketEmails{
 
 
 		if(count($emailto)>0){
-			$emailto = self::remove_group_emails_from_array($emailto);
+			$emailto = self::remove_group_emails_from_array($CompanyID,$emailto);
 			$replace_array				= 		$this->ReplaceArray($this->TicketData);
 			$finalBody 					= 		$this->template_var_replace($this->EmailTemplate->TemplateBody,$replace_array);
 			$finalSubject				= 		$this->template_var_replace($this->EmailTemplate->Subject,$replace_array);	
@@ -492,8 +492,8 @@ class TicketEmails{
 			{
 				return $this->Error;
 			}			
-			
-			$this->EmailTemplate  		=		EmailTemplate::where(["SystemType"=>$slug,"CompanyID"=>User::get_companyID()])->first();									
+			$account=Account::find($this->TicketData->AccountID);
+			$this->EmailTemplate  		=		EmailTemplate::getSystemEmailTemplate(User::get_companyID(), $slug, $account->LanguageID);
 		 	$replace_array				= 		$this->ReplaceArray($this->TicketData);
 		    $finalBody 					= 		$this->template_var_replace($this->EmailTemplate->TemplateBody,$replace_array);
 			$finalSubject				= 		$this->template_var_replace($this->EmailTemplate->Subject,$replace_array);				
@@ -628,8 +628,9 @@ class TicketEmails{
 			}
 			$this->Group = $group;
 		}
-		
-		$this->EmailTemplate  		=		EmailTemplate::where(["SystemType"=>$this->slug,"CompanyID"=>User::get_companyID()])->first();									
+
+		$account=Account::find($this->TicketData->AccountID);
+		$this->EmailTemplate  		=		EmailTemplate::getSystemEmailTemplate(User::get_companyID(), $this->slug, $account->LanguageID);
 		if(!$this->EmailTemplate){
 			$this->SetError("No email template found.");				
 		}
@@ -684,7 +685,7 @@ class TicketEmails{
 			if(isset($this->TicketData->RequesterCC) && !empty($this->TicketData->RequesterCC)){
 				$emailcc = explode(",",$this->TicketData->RequesterCC);
 
-				$emailcc = self::remove_group_emails_from_array($emailcc);
+				$emailcc = self::remove_group_emails_from_array($CompanyID,$emailcc);
 
 
 				$emailData['cc'] 		= 		$emailcc;
