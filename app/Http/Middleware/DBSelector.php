@@ -54,9 +54,8 @@ class DBSelector
             $LICENSE_JSON = getenv($LicenceKey['LicenceKey']);
             if(!empty($LICENSE_JSON)) {
 
-                if($request->has('Language')){
+                if(isset($_COOKIE["customer_language"])){
                     App::setLocale($request->input('Language'));
-                    unset($_REQUEST['Language']);
                 }else{
                     App::setLocale("en");
                 }
