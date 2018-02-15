@@ -56,7 +56,7 @@ class DBSelector
 
                 if($request->has('Language')){
                     App::setLocale($request->input('Language'));
-                    unset($_POST["Language"]);
+                    unset($_REQUEST['Language']);
                 }else{
                     App::setLocale("en");
                 }
