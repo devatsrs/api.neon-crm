@@ -570,7 +570,7 @@ class TicketsTable extends \Eloquent
 		Log::info( "DELETING COMPLETE GROUP AND RELATED TICKETS AND LOGS" );
 
 		$DeleteTicketGroup  =      	"call prc_DeleteTicketGroup (".$CompanyID.",".$GroupID.")";
-		DB::query($DeleteTicketGroup);
+		DB::statement($DeleteTicketGroup);
 
 		Log::info("
 					-- 1
