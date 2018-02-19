@@ -6,7 +6,6 @@ use Api\Model\Company;
 use Api\Model\Customer;
 use Carbon\Carbon;
 use Closure;
-use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
@@ -53,14 +52,6 @@ class DBSelector
             }
             $LICENSE_JSON = getenv($LicenceKey['LicenceKey']);
             if(!empty($LICENSE_JSON)) {
-
-                if($request->has('Language')){
-                    App::setLocale($request->input('Language'));
-                    unset($_POST["Language"]);
-                }else{
-                    App::setLocale("en");
-                }
-
                 $LICENSE_ARRAY = json_decode($LICENSE_JSON, true);
                 $DBSetting = $LICENSE_ARRAY[$LicenceKey['CompanyName']];
 
