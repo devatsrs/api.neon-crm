@@ -493,7 +493,14 @@ class TicketEmails{
 				return $this->Error;
 			}			
 			$account=Account::find($this->TicketData->AccountID);
-			$this->EmailTemplate  		=		EmailTemplate::getSystemEmailTemplate(User::get_companyID(), $slug, $account->LanguageID);
+
+			if(!empty($account) && !empty($account->LanguageID)) {
+				$LanguageID = $account->LanguageID;
+			} else {
+				$LanguageID = Translation::$default_lang_id;
+			}
+
+			$this->EmailTemplate  		=		EmailTemplate::getSystemEmailTemplate(User::get_companyID(), $slug, $LanguageID);
 		 	$replace_array				= 		$this->ReplaceArray($this->TicketData);
 		    $finalBody 					= 		$this->template_var_replace($this->EmailTemplate->TemplateBody,$replace_array);
 			$finalSubject				= 		$this->template_var_replace($this->EmailTemplate->Subject,$replace_array);				
@@ -630,7 +637,12 @@ class TicketEmails{
 		}
 
 		$account=Account::find($this->TicketData->AccountID);
-		$this->EmailTemplate  		=		EmailTemplate::getSystemEmailTemplate(User::get_companyID(), $this->slug, $account->LanguageID);
+		if(!empty($account) && !empty($account->LanguageID)) {
+			$LanguageID = $account->LanguageID;
+		} else {
+			$LanguageID = Translation::$default_lang_id;
+		}
+		$this->EmailTemplate  		=		EmailTemplate::getSystemEmailTemplate(User::get_companyID(), $this->slug, $LanguageID);
 		if(!$this->EmailTemplate){
 			$this->SetError("No email template found.");				
 		}
