@@ -16,6 +16,7 @@ use Api\Model\Contact;
 use Api\Model\Note;
 use Api\Model\CompanyConfiguration;
 use Api\Model\Currency;
+use Illuminate\Support\Facades\Session;
 
 
 class TicketEmails{
