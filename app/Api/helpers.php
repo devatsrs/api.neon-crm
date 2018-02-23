@@ -496,11 +496,12 @@ function getCompanyLogo($request){
     }else {
 
         // if no logo and amazon then use from site url even if amazon is set or not.
-        $DefaultLogo = $cache['DefaultLogo'];
+        /*$DefaultLogo = $cache['DefaultLogo'];
         $site_url = \Api\Model\CompanyConfiguration::get("WEB_URL");
 
-        $logo_url = combile_url_path($site_url,$DefaultLogo);
+        $logo_url = combile_url_path($site_url,$DefaultLogo);*/
 
+        $logo_url = $cache['DefaultLogo'];
     }
 
     return $logo_url;

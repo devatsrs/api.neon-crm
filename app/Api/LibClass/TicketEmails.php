@@ -117,8 +117,9 @@ class TicketEmails{
 			$replace_array['helpdesk_name']		 = 		isset($Ticketdata->Group)?TicketGroups::where(['GroupID'=>$Ticketdata->Group])->pluck("GroupName"):'';
 			$replace_array['Comment']			 =		$this->Comment;
 			$replace_array['NoteUser']			 =		isset($this->NoteUser)?$this->NoteUser:0; 
-			$replace_array['Logo']				 =   	"<img src='".Session::get('user_site_configrations.Logo')."' />";
-			
+
+			$request								=	 new \Dingo\Api\Http\Request;
+			$replace_array['Logo']					= 	 "<img src='".getCompanyLogo($request)."' />";
 		}    
 		$Signature 			= 	'';
 		$JobLoggedUser 		= 	User::find(User::get_userID());
