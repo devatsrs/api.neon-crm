@@ -222,11 +222,13 @@ class ReportController extends BaseController {
                         } else if ($settings['Time'] == 'YEARLY') {
                             $post_data['Report']['LastRunTime'] = date("Y-m-d 00:00:00", strtotime('-' . $settings['Interval'] . ' year'));
                         }
-                        $post_data['Report']['NextRunTime'] = next_run_time($settings);
+                        //$post_data['Report']['NextRunTime'] = next_run_time($settings);
                     }else{
                         $post_data['Report']['LastRunTime'] = $settings['LastRunTime'];
-                        $post_data['Report']['NextRunTime'] = $settings['NextRunTime'];
+                        //$post_data['Report']['NextRunTime'] = $settings['NextRunTime'];
                     }
+                    $post_data['Report']['NextRunTime'] = next_run_time($post_data['Report']);
+                    //Log::info(print_r($post_data,true));
                 }
 
                 $updatedata = array();

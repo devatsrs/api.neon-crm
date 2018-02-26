@@ -875,3 +875,6 @@ function next_run_time($data){
 
     }
 }
+function cus_lang($key=""){
+    return trans('routes.'.strtoupper($key));
+}

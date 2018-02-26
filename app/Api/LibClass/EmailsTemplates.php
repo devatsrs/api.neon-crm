@@ -68,7 +68,8 @@ class EmailsTemplates{
 			$replace_array['user']					= 	 $LogginedUserName;	
 			$replace_array['CompanyName']			=	 Company::getName();
 			$message								=	 "";		
-			$EmailTemplate 							= 	 EmailTemplate::where(["SystemType"=>$slug,"CompanyID"=>User::get_companyID()])->first();
+			$account=Account::find($obj['AccountID']);
+			$EmailTemplate 							= 	 EmailTemplate::getSystemEmailTemplate(User::get_companyID(), $slug, $account->LanguageID);
 			if($type=="subject"){
 				$EmailMessage						=	 $EmailTemplate->Subject;
 			}else{
