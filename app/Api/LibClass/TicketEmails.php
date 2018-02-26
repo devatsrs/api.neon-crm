@@ -500,12 +500,7 @@ class TicketEmails{
 				return $this->Error;
 			}			
 			$account=Account::find($this->TicketData->AccountID);
-
-			if(!empty($account) && !empty($account->LanguageID)) {
-				$LanguageID = $account->LanguageID;
-			} else {
-				$LanguageID = Translation::$default_lang_id;
-			}
+			$LanguageID=$this->getLanguageID($account);
 
 			$this->EmailTemplate  		=		EmailTemplate::getSystemEmailTemplate(User::get_companyID(), $slug, $LanguageID);
 		 	$replace_array				= 		$this->ReplaceArray($this->TicketData);
@@ -644,11 +639,7 @@ class TicketEmails{
 		}
 
 		$account=Account::find($this->TicketData->AccountID);
-		if(!empty($account) && !empty($account->LanguageID)) {
-			$LanguageID = $account->LanguageID;
-		} else {
-			$LanguageID = Translation::$default_lang_id;
-		}
+		$LanguageID=$this->getLanguageID($account);
 		$this->EmailTemplate  		=		EmailTemplate::getSystemEmailTemplate(User::get_companyID(), $this->slug, $LanguageID);
 		if(!$this->EmailTemplate){
 			$this->SetError("No email template found.");				
@@ -738,6 +729,21 @@ class TicketEmails{
 
 		return array_diff((array) $email_array, $group_emails);
 
+	}
+
+	public function getLanguageID($arrAccourntData){
+		$LanguageID = Translation::$default_lang_id;
+
+		if(!empty($arrAccourntData) && !empty($arrAccourntData->LanguageID) ) {
+			$LanguageID = $arrAccourntData->LanguageID;
+		}else if( !empty( $this->TicketData->Group )){
+			$data = TicketGroups::find($this->TicketData->Group);
+			if(!empty($data)){
+				$LanguageID = $data->LanguageID;
+			}
+		}
+
+		return $LanguageID;
 	}
 }
 ?>

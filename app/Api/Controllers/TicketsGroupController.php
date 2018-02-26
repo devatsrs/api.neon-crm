@@ -122,6 +122,7 @@ private $validlicense;
 		
 			$GroupData = array(
 				"CompanyID"=>User::get_companyID(),
+				"LanguageID"=>$data['groupLanguage'],
 				"GroupName"=>$data['GroupName'],
 				"GroupDescription"=>$data['GroupDescription'],
 				"GroupBusinessHours"=>isset($data["GroupBusinessHours"])?$data["GroupBusinessHours"]:0,
@@ -184,8 +185,9 @@ private $validlicense;
 					$GroupEmailAddress  		= 	$data['GroupEmailAddress'];		
 					$activate					=	$data['activate'];								
 					$data["GroupBusinessHours"] =	isset($data["GroupBusinessHours"])?$data["GroupBusinessHours"]:0;
+					$data["LanguageID"]			=	$data['groupLanguage'];
 					//$data 					= 	cleanarray($data,['GroupAgent','_wysihtml5_mode','GroupEmailAddress','activate']);	
-					$data 						= 	cleanarray($data,['GroupAgent','_wysihtml5_mode','activate']);	
+					$data 						= 	cleanarray($data,['GroupAgent','_wysihtml5_mode','activate', 'groupLanguage']);
 							 			
 					$TicketGroup->update($data);  	 //update groups
 					TicketGroupAgents::where(["GroupID" => $TicketGroup->GroupID])->delete(); //delete old group agents
