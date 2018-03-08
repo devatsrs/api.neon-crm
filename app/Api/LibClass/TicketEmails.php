@@ -16,6 +16,7 @@ use Api\Model\Contact;
 use Api\Model\Note;
 use Api\Model\CompanyConfiguration;
 use Api\Model\Currency;
+use Illuminate\Support\Facades\Session;
 
 
 class TicketEmails{
@@ -116,7 +117,9 @@ class TicketEmails{
 			$replace_array['helpdesk_name']		 = 		isset($Ticketdata->Group)?TicketGroups::where(['GroupID'=>$Ticketdata->Group])->pluck("GroupName"):'';
 			$replace_array['Comment']			 =		$this->Comment;
 			$replace_array['NoteUser']			 =		isset($this->NoteUser)?$this->NoteUser:0; 
-			
+
+			$request								=	 new \Dingo\Api\Http\Request;
+			$replace_array['Logo']					= 	 "<img src='".getCompanyLogo($request)."' />";
 		}    
 		$Signature 			= 	'';
 		$JobLoggedUser 		= 	User::find(User::get_userID());
@@ -175,6 +178,7 @@ class TicketEmails{
 			"{{TicketCustomerUrl}}",
 			"{{TicketUrl}}",
 			'{{Comment}}',
+			'{{Logo}}',
 			'{{NoteUser}}'
 			
 		];
@@ -185,6 +189,9 @@ class TicketEmails{
 				$EmailMessage = str_replace($item,$replace_array[$item_name],$EmailMessage);
 			}
 		}
+
+		$EmailMessage = preg_replace("/\{\{(\w+)}}/", "", $EmailMessage);
+
 		return $EmailMessage;
 	} 
 	
@@ -493,12 +500,7 @@ class TicketEmails{
 				return $this->Error;
 			}			
 			$account=Account::find($this->TicketData->AccountID);
-
-			if(!empty($account) && !empty($account->LanguageID)) {
-				$LanguageID = $account->LanguageID;
-			} else {
-				$LanguageID = Translation::$default_lang_id;
-			}
+			$LanguageID=$this->getLanguageID($account);
 
 			$this->EmailTemplate  		=		EmailTemplate::getSystemEmailTemplate(User::get_companyID(), $slug, $LanguageID);
 		 	$replace_array				= 		$this->ReplaceArray($this->TicketData);
@@ -637,11 +639,7 @@ class TicketEmails{
 		}
 
 		$account=Account::find($this->TicketData->AccountID);
-		if(!empty($account) && !empty($account->LanguageID)) {
-			$LanguageID = $account->LanguageID;
-		} else {
-			$LanguageID = Translation::$default_lang_id;
-		}
+		$LanguageID=$this->getLanguageID($account);
 		$this->EmailTemplate  		=		EmailTemplate::getSystemEmailTemplate(User::get_companyID(), $this->slug, $LanguageID);
 		if(!$this->EmailTemplate){
 			$this->SetError("No email template found.");				
@@ -731,6 +729,21 @@ class TicketEmails{
 
 		return array_diff((array) $email_array, $group_emails);
 
+	}
+
+	public function getLanguageID($arrAccourntData){
+		$LanguageID = Translation::$default_lang_id;
+
+		if(!empty($arrAccourntData) && !empty($arrAccourntData->LanguageID) ) {
+			$LanguageID = $arrAccourntData->LanguageID;
+		}else if( !empty( $this->TicketData->Group )){
+			$data = TicketGroups::find($this->TicketData->Group);
+			if(!empty($data)){
+				$LanguageID = $data->LanguageID;
+			}
+		}
+
+		return $LanguageID;
 	}
 }
 ?>
