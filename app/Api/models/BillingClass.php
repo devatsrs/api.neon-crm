@@ -12,7 +12,7 @@ class BillingClass extends Model
     protected $primaryKey = "BillingClassID";
 
     protected $fillable = array(
-        'CompanyID','PaymentDueInDays','RoundChargesAmount','CDRType','InvoiceTemplateID',
+        'CompanyID','PaymentDueInDays','RoundChargesAmount','RoundChargesCDR','CDRType','InvoiceTemplateID',
         'BillingType','Name','Description','TaxRateID','BillingTimezone',
         'SendInvoiceSetting','PaymentReminderStatus','PaymentReminderSettings','LowBalanceReminderStatus','LowBalanceReminderSettings',
         'InvoiceReminderStatus','InvoiceReminderSettings','created_at','updated_at','UpdatedBy','CreatedBy'
