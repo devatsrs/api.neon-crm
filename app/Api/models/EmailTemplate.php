@@ -71,7 +71,7 @@ class EmailTemplate extends \Eloquent
 
         $emailtemplate=EmailTemplate::where(["SystemType"=>$slug, "LanguageID"=>$languageID, "CompanyID"=>$companyID, 'Status'=>1])->first();
         if(empty($emailtemplate)){
-            $emailtemplate=EmailTemplate::where(["SystemType"=>$slug, "LanguageID"=>Translation::$default_lang_id])->first();
+            $emailtemplate=EmailTemplate::where(["SystemType"=>$slug, "LanguageID"=>Translation::$default_lang_id, "CompanyID"=>User::get_companyID(), 'Status'=>1])->first();
         }
 
         return $emailtemplate;
