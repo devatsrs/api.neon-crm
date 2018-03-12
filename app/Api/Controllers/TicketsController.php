@@ -381,9 +381,9 @@ private $validlicense;
 			
 				if(isset($data['LoginType']) && $data['LoginType']=='user')
 				{	
-					$RequesterData 	   =  explode(" <",$Ticketfields['default_requester']);
-					$RequesterName	   =  $RequesterData[0];
-					$RequesterEmail	   =  substr($RequesterData[1],0,strlen($RequesterData[1])-1);		
+					$RequesterData 	   =  explode("<",$Ticketfields['default_requester']);
+					$RequesterName	   =  trim($RequesterData[0]);
+					$RequesterEmail	   =  substr($RequesterData[1],0,strlen($RequesterData[1])-1);
 					$email_from		   =  TicketGroups::where(["GroupID"=>$Ticketfields['default_group']])->pluck('GroupReplyAddress');
 					$email_from_name   =  TicketGroups::where(["GroupID"=>$Ticketfields['default_group']])->pluck('GroupName'); 
 					
