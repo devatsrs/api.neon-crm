@@ -346,6 +346,9 @@ class Account extends Model
             'InvoiceGrandTotal' => '',
             'InvoiceOutstanding' => '',
         );
+
+        $request = new \Dingo\Api\Http\Request;
+        $replace_array['Logo'] = '<img src="'.getCompanyLogo($request).'" />';
         $replace_array = $replace_array + array_intersect_key($extra_settings, $extra_var);
 
         return $replace_array;
