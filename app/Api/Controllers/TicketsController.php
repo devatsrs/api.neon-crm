@@ -428,7 +428,7 @@ private $validlicense;
 					TicketsDetails::where(["TicketID"=>$id])->delete();
 					foreach($Ticketfields as $key => $TicketfieldsData)
 					{
-						if(!in_array($key,Ticketfields::$staticfields))
+						if(!in_array($key,Ticketfields::$staticfields) && $key!="cc")
 						{
 							$TicketFieldsID =  Ticketfields::where(["FieldType"=>$key])->pluck('TicketFieldsID');
 							TicketsDetails::insert(array("TicketID"=>$id,"FieldID"=>$TicketFieldsID,"FieldValue"=>$TicketfieldsData));
