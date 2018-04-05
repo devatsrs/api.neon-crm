@@ -762,21 +762,22 @@ private $validlicense;
 						 $FilesArray = json_decode($data['file'],true);
 						$files = serialize(json_decode($data['file'],true));
 					}
-					
-										 
-					 $data['EmailFrom']  		=   $data['email-from'];
-					 $data['CompanyName'] 	    =   isset($email_from_data[0])?$email_from_data[0]->GroupName:Company::getName();
-					 $data['EmailTo']  		  	= 	TicketsTable::filterEmailAddressFromName($data['email-to']);
-					 $data['AttachmentPaths'] 	= 	$FilesArray;
-					 $data['cc'] 				= 	trim(TicketsTable::filterEmailAddressFromName($data['cc']));
-					 $data['bcc'] 				= 	trim(TicketsTable::filterEmailAddressFromName($data['bcc']));
-					 $data['Message-ID']		= 	$ticketdata->TicketID;
-					 $data['Auto-Submitted']= 		"auto-generated";
-					 $status 					= 	sendMail('emails.tickets.ticket', $data);
+
+
+//					 $data['CompanyName'] 	    =   isset($email_from_data[0])?$email_from_data[0]->GroupName:Company::getName();
+//					 $data['Message-ID']		= 	$ticketdata->TicketID;
+//					 $data['Auto-Submitted']= 		"auto-generated";
+//					$status 					= 	sendMail('emails.tickets.ticket', $data);
+					$data['EmailFrom']  		=   $data['email-from'];
+					$data['EmailTo']  		  	= 	TicketsTable::filterEmailAddressFromName($data['email-to']);
+					$data['AttachmentPaths'] 	= 	$FilesArray;
+					$data['cc'] 				= 	trim(TicketsTable::filterEmailAddressFromName($data['cc']));
+					$data['bcc'] 				= 	trim(TicketsTable::filterEmailAddressFromName($data['bcc']));
+					$ticketAgentReplay 			=  new TicketEmails(array("TicketID"=>$ticketdata->TicketID,"TriggerType"=>"AgentReplay", "arrOtherData"=>$data));
 					 
-					if($status['status'] == 1)
+					if(!empty($ticketAgentReplay->GetError()))
 					{	
-						$message_id = isset($status['message_id'])?$status['message_id']:'';
+						/*$message_id = isset($status['message_id'])?$status['message_id']:'';
 						
 						$logData = ['EmailFrom'=>$data['EmailFrom'],
 						'EmailTo'=>trim($data['EmailTo']),
@@ -797,14 +798,16 @@ private $validlicense;
 						"CreatedBy"=>User::get_user_full_name()
 					];
 						$logid = AccountEmailLog::insertGetId($logData);	
-						AccountEmailLog::find($logid)->update(["EmailParent"=>$logid]);
-						$TicketEmails 	=  new TicketEmails(array("TicketID"=>$ticketdata->TicketID,"TriggerType"=>"CCNoteaddedtoticket","Comment"=>$data['Message'],"NoteUser"=>User::get_user_full_name()));
+						AccountEmailLog::find($logid)->update(["EmailParent"=>$logid]);*/
+
 						/*if(!empty($files_array) && count($files_array)>0){	
 							foreach($files_array as $key=> $array_file_data){
 							@unlink($array_file_data['filepath']);	
 							}
 						}*/
-						
+
+						$TicketEmails 	=  new TicketEmails(array("TicketID"=>$ticketdata->TicketID,"TriggerType"=>"CCNoteaddedtoticket","Comment"=>$data['Message'],"NoteUser"=>User::get_user_full_name()));
+
 						//if not agent in ticket then assign current agent to ticket if exits in group
 						if($ticketdata->Group){
 							$AgentExists =  TicketGroupAgents::where(['GroupID'=>$ticketdata->Group,"UserID"=>User::get_userID()])->count();							

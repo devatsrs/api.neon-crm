@@ -37,6 +37,7 @@ class TicketEmails{
 	protected $Comment;
 	protected $NoteUser;
 	protected $EmailSenderFrom;
+	protected $arrOtherData;
 
 	 public function __construct($data = array()){
 		 foreach($data as $key => $value){
@@ -745,6 +746,34 @@ class TicketEmails{
 		}
 
 		return $LanguageID;
+	}
+
+	protected function AgentReplay()
+	{
+		Log::info('AgentReplay');
+
+		$replace_array				= 		$this->ReplaceArray($this->TicketData);
+		$finalBody 					= 		$this->template_var_replace($this->arrOtherData->Message,$replace_array);
+		$finalSubject				= 		$this->template_var_replace($this->arrOtherData->Subject,$replace_array);
+		$email_from_data   			=  		TicketGroups::where(["GroupReplyAddress"=>$this->arrOtherData->EmailFrom])->select( 'GroupReplyAddress','GroupName')->get();
+
+		$emailData					=		$this->arrOtherData;
+		$emailData['Subject']		=		$finalSubject;
+		$emailData['Message'] 		= 		$finalBody;
+		$emailData['CompanyID'] 	= 		$this->CompanyID;
+		$emailData['CompanyName'] 	=		isset($email_from_data[0])?$email_from_data[0]->GroupName:Company::getName($this->CompanyID);
+		$emailData['In-Reply-To'] 	= 		AccountEmailLog::getLastMessageIDByTicketID($this->TicketID);
+		$emailData['TicketID'] 		= 		$this->TicketID;
+		$emailData['Message-ID']	= 		$this->TicketID;
+		$emailData['Auto-Submitted']= 		"auto-generated";
+		$status 					= 		sendMail($finalBody,$emailData,0);
+
+		if($status['status']){
+			$logid = email_log_data_Ticket($emailData,'',$status);
+			AccountEmailLog::find($logid)->update(["EmailParent"=>$logid]);
+		}else{
+			$this->SetError($status['message']);
+		}
 	}
 }
 ?>
