@@ -753,11 +753,11 @@ class TicketEmails{
 		Log::info('AgentReplay');
 
 		$replace_array				= 		$this->ReplaceArray($this->TicketData);
-		$finalBody 					= 		$this->template_var_replace($this->arrOtherData->Message,$replace_array);
-		$finalSubject				= 		$this->template_var_replace($this->arrOtherData->Subject,$replace_array);
-		$email_from_data   			=  		TicketGroups::where(["GroupReplyAddress"=>$this->arrOtherData->EmailFrom])->select( 'GroupReplyAddress','GroupName')->get();
+		$finalBody 					= 		$this->template_var_replace($this->arrOtherData['Message'],$replace_array);
+		$finalSubject				= 		$this->template_var_replace($this->arrOtherData['Subject'],$replace_array);
+		$email_from_data   			=  		TicketGroups::where(["GroupReplyAddress"=>$this->arrOtherData['EmailFrom']])->select( 'GroupReplyAddress','GroupName')->get();
 
-		$emailData					=		$this->arrOtherData;
+		$emailData					=		json_decode(json_encode($this->arrOtherData), true);
 		$emailData['Subject']		=		$finalSubject;
 		$emailData['Message'] 		= 		$finalBody;
 		$emailData['CompanyID'] 	= 		$this->CompanyID;

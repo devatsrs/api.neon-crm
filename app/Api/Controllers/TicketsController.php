@@ -754,20 +754,14 @@ private $validlicense;
 					DB::beginTransaction();
 					
 					$email_from_data   =  TicketGroups::where(["GroupReplyAddress"=>$data['email-from']])->select( 'GroupReplyAddress','GroupName')->get();
-					//$email_from_name   =  TicketGroups::where(["GroupID"=>$ticketdata->Group])->pluck('GroupName'); 
-					
-					 $files = '';
-					 $FilesArray = array();
-					 if (isset($data['file']) && !empty($data['file'])) {
-						 $FilesArray = json_decode($data['file'],true);
+					$files = '';
+					$FilesArray = array();
+
+					if (isset($data['file']) && !empty($data['file'])) {
+						$FilesArray = json_decode($data['file'],true);
 						$files = serialize(json_decode($data['file'],true));
 					}
 
-
-//					 $data['CompanyName'] 	    =   isset($email_from_data[0])?$email_from_data[0]->GroupName:Company::getName();
-//					 $data['Message-ID']		= 	$ticketdata->TicketID;
-//					 $data['Auto-Submitted']= 		"auto-generated";
-//					$status 					= 	sendMail('emails.tickets.ticket', $data);
 					$data['EmailFrom']  		=   $data['email-from'];
 					$data['EmailTo']  		  	= 	TicketsTable::filterEmailAddressFromName($data['email-to']);
 					$data['AttachmentPaths'] 	= 	$FilesArray;
@@ -775,37 +769,8 @@ private $validlicense;
 					$data['bcc'] 				= 	trim(TicketsTable::filterEmailAddressFromName($data['bcc']));
 					$ticketAgentReplay 			=  new TicketEmails(array("TicketID"=>$ticketdata->TicketID,"TriggerType"=>"AgentReplay", "arrOtherData"=>$data));
 					 
-					if(!empty($ticketAgentReplay->GetError()))
-					{	
-						/*$message_id = isset($status['message_id'])?$status['message_id']:'';
-						
-						$logData = ['EmailFrom'=>$data['EmailFrom'],
-						'EmailTo'=>trim($data['EmailTo']),
-						'Subject'=>trim($data['Subject']),
-						'Message'=>trim($data['Message']),
-						'CompanyID'=>\Api\Model\User::get_companyID(),
-						'UserID'=>\Api\Model\User::get_userID(),
-						'CreatedBy'=>\Api\Model\User::get_user_full_name(),
-						"created_at"=>date("Y-m-d H:i:s"),
-						'Cc'=>$data['cc'],
-						'Bcc'=>$data['bcc'],
-						"AttachmentPaths"=>$files,
-						"MessageID"=>$message_id,						
-						"EmailCall"=>Messages::Sent,
-						"TicketID"=>$ticketdata->TicketID,
-						"EmailType"=>AccountEmailLog::TicketEmail,
-						"created_at"=>date("Y-m-d H:i:s"),
-						"CreatedBy"=>User::get_user_full_name()
-					];
-						$logid = AccountEmailLog::insertGetId($logData);	
-						AccountEmailLog::find($logid)->update(["EmailParent"=>$logid]);*/
-
-						/*if(!empty($files_array) && count($files_array)>0){	
-							foreach($files_array as $key=> $array_file_data){
-							@unlink($array_file_data['filepath']);	
-							}
-						}*/
-
+					if(empty($ticketAgentReplay->GetError()))
+					{
 						$TicketEmails 	=  new TicketEmails(array("TicketID"=>$ticketdata->TicketID,"TriggerType"=>"CCNoteaddedtoticket","Comment"=>$data['Message'],"NoteUser"=>User::get_user_full_name()));
 
 						//if not agent in ticket then assign current agent to ticket if exits in group
