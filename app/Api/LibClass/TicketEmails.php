@@ -708,6 +708,7 @@ class TicketEmails{
 			$emailData['TicketID'] 		= 		$this->TicketID;
 			$emailData['Auto-Submitted']= 		"auto-generated";
 			$emailData['Message-ID']	= 		$this->TicketID;
+			$emailData['AttachmentPaths']	= 	unserialize($this->TicketData->AttachmentPaths);
 			$status 					= 		sendMail($finalBody,$emailData,0);
 			if($status['status']){
 				email_log_data_Ticket($emailData,'',$status);
@@ -766,6 +767,7 @@ class TicketEmails{
 		$emailData['TicketID'] 		= 		$this->TicketID;
 		$emailData['Message-ID']	= 		$this->TicketID;
 		$emailData['Auto-Submitted']= 		"auto-generated";
+		$emailData['AttachmentPaths']	= 	unserialize($this->TicketData->AttachmentPaths);
 		$status 					= 		sendMail($finalBody,$emailData,0);
 
 		if($status['status']){
