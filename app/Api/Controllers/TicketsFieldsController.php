@@ -46,7 +46,7 @@ private $validlicense;
 			return generateResponse('success', false, false, $Ticketfields);
 		}catch (\Exception $e) {
          	Log::info($e);
-            return generateResponse('Some problem occurred.',true,true);
+            return generateResponse(cus_lang("MESSAGE_SOME_PROBLEM_OCCURRED"),true,true);
         }		
 	}
 	
@@ -63,7 +63,7 @@ private $validlicense;
 			return generateResponse('success', false, false, $Ticketfields);
 		}catch (\Exception $e) {
          	Log::info($e);
-            return generateResponse('Some problem occurred.',true,true);
+            return generateResponse(cus_lang("MESSAGE_SOME_PROBLEM_OCCURRED"),true,true);
         }		
 	}
 	
@@ -143,8 +143,6 @@ private $validlicense;
 							if($choices->deleted==1)
 							{
 								TicketfieldsValues::find($choices->status_id)->delete();
-								TicketLog::where(['TicketFieldValueFromID'=>$choices->status_id])->delete();
-				  				TicketLog::where(['TicketFieldValueToID'=>$choices->status_id])->delete();
 								continue;
 							}
 							else
@@ -170,9 +168,7 @@ private $validlicense;
 							if($choices->_destroy==1)
 							{
 									TicketfieldsValues::find($choices->id)->delete();
-									TicketLog::where(['TicketFieldValueFromID'=>$choices->id])->delete();
-				  					TicketLog::where(['TicketFieldValueToID'=>$choices->id])->delete();
-									continue;	
+									continue;
 							}
 							else
 							{								

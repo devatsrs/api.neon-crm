@@ -209,7 +209,7 @@ class TicketsTable extends \Eloquent
 			if($page=='DetailPage' && ($fieldsdata->FieldType=='default_requester' || $fieldsdata->FieldType=='default_subject' || $fieldsdata->FieldType=='default_description')){continue;}
 			
 			$rules[$fieldsdata->FieldType] = 'required';
-			$messages[$fieldsdata->FieldType.".required"] = "The ".$fieldsdata->AgentLabel." field is required";
+			$messages[$fieldsdata->FieldType.".required"] = $fieldsdata->AgentLabel." ".cus_lang("MESSAGE_FIELD_IS_REQUIRED");
 		}
 		
 		return array("rules"=>$rules,"messages"=>$messages);
@@ -227,7 +227,7 @@ class TicketsTable extends \Eloquent
 			if(($fieldsdata->FieldType=='default_requester'  || $fieldsdata->FieldType=='default_group' || $fieldsdata->FieldType=='default_agent' )){continue;}
 			
 			$rules[$fieldsdata->FieldType] = 'required';
-			$messages[$fieldsdata->FieldType.".required"] = "The ".$fieldsdata->AgentLabel." field is required";
+			$messages[$fieldsdata->FieldType.".required"] = $fieldsdata->AgentLabel." ".cus_lang("MESSAGE_FIELD_IS_REQUIRED");
 		}
 		
 		return array("rules"=>$rules,"messages"=>$messages);
@@ -245,7 +245,7 @@ class TicketsTable extends \Eloquent
 			if(($fieldsdata->FieldType=='default_requester'  || $fieldsdata->FieldType=='default_group' || $fieldsdata->FieldType=='default_agent' || $fieldsdata->FieldType=='default_subject' || $fieldsdata->FieldType=='default_description' )){continue;}
 		
 			$rules[$fieldsdata->FieldType] = 'required';
-			$messages[$fieldsdata->FieldType.".required"] = "The ".$fieldsdata->AgentLabel." field is required";
+			$messages[$fieldsdata->FieldType.".required"] = $fieldsdata->AgentLabel." ".cus_lang("MESSAGE_FIELD_IS_REQUIRED");
 		}
 		
 		return array("rules"=>$rules,"messages"=>$messages);
@@ -460,7 +460,9 @@ class TicketsTable extends \Eloquent
 			if (strpos($emailsData, '<') !== false && strpos($emailsData, '>') !== false)
 			{
 				$RequesterData 	   =  explode(" <",$emailsData);
-				$final[] =  substr($RequesterData[1],0,strlen($RequesterData[1])-1);	
+				if(isset($RequesterData[1])){
+					$final[] =  substr($RequesterData[1],0,strlen($RequesterData[1])-1);
+				}
 			}else{
 				$final[]	   =  trim($emailsData);					
 			}
@@ -517,10 +519,14 @@ class TicketsTable extends \Eloquent
 
 	static function MoveTicketToDeletedLog($opt = array()){
 
+		$TicketsFieldsList = "`TicketID`,	`CompanyID`,	`Requester`,	`RequesterName`,	`RequesterCC`,	`RequesterBCC`,	`AccountID`,	`ContactID`,	`UserID`,	`Subject`,	`Type`,	`Status`,	`Priority`,	`Group`,	`Agent`,	`Description`,	`AttachmentPaths`,	`TicketType`,	`AccountEmailLogID`,	`Read`,	`EscalationEmail`,	`TicketSlaID`,	`RespondSlaPolicyVoilationEmailStatus`,	`ResolveSlaPolicyVoilationEmailStatus`,	`DueDate`,	`CustomDueDate`,	`AgentRepliedDate`,	`CustomerRepliedDate`,	`created_at`,	`created_by`,	`updated_at`,	`updated_by`";
+		$AccountEmailLogFieldsList =  "`AccountEmailLogID`,	`CompanyID`,	`AccountID`,	`ContactID`,	`UserType`,	`UserID`,	`JobId`,	`ProcessID`,	`CreatedBy`,	`ModifiedBy`,	`created_at`,	`updated_at`,	`Emailfrom`,	`EmailTo`,	`Subject`,	`Message`,	`Cc`,	`Bcc`,	`AttachmentPaths`,	`EmailType`,	`EmailfromName`,	`MessageID`,	`EmailParent`,	`EmailID`,	`EmailCall`,	`TicketID`";
+
 		if(isset($opt["TicketIDs"]) ) {
 
-				$q1 = "INSERT INTO  tblTicketsDeletedLog SELECT * FROM tblTickets WHERE TicketID IN (" . $opt["TicketIDs"] . ')';
-				$q2 = "INSERT INTO AccountEmailLogDeletedLog SELECT * FROM AccountEmailLog WHERE TicketID IN (" . $opt["TicketIDs"] . ')';
+
+				$q1 = "INSERT INTO  tblTicketsDeletedLog (".$TicketsFieldsList.")  SELECT ".$TicketsFieldsList." FROM tblTickets WHERE TicketID IN (" . $opt["TicketIDs"] . ')';
+				$q2 = "INSERT INTO AccountEmailLogDeletedLog (".$AccountEmailLogFieldsList.")  SELECT ".$AccountEmailLogFieldsList."  FROM AccountEmailLog WHERE TicketID IN (" . $opt["TicketIDs"] . ')';
 
 				DB::insert($q1);
 				DB::insert($q2);
@@ -536,8 +542,8 @@ class TicketsTable extends \Eloquent
 
 		} else if(isset($opt["TicketID"]) && is_numeric($opt["TicketID"]) ) {
 
-			DB::insert("INSERT INTO tblTicketsDeletedLog SELECT * FROM tblTickets WHERE TicketID = " . $opt["TicketID"]);
-			DB::insert("INSERT INTO AccountEmailLogDeletedLog SELECT * FROM AccountEmailLog WHERE TicketID = " . $opt["TicketID"]);
+			DB::insert("INSERT INTO tblTicketsDeletedLog (".$TicketsFieldsList.")  SELECT ".$TicketsFieldsList." FROM tblTickets WHERE TicketID = " . $opt["TicketID"]);
+			DB::insert("INSERT INTO AccountEmailLogDeletedLog (".$AccountEmailLogFieldsList.")  SELECT ".$AccountEmailLogFieldsList."  FROM AccountEmailLog WHERE TicketID = " . $opt["TicketID"]);
 
 			// Delete Ticket Logs
 			TicketLog::where('TicketID', $opt["TicketID"])->delete();
@@ -564,7 +570,7 @@ class TicketsTable extends \Eloquent
 		Log::info( "DELETING COMPLETE GROUP AND RELATED TICKETS AND LOGS" );
 
 		$DeleteTicketGroup  =      	"call prc_DeleteTicketGroup (".$CompanyID.",".$GroupID.")";
-		DB::query($DeleteTicketGroup);
+		DB::statement($DeleteTicketGroup);
 
 		Log::info("
 					-- 1

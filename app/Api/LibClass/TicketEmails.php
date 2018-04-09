@@ -1,5 +1,6 @@
 <?php 
 namespace App;
+use Api\Model\Translation;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Config;
@@ -16,6 +17,7 @@ use Api\Model\Contact;
 use Api\Model\Note;
 use Api\Model\CompanyConfiguration;
 use Api\Model\Currency;
+use Illuminate\Support\Facades\Session;
 
 
 class TicketEmails{
@@ -35,6 +37,7 @@ class TicketEmails{
 	protected $Comment;
 	protected $NoteUser;
 	protected $EmailSenderFrom;
+	protected $arrOtherData;
 
 	 public function __construct($data = array()){
 		 foreach($data as $key => $value){
@@ -116,7 +119,9 @@ class TicketEmails{
 			$replace_array['helpdesk_name']		 = 		isset($Ticketdata->Group)?TicketGroups::where(['GroupID'=>$Ticketdata->Group])->pluck("GroupName"):'';
 			$replace_array['Comment']			 =		$this->Comment;
 			$replace_array['NoteUser']			 =		isset($this->NoteUser)?$this->NoteUser:0; 
-			
+
+			$request								=	 new \Dingo\Api\Http\Request;
+			$replace_array['Logo']					= 	 "<img src='".getCompanyLogo($request)."' />";
 		}    
 		$Signature 			= 	'';
 		$JobLoggedUser 		= 	User::find(User::get_userID());
@@ -175,6 +180,7 @@ class TicketEmails{
 			"{{TicketCustomerUrl}}",
 			"{{TicketUrl}}",
 			'{{Comment}}',
+			'{{Logo}}',
 			'{{NoteUser}}'
 			
 		];
@@ -185,6 +191,9 @@ class TicketEmails{
 				$EmailMessage = str_replace($item,$replace_array[$item_name],$EmailMessage);
 			}
 		}
+
+		$EmailMessage = preg_replace("/\{\{(\w+)}}/", "", $EmailMessage);
+
 		return $EmailMessage;
 	} 
 	
@@ -426,7 +435,7 @@ class TicketEmails{
 
 
 		if(count($emailto)>0){
-			$emailto = self::remove_group_emails_from_array($emailto);
+			$emailto = self::remove_group_emails_from_array($CompanyID,$emailto);
 			$replace_array				= 		$this->ReplaceArray($this->TicketData);
 			$finalBody 					= 		$this->template_var_replace($this->EmailTemplate->TemplateBody,$replace_array);
 			$finalSubject				= 		$this->template_var_replace($this->EmailTemplate->Subject,$replace_array);	
@@ -492,8 +501,10 @@ class TicketEmails{
 			{
 				return $this->Error;
 			}			
-			
-			$this->EmailTemplate  		=		EmailTemplate::where(["SystemType"=>$slug,"CompanyID"=>User::get_companyID()])->first();									
+			$account=Account::find($this->TicketData->AccountID);
+			$LanguageID=$this->getLanguageID($account);
+
+			$this->EmailTemplate  		=		EmailTemplate::getSystemEmailTemplate(User::get_companyID(), $slug, $LanguageID);
 		 	$replace_array				= 		$this->ReplaceArray($this->TicketData);
 		    $finalBody 					= 		$this->template_var_replace($this->EmailTemplate->TemplateBody,$replace_array);
 			$finalSubject				= 		$this->template_var_replace($this->EmailTemplate->Subject,$replace_array);				
@@ -628,8 +639,10 @@ class TicketEmails{
 			}
 			$this->Group = $group;
 		}
-		
-		$this->EmailTemplate  		=		EmailTemplate::where(["SystemType"=>$this->slug,"CompanyID"=>User::get_companyID()])->first();									
+
+		$account=Account::find($this->TicketData->AccountID);
+		$LanguageID=$this->getLanguageID($account);
+		$this->EmailTemplate  		=		EmailTemplate::getSystemEmailTemplate(User::get_companyID(), $this->slug, $LanguageID);
 		if(!$this->EmailTemplate){
 			$this->SetError("No email template found.");				
 		}
@@ -684,7 +697,7 @@ class TicketEmails{
 			if(isset($this->TicketData->RequesterCC) && !empty($this->TicketData->RequesterCC)){
 				$emailcc = explode(",",$this->TicketData->RequesterCC);
 
-				$emailcc = self::remove_group_emails_from_array($emailcc);
+				$emailcc = self::remove_group_emails_from_array($CompanyID,$emailcc);
 
 
 				$emailData['cc'] 		= 		$emailcc;
@@ -695,6 +708,7 @@ class TicketEmails{
 			$emailData['TicketID'] 		= 		$this->TicketID;
 			$emailData['Auto-Submitted']= 		"auto-generated";
 			$emailData['Message-ID']	= 		$this->TicketID;
+			$emailData['AttachmentPaths']	= 	unserialize($this->TicketData->AttachmentPaths);
 			$status 					= 		sendMail($finalBody,$emailData,0);
 			if($status['status']){
 				email_log_data_Ticket($emailData,'',$status);
@@ -718,6 +732,50 @@ class TicketEmails{
 
 		return array_diff((array) $email_array, $group_emails);
 
+	}
+
+	public function getLanguageID($arrAccourntData){
+		$LanguageID = Translation::$default_lang_id;
+
+		if(!empty($arrAccourntData) && !empty($arrAccourntData->LanguageID) ) {
+			$LanguageID = $arrAccourntData->LanguageID;
+		}else if( !empty( $this->TicketData->Group )){
+			$data = TicketGroups::find($this->TicketData->Group);
+			if(!empty($data)){
+				$LanguageID = $data->LanguageID;
+			}
+		}
+
+		return $LanguageID;
+	}
+
+	protected function AgentReplay()
+	{
+		Log::info('AgentReplay');
+
+		$replace_array				= 		$this->ReplaceArray($this->TicketData);
+		$finalBody 					= 		$this->template_var_replace($this->arrOtherData['Message'],$replace_array);
+		$finalSubject				= 		$this->template_var_replace($this->arrOtherData['Subject'],$replace_array);
+		$email_from_data   			=  		TicketGroups::where(["GroupReplyAddress"=>$this->arrOtherData['EmailFrom']])->select( 'GroupReplyAddress','GroupName')->get();
+
+		$emailData					=		json_decode(json_encode($this->arrOtherData), true);
+		$emailData['Subject']		=		$finalSubject;
+		$emailData['Message'] 		= 		$finalBody;
+		$emailData['CompanyID'] 	= 		$this->CompanyID;
+		$emailData['CompanyName'] 	=		isset($email_from_data[0])?$email_from_data[0]->GroupName:Company::getName($this->CompanyID);
+		$emailData['In-Reply-To'] 	= 		AccountEmailLog::getLastMessageIDByTicketID($this->TicketID);
+		$emailData['TicketID'] 		= 		$this->TicketID;
+		$emailData['Message-ID']	= 		$this->TicketID;
+		$emailData['Auto-Submitted']= 		"auto-generated";
+		$emailData['AttachmentPaths']	= 	unserialize($this->TicketData->AttachmentPaths);
+		$status 					= 		sendMail($finalBody,$emailData,0);
+
+		if($status['status']){
+			$logid = email_log_data_Ticket($emailData,'',$status);
+			AccountEmailLog::find($logid)->update(["EmailParent"=>$logid]);
+		}else{
+			$this->SetError($status['message']);
+		}
 	}
 }
 ?>

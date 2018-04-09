@@ -72,7 +72,12 @@ class Report extends Model {
     public static $date_fields = ['date'];
 
     public static function checkForeignKeyById($ReportID){
-        return false;
+        $hasInReportSchedule = ReportSchedule::whereRaw("find_in_set('".$ReportID."',ReportID)")->count();
+        if( intval($hasInReportSchedule) > 0 ){
+            return true;
+        }else{
+            return false;
+        }
     }
 
 
