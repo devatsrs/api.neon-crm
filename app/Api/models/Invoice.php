@@ -200,6 +200,17 @@ class Invoice extends Model{
                 exec (base_path(). '/wkhtmltox/bin/wkhtmltopdf --footer-html "'.$footer_html.'" "'.$local_htmlfile.'" "'.$local_file.'"',$output);
                 Log::info(base_path(). '/wkhtmltox/bin/wkhtmltopdf --footer-html "'.$footer_html.'" "'.$local_htmlfile.'" "'.$local_file.'"',$output);
 
+                if(CompanySetting::getKeyVal('UseDigitalSignature', $Account->CompanyId)==true){
+                    $newlocal_file = $destination_dir . str_replace(".pdf","-signature.pdf",$file_name);
+                    $signaturePath = CompanyConfiguration::get('UPLOAD_PATH')."/".AmazonS3::generate_upload_path(AmazonS3::$dir['DIGITAL_SIGNATURE_KEY'], '', $Account->CompanyId, true);
+                    $mypdfsignerOutput=RemoteSSH::run('mypdfsigner -i '.$local_file.' -o '.$newlocal_file.' -z '.$signaturePath.'mypdfsigner.conf -v -c -q');
+                    Log::info($mypdfsignerOutput);
+                    if(file_exists($newlocal_file)){
+                        RemoteSSH::run('rm '.$local_file);
+                        RemoteSSH::run('mv '.$newlocal_file.' '.$local_file);
+                    }
+                }
+
             }else{
                 exec (base_path().'/wkhtmltopdf/bin/wkhtmltopdf.exe --footer-html "'.$footer_html.'" "'.$local_htmlfile.'" "'.$local_file.'"',$output);
                 Log::info (base_path().'/wkhtmltopdf/bin/wkhtmltopdf.exe --footer-html "'.$footer_html.'" "'.$local_htmlfile.'" "'.$local_file.'"',$output);
