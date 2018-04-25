@@ -390,6 +390,7 @@ private $validlicense;
 					$TicketData = array(
 					"Requester"=>$RequesterEmail,
 					"RequesterName"=>$RequesterName,
+					"RequesterCC"=>TicketsTable::filterEmailAddressFromName($Ticketfields['cc']),
 					"Subject"=>$Ticketfields['default_subject'],
 					"Type"=>$Ticketfields['default_ticket_type'],
 					"Status"=>$Ticketfields['default_status'],
