@@ -209,7 +209,7 @@ class TicketsTable extends \Eloquent
 			if($page=='DetailPage' && ($fieldsdata->FieldType=='default_requester' || $fieldsdata->FieldType=='default_subject' || $fieldsdata->FieldType=='default_description')){continue;}
 			
 			$rules[$fieldsdata->FieldType] = 'required';
-			$messages[$fieldsdata->FieldType.".required"] = "The ".$fieldsdata->AgentLabel." field is required";
+			$messages[$fieldsdata->FieldType.".required"] = $fieldsdata->AgentLabel." ".cus_lang("MESSAGE_FIELD_IS_REQUIRED");
 		}
 		
 		return array("rules"=>$rules,"messages"=>$messages);
@@ -227,7 +227,7 @@ class TicketsTable extends \Eloquent
 			if(($fieldsdata->FieldType=='default_requester'  || $fieldsdata->FieldType=='default_group' || $fieldsdata->FieldType=='default_agent' )){continue;}
 			
 			$rules[$fieldsdata->FieldType] = 'required';
-			$messages[$fieldsdata->FieldType.".required"] = "The ".$fieldsdata->AgentLabel." field is required";
+			$messages[$fieldsdata->FieldType.".required"] = $fieldsdata->AgentLabel." ".cus_lang("MESSAGE_FIELD_IS_REQUIRED");
 		}
 		
 		return array("rules"=>$rules,"messages"=>$messages);
@@ -245,7 +245,7 @@ class TicketsTable extends \Eloquent
 			if(($fieldsdata->FieldType=='default_requester'  || $fieldsdata->FieldType=='default_group' || $fieldsdata->FieldType=='default_agent' || $fieldsdata->FieldType=='default_subject' || $fieldsdata->FieldType=='default_description' )){continue;}
 		
 			$rules[$fieldsdata->FieldType] = 'required';
-			$messages[$fieldsdata->FieldType.".required"] = "The ".$fieldsdata->AgentLabel." field is required";
+			$messages[$fieldsdata->FieldType.".required"] = $fieldsdata->AgentLabel." ".cus_lang("MESSAGE_FIELD_IS_REQUIRED");
 		}
 		
 		return array("rules"=>$rules,"messages"=>$messages);
@@ -570,7 +570,7 @@ class TicketsTable extends \Eloquent
 		Log::info( "DELETING COMPLETE GROUP AND RELATED TICKETS AND LOGS" );
 
 		$DeleteTicketGroup  =      	"call prc_DeleteTicketGroup (".$CompanyID.",".$GroupID.")";
-		DB::query($DeleteTicketGroup);
+		DB::statement($DeleteTicketGroup);
 
 		Log::info("
 					-- 1
