@@ -357,7 +357,7 @@ class Account extends Model
 	public static function GetAccountAllEmails($id,$ArrayReturn=false){
 	  $array			 =  array();
 	  $accountemails	 = 	Account::where(array("AccountID"=>$id))->select(array('Email', 'BillingEmail'))->get();
-	  $acccountcontact 	 =  DB::table('tblContact')->where(array("AccountID"=>$id))->get(array("Email"));	
+	  $acccountcontact 	 =  DB::table('tblContact')->where(array("AccountID"=>$id))->orwhere(array("Owner"=>$id))->get(array("Email"));
 	  
 	  	
 		if(count($accountemails)>0){
