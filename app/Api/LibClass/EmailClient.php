@@ -21,8 +21,8 @@ class EmailClient extends Client
     public $validate_cert=false;
 
     public function __construct($data = array()){
-        parent::__construct();
-        if($this->IsSSL){
+        parent::__construct($data);
+        if(isset($data['IsSSL']) && $data['IsSSL']){
             $this->encryption='ssl';
             $this->validate_cert=true;
         }
