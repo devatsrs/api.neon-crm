@@ -142,7 +142,8 @@ class BillingClassController extends BaseController
         if ($BillingClassID > 0) {
             $post_data = Input::all();
             $CompanyID = User::get_companyID();
-
+            $post_data['DeductCallChargeInAdvance'] = empty($post_data['DeductCallChargeInAdvance']) ? 0 : 1;
+            $post_data['SuspendAccount'] = empty($post_data['SuspendAccount']) ? 0 : 1;
             $rules['Name'] = 'required|unique:tblBillingClass,Name,' . $BillingClassID . ',BillingClassID,CompanyID,' . $CompanyID;
             $rules = $rules + BillingClass::$rules;
             $validator = Validator::make($post_data, $rules,BillingClass::$messages);
@@ -209,6 +210,7 @@ class BillingClassController extends BaseController
         $class_data['PaymentReminderStatus'] = isset($post_data['PaymentReminderStatus'])?1:0;
         $class_data['LowBalanceReminderStatus'] = isset($post_data['LowBalanceReminderStatus'])?1:0;
         $class_data['InvoiceReminderStatus'] = isset($post_data['InvoiceReminderStatus'])?1:0;
+        $class_data['BalanceWarningStatus'] = isset($post_data['BalanceWarningStatus'])?1:0;
         if(!empty($BillingClass)){
             $PaymentReminderSettings = json_decode($BillingClass->PaymentReminderSettings);
             if(isset($PaymentReminderSettings->LastRunTime)){
@@ -226,6 +228,14 @@ class BillingClassController extends BaseController
                 $post_data['LowBalanceReminder']['NextRunTime'] = $LowBalanceReminderSettings->NextRunTime;
             }
 
+            $BalanceWarningSettings = json_decode($BillingClass->BalanceWarningSettings);
+            if(isset($BalanceWarningSettings->LastRunTime)){
+                $post_data['BalanceWarning']['LastRunTime'] = $BalanceWarningSettings->LastRunTime;
+            }
+            if(isset($BalanceWarningSettings->NextRunTime)){
+                $post_data['BalanceWarning']['NextRunTime'] = $BalanceWarningSettings->NextRunTime;
+            }
+
         }
         if (isset($post_data['TaxRateID'])) {
             $class_data['TaxRateID'] = implode(',', array_unique($post_data['TaxRateID']));
@@ -240,6 +250,9 @@ class BillingClassController extends BaseController
         }
         if (isset($post_data['LowBalanceReminder'])) {
             $class_data['LowBalanceReminderSettings'] = json_encode($post_data['LowBalanceReminder']);
+        }
+        if (isset($post_data['BalanceWarning'])) {
+            $class_data['BalanceWarningSettings'] = json_encode($post_data['BalanceWarning']);
         }
         return $class_data;
     }

@@ -14,8 +14,8 @@ class BillingClass extends Model
     protected $fillable = array(
         'CompanyID','PaymentDueInDays','RoundChargesAmount','RoundChargesCDR','CDRType','InvoiceTemplateID',
         'BillingType','Name','Description','TaxRateID','BillingTimezone',
-        'SendInvoiceSetting','PaymentReminderStatus','PaymentReminderSettings','LowBalanceReminderStatus','LowBalanceReminderSettings',
-        'InvoiceReminderStatus','InvoiceReminderSettings','created_at','updated_at','UpdatedBy','CreatedBy'
+        'SendInvoiceSetting','DeductCallChargeInAdvance','SuspendAccount','AutoPaymentSetting','AutoPayMethod','PaymentReminderStatus','PaymentReminderSettings','LowBalanceReminderStatus','LowBalanceReminderSettings',
+        'InvoiceReminderStatus','InvoiceReminderSettings','BalanceWarningStatus','BalanceWarningSettings','created_at','updated_at','UpdatedBy','CreatedBy'
     );
 
     public static $rules = array(
