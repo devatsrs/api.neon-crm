@@ -14,7 +14,8 @@
         "laravelcollective/remote": "~5.0",
         "webpatser/laravel-uuid": "2.*",
         "aws/aws-sdk-php": "2.*",
-        "phpmailer/phpmailer": "~5.2"
+        "phpmailer/phpmailer": "~5.2",
+        "webklex/laravel-imap":"1.0.5.8"
     },
     "require-dev": {
         "barryvdh/laravel-ide-helper": "^2.1",
