@@ -410,7 +410,7 @@ private $validlicense;
 		try
 		{
 			$result =  new EmailClient(["host"=>$data['GroupEmailServer'], "port"=>$data['GroupEmailPort'], "IsSSL"=>$data['GroupEmailIsSSL'], "username"=>$data['GroupEmailAddress'], "password"=>$data['GroupEmailPassword'] ]);
-			if($result->isConnected()){
+			if($result->isValidConnection()){
 			 return generateResponse('Validated.');
 			}else{
 			 return generateResponse("could not connect",true,true);

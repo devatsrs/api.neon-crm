@@ -52,4 +52,21 @@ class EmailClient extends Client
         return $aFolder = $oClient->getFolders();
     }
 
+    public function isValidConnection() {
+        try {
+            imap_open(
+                $this->getAddress(),
+                $this->username,
+                $this->password
+            );
+            return true;
+        } catch (\ErrorException $e) {
+            Log::error("Unable to validate");
+            Log::error($e);
+            return false;
+        }
+
+        return $this;
+    }
+
 }
