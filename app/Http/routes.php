@@ -205,6 +205,8 @@ $api->version('v1', function ($api) {
             // Mailbox Class
             $api->post('email/sendemail', 'MailboxController@sendMail');
 
+            $api->post('AutoRateImportGroups/validatesmtp', 'AutoRateImportController@validatesmtp');
+
             $api->group( [ 'middleware' => 'check_ticket_licence' ], function ($api) {
 
                 $api->post('ticketgroups/get_groups', 'TicketsGroupController@getGroups');
