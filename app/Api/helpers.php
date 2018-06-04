@@ -794,7 +794,8 @@ function template_var_replace($EmailMessage,$replace_array){
         '{{OutstandingIncludeUnbilledAmount}}',
         '{{BalanceThreshold}}',
         '{{Currency}}',
-        '{{CompanyName}}'
+        '{{CompanyName}}',
+        '{{Logo}}'
     ];
 
     foreach($extra as $item){
