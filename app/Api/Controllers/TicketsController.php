@@ -788,6 +788,22 @@ private $validlicense;
 						//}
 
 
+						//update cc and bcc in ticket
+						if(!empty($data['cc']) || !empty($data['bcc'])) {
+							$ticketdatacc =	TicketsTable::find($ticketdata->TicketID);
+
+							$cc 	= explode(',',$data['cc']);
+							$bcc 	= explode(',',$data['bcc']);
+
+							$ticketcc  = explode(',',$ticketdatacc->RequesterCC);
+							$ticketbcc = explode(',',$ticketdatacc->RequesterBCC);
+
+							$ticketcc  = implode(',',array_unique(array_merge(array_filter($ticketcc),array_filter($cc))));
+							$ticketbcc = implode(',',array_unique(array_merge(array_filter($ticketbcc),array_filter($bcc))));
+
+							$ticketdatacc->update(['RequesterCC'=>$ticketcc,'RequesterBCC'=>$ticketbcc]);
+						}
+
 						TicketLog::insertTicketLog($ticketdata->TicketID,TicketLog::TICKET_ACTION_AGENT_REPLIED,($data['LoginType']=='user')?0:1);
 
 
