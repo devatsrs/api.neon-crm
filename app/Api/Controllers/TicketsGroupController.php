@@ -104,12 +104,13 @@ private $validlicense;
 		  
 
 		$data 			= 	Input::all();
-        
+		$data['GroupEmailIsSSL'] = 	isset($data['GroupEmailIsSSL']) ? 1 : 0;
         $rules = array(
             'GroupName' => 'required|min:2',
             'GroupAgent' => 'required',
             'GroupAssignEmail' => 'required',
 			'GroupEmailServer' => 'required',
+			'GroupEmailPort' => 'required|numeric',
 			'GroupEmailPassword' => 'required',
 			'GroupReplyAddress' => 'email|required',		
 			'GroupEmailAddress'	=> 'email|required|unique:tblTicketGroups,GroupEmailAddress',
@@ -131,7 +132,9 @@ private $validlicense;
 				"GroupAssignEmail"=>$data['GroupAssignEmail'],
 				"GroupReplyAddress"=>$data['GroupReplyAddress'],				
 				"GroupEmailServer"=>$data['GroupEmailServer'],
-				"GroupEmailPassword"=>$data['GroupEmailPassword'],	
+				"GroupEmailPort"=>$data['GroupEmailPort'],
+				"GroupEmailIsSSL"=>$data['GroupEmailIsSSL'],
+				"GroupEmailPassword"=>$data['GroupEmailPassword'],
 				"GroupEmailStatus" => 0,
 				"created_at"=>date("Y-m-d H:i:s"),
 				"created_by"=>User::get_user_full_name()
