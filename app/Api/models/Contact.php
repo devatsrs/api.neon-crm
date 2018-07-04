@@ -18,7 +18,7 @@ class Contact extends \Eloquent {
 	
 	 public static function create_replace_array_contact($contact,$extra_settings,$JobLoggedUser=array()){
         $replace_array = array();
-		if(isset($Account) && !empty($contact)){
+		if(isset($contact) && !empty($contact)){
 			$replace_array['FirstName'] 			= 	$contact->FirstName;
 			$replace_array['LastName'] 				= 	$contact->LastName;
 			$replace_array['Email'] 				= 	$contact->Email;
@@ -41,7 +41,9 @@ class Contact extends \Eloquent {
             }
         }
         $replace_array['Signature']= $Signature;
-     
+
+		$request = new \Dingo\Api\Http\Request;
+		 $replace_array['Logo'] = '<img src="'.getCompanyLogo($request).'" />';
         return $replace_array;
     }
 	

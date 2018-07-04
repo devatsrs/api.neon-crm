@@ -443,7 +443,7 @@ function site_configration_cache($request){
 
     if (!Cache::has($siteConfigretion)) {
 
-        $domain_url      =   $request->getHttpHost();
+        $domain_url      =   $_SERVER['SERVER_NAME'];
         $result       =  \Illuminate\Support\Facades\DB::table('tblCompanyThemes')->where(["DomainUrl" => $domain_url,'ThemeStatus'=>\Api\Model\Themes::ACTIVE])->first();
 
         if(!empty($result)){
@@ -496,11 +496,12 @@ function getCompanyLogo($request){
     }else {
 
         // if no logo and amazon then use from site url even if amazon is set or not.
-        $DefaultLogo = $cache['DefaultLogo'];
+        /*$DefaultLogo = $cache['DefaultLogo'];
         $site_url = \Api\Model\CompanyConfiguration::get("WEB_URL");
 
-        $logo_url = combile_url_path($site_url,$DefaultLogo);
+        $logo_url = combile_url_path($site_url,$DefaultLogo);*/
 
+        $logo_url = $cache['DefaultLogo'];
     }
 
     return $logo_url;
@@ -793,7 +794,8 @@ function template_var_replace($EmailMessage,$replace_array){
         '{{OutstandingIncludeUnbilledAmount}}',
         '{{BalanceThreshold}}',
         '{{Currency}}',
-        '{{CompanyName}}'
+        '{{CompanyName}}',
+        '{{Logo}}'
     ];
 
     foreach($extra as $item){
@@ -874,4 +876,20 @@ function next_run_time($data){
             return '';
 
     }
+}
+function cus_lang($key=""){
+    return trans('routes.'.strtoupper($key));
+}
+
+
+function get_image_data($path){
+    $type = pathinfo($path, PATHINFO_EXTENSION);
+    try{
+        $data = file_get_contents($path);
+        $base64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
+    }catch (Exception $e){
+        return "";
+    }
+
+    return $base64;
 }

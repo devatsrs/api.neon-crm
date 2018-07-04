@@ -4,6 +4,7 @@ namespace Api\Controllers;
 
 use Api\Model\TicketDashboardTimeline;
 use Api\Model\Ticketfields;
+use App\EmailClient;
 use Dingo\Api\Http\Request;
 use Api\Model\AccountBalance;
 use Api\Model\AccountBalanceHistory;
@@ -103,12 +104,13 @@ private $validlicense;
 		  
 
 		$data 			= 	Input::all();
-        
+		$data['GroupEmailIsSSL'] = 	isset($data['GroupEmailIsSSL']) ? 1 : 0;
         $rules = array(
             'GroupName' => 'required|min:2',
             'GroupAgent' => 'required',
             'GroupAssignEmail' => 'required',
 			'GroupEmailServer' => 'required',
+			'GroupEmailPort' => 'required|numeric',
 			'GroupEmailPassword' => 'required',
 			'GroupReplyAddress' => 'email|required',		
 			'GroupEmailAddress'	=> 'email|required|unique:tblTicketGroups,GroupEmailAddress',
@@ -122,6 +124,7 @@ private $validlicense;
 		
 			$GroupData = array(
 				"CompanyID"=>User::get_companyID(),
+				"LanguageID"=>$data['groupLanguage'],
 				"GroupName"=>$data['GroupName'],
 				"GroupDescription"=>$data['GroupDescription'],
 				"GroupBusinessHours"=>isset($data["GroupBusinessHours"])?$data["GroupBusinessHours"]:0,
@@ -129,7 +132,9 @@ private $validlicense;
 				"GroupAssignEmail"=>$data['GroupAssignEmail'],
 				"GroupReplyAddress"=>$data['GroupReplyAddress'],				
 				"GroupEmailServer"=>$data['GroupEmailServer'],
-				"GroupEmailPassword"=>$data['GroupEmailPassword'],	
+				"GroupEmailPort"=>$data['GroupEmailPort'],
+				"GroupEmailIsSSL"=>$data['GroupEmailIsSSL'],
+				"GroupEmailPassword"=>$data['GroupEmailPassword'],
 				"GroupEmailStatus" => 0,
 				"created_at"=>date("Y-m-d H:i:s"),
 				"created_by"=>User::get_user_full_name()
@@ -160,13 +165,14 @@ private $validlicense;
 		$data 			= 	Input::all();
 		$TicketGroup	= 	TicketGroups::find($id);
 		$TicketGroupold	= 	TicketGroups::find($id);
-        
+		$data['GroupEmailIsSSL'] = 	isset($data['GroupEmailIsSSL']) ? 1 : 0;
 	    $rules = array(
             'GroupName' => 'required|min:2',
             'GroupAgent' => 'required',
             'GroupEmailAddress'	=> 'email|required|unique:tblTicketGroups,GroupEmailAddress,'.$id.',GroupID,CompanyID,'.User::get_companyID(),
             'GroupAssignEmail' => 'required',
 			'GroupEmailServer' => 'required',
+			'GroupEmailPort' => 'required',
 			'GroupEmailPassword' => 'required',
 			'GroupReplyAddress' => 'email|required',	
         );
@@ -184,8 +190,9 @@ private $validlicense;
 					$GroupEmailAddress  		= 	$data['GroupEmailAddress'];		
 					$activate					=	$data['activate'];								
 					$data["GroupBusinessHours"] =	isset($data["GroupBusinessHours"])?$data["GroupBusinessHours"]:0;
+					$data["LanguageID"]			=	$data['groupLanguage'];
 					//$data 					= 	cleanarray($data,['GroupAgent','_wysihtml5_mode','GroupEmailAddress','activate']);	
-					$data 						= 	cleanarray($data,['GroupAgent','_wysihtml5_mode','activate']);	
+					$data 						= 	cleanarray($data,['GroupAgent','_wysihtml5_mode','activate', 'groupLanguage']);
 							 			
 					$TicketGroup->update($data);  	 //update groups
 					TicketGroupAgents::where(["GroupID" => $TicketGroup->GroupID])->delete(); //delete old group agents
@@ -390,8 +397,10 @@ private $validlicense;
 	
 	function validatesmtp(){
 		$data = Input::all();
+		$data['GroupEmailIsSSL'] = 	isset($data['GroupEmailIsSSL']) ? 1 : 0;
 		  $rules = array(
             'GroupEmailServer' => 'required',
+            'GroupEmailPort' => 'required',
 			'GroupEmailPassword' => 'required',
 			'GroupEmailAddress' => 'required',
         );
@@ -403,11 +412,11 @@ private $validlicense;
         }
 		try
 		{
-			$result =  Imap::CheckConnection($data['GroupEmailServer'],$data['GroupEmailAddress'],$data['GroupEmailPassword']);
-			if($result['status']){
+			$result =  new EmailClient(["host"=>$data['GroupEmailServer'], "port"=>$data['GroupEmailPort'], "IsSSL"=>$data['GroupEmailIsSSL'], "username"=>$data['GroupEmailAddress'], "password"=>$data['GroupEmailPassword'] ]);
+			if($result->isValidConnection()){
 			 return generateResponse('Validated.');
 			}else{
-			 return generateResponse($result['error'],true,true);			 
+			 return generateResponse("could not connect",true,true);
 			}
 		}catch (Exception $ex){
 			 return generateResponse($ex->getMessage(),true,true);
