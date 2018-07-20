@@ -45,7 +45,7 @@ private $validlicense;
     }
 	 
 
-	  function GetResult(){ 
+	  function GetResult(){
 		   $data 					= 	Input::all(); 
 		   $CompanyID 				= 	User::get_companyID(); 
 		   $search		 			=	isset($data['Search'])?$data['Search']:'';	   		   
@@ -90,7 +90,7 @@ private $validlicense;
 			$resultdata   	=  DataTableSql::of($query)->getProcResult(array('ResultCurrentPage','TotalResults','GroupsData'));	
 			$resultpage  	=  DataTableSql::of($query)->make(false);				
 			$groupData = isset($resultdata->data['GroupsData'])?$resultdata->data['GroupsData']:array(); 
-						
+
 			if($data['Export'])
 			{
 				$result = ["resultpage"=>$resultpage,"iTotalRecords"=>$resultdata->iTotalRecords,"iTotalDisplayRecords"=>$resultdata->iTotalDisplayRecords,"ResultCurrentPage"=>$resultdata->data['ResultCurrentPage'],"GroupsData"=>$groupData];
@@ -647,7 +647,8 @@ private $validlicense;
 			
 			if($ticket_type=='parent'){
 				$postdata['response_data']      =     TicketsTable::find($ticket_number);
-				$postdata['conversation']      =      TicketsTable::GetConversation($ticket_number);
+				//$postdata['conversation']      =      TicketsTable::GetConversation($ticket_number);
+				$postdata['conversation']      =      TicketsTable::GetLatestConversation($ticket_number);
 				$postdata['AccountEmail'] 		= 	  $postdata['response_data']->Requester;
 				$postdata['Cc'] 				= 	  $postdata['response_data']->RequesterCC;	
 				$postdata['Bcc'] 				= 	  $postdata['response_data']->RequesterBCC;	
