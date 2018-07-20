@@ -449,6 +449,22 @@ class TicketsTable extends \Eloquent
 		} 
 		return $Ticketconversation;
 	}
+
+	static function GetLatestConversation($ticket_number){
+		$Ticketconversation = '';
+		$ticketdata 	 =  TicketsTable::find($ticket_number);
+		$allConversation = 	AccountEmailLog::WhereRaw("EmailParent >0")->where(['TicketID'=>$ticket_number])->orderBy('AccountEmailLogID', 'DESC')->first();
+		Log::info($allConversation->Message);
+		if(count($allConversation)<1){
+			$Ticketconversation = $ticketdata->Description."<br><hr><br>";
+		}
+
+		if($allConversation['Message'] && $allConversation['Message']!=''){
+			$Ticketconversation .= $allConversation['Message']."<br>";
+		}
+
+		return $Ticketconversation;
+	}
 	
 	static function filterEmailAddressFromName($emails){
 		$final = array();
