@@ -454,14 +454,13 @@ class TicketsTable extends \Eloquent
 		$Ticketconversation = '';
 		$ticketdata 	 =  TicketsTable::find($ticket_number);
 		$allConversation = 	AccountEmailLog::WhereRaw("EmailParent >0")->where(['TicketID'=>$ticket_number])->orderBy('AccountEmailLogID', 'DESC')->first();
-		Log::info($allConversation->Message);
 		if(count($allConversation)<1){
 			$Ticketconversation = $ticketdata->Description."<br><hr><br>";
 		}
 
-		if($allConversation['Message'] && $allConversation['Message']!=''){
+		//if($allConversation['Message'] && $allConversation['Message']!=''){
 			$Ticketconversation .= $allConversation['Message']."<br>";
-		}
+		//}
 
 		return $Ticketconversation;
 	}
