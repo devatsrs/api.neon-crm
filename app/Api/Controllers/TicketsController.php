@@ -989,14 +989,14 @@ private $validlicense;
 			}
 			
 			//$RequesterEmail	  		=  	trim($data['email-to']);		
-			if (strpos($data['email-to'], '<') !== false && strpos($data['email-to'], '>') !== false)
+			if (strpos($data['email-from'], '<') !== false && strpos($data['email-from'], '>') !== false)
 			{
-				$RequesterData 	   =  explode(" <",$data['email-to']);
+				$RequesterData 	   =  explode(" <",$data['email-from']);
 				$RequesterName	   =  $RequesterData[0];
 				$RequesterEmail	   =  substr($RequesterData[1],0,strlen($RequesterData[1])-1);	
 			}else{
 				$RequesterName	   =  '';
-				$RequesterEmail	   =  trim($data['email-to']);					
+				$RequesterEmail	   =  trim($data['email-from']);
 			}			
 			
 			if($data['LoginType']=='user')
@@ -1085,7 +1085,14 @@ private $validlicense;
 
 				/* Ticket Email Send Section */
 				log::info("--Email send --");
-				$TicketEmails 		=  new TicketEmails(array("TicketID"=>$TicketID,"TriggerType"=>"CCEmailTicketCreated","EmailSenderFrom"=>$data['email-from']));
+				if (strpos($data['email-to'], '<') !== false && strpos($data['email-to'], '>') !== false)
+				{
+					$senderData 	   =  explode(" <",$data['email-to']);
+					$senderEmail	   =  substr($senderData[1],0,strlen($senderData[1])-1);
+				}else{
+					$senderEmail	   =  trim($data['email-to']);
+				}
+				$TicketEmails 		=  new TicketEmails(array("TicketID"=>$TicketID,"TriggerType"=>"CCEmailTicketCreated","EmailSenderFrom"=>$data['email-from'],"EmailSenderTo"=>$senderEmail));
 
 				log::info("--Email over --");
 				/* Ticket Email Send Section over*/
