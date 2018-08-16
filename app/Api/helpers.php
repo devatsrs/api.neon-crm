@@ -797,7 +797,7 @@ function template_var_replace($EmailMessage,$replace_array){
         '{{CompanyName}}',
         '{{Logo}}'
     ];
-
+    $replace_array=template_decimal_var_replace($replace_array);
     foreach($extra as $item){
         $item_name = str_replace(array('{','}'),array('',''),$item);
         if(array_key_exists($item_name,$replace_array)) {
@@ -806,6 +806,23 @@ function template_var_replace($EmailMessage,$replace_array){
     }
     return $EmailMessage;
 }
+
+function template_decimal_var_replace($replace_array){
+
+    $RoundChargesAmount = \Api\Model\CompanySetting::getKeyVal('RoundChargesAmount');
+    $RoundChargesAmount = ($RoundChargesAmount!='Invalid Key')?$RoundChargesAmount:2;
+
+    foreach($replace_array as $key=>$value){
+        if(is_numeric($value)) {
+            $value=number_format($value, $RoundChargesAmount);
+            if($value){
+                $replace_array[$key] = $value;
+            }
+        }
+    }
+    return $replace_array;
+}
+
 function next_run_time($data){
 
     $Interval = $data['Interval'];
