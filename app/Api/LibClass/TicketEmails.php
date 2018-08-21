@@ -185,7 +185,7 @@ class TicketEmails{
 			'{{NoteUser}}'
 			
 		];
-	
+
 		foreach($extra as $item){
 			$item_name = str_replace(array('{','}'),array('',''),$item);
 			if(array_key_exists($item_name,$replace_array)) {

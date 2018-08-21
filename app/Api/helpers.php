@@ -806,6 +806,7 @@ function template_var_replace($EmailMessage,$replace_array){
     }
     return $EmailMessage;
 }
+
 function next_run_time($data){
 
     $Interval = $data['Interval'];
@@ -892,4 +893,19 @@ function get_image_data($path){
     }
 
     return $base64;
+}
+
+function getCompanyDecimalPlaces($value=""){
+    $RoundChargesAmount = \Api\Model\CompanySetting::getKeyVal('RoundChargesAmount');
+    $RoundChargesAmount=($RoundChargesAmount !='Invalid Key')?$RoundChargesAmount:2;
+
+    if(!empty($value) && is_numeric($value)){
+        $formatedValue=number_format($value, $RoundChargesAmount);
+        if($formatedValue){
+            return $formatedValue;
+        }
+        return $value;
+    }else{
+        return $RoundChargesAmount;
+    }
 }
