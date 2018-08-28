@@ -782,7 +782,11 @@ private $validlicense;
 								$ticketdata->update(["Agent"=>User::get_userID()]);
 							}
 						}
-						
+
+						if(isset($data["ticketStatus"]) && !empty($data["ticketStatus"])){
+							$ticketdata->update(["Status"=>$data["ticketStatus"]]);
+						}
+
 						$ticketdataAll		=	 TicketsTable::find($ticketdata->TicketID);
 						//if($ticketdata->Agent==User::get_userID()){ //removed as mam said
 							$ticketdataAll->update(["AgentRepliedDate"=>date('Y-m-d H:i:s')]);
