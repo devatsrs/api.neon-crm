@@ -84,7 +84,6 @@ class EmailsTemplates{
 				'{{Logo}}'
 			];
 			$extra = array_merge($extraDefault,$extraSpecific);
-		
 		foreach($extra as $item){
 			$item_name = str_replace(array('{','}'),array('',''),$item);
 			if(array_key_exists($item_name,$replace_array)) {					
@@ -118,6 +117,7 @@ class EmailsTemplates{
 	}
 	static function setAccountFields($array,$AccountID){
 			$companyID						=	 User::get_companyID();
+			$RoundChargesAmount				=	 getCompanyDecimalPlaces();
 			$AccoutData 					= 	 Account::find($AccountID);			
 			$array['AccountName']			=	 $AccoutData->AccountName;
 			$array['FirstName']				=	 $AccoutData->FirstName;
@@ -133,7 +133,9 @@ class EmailsTemplates{
 			$array['Currency']				=	 Currency::getCurrencyCode($AccoutData->CurrencyId);
 			$array['CurrencySign']			=	 Currency::getCurrencySymbol($AccoutData->CurrencyId);
 			$array['OutstandingExcludeUnbilledAmount'] = AccountBalance::getOutstandingAmount($companyID,$AccountID);
+			$array['OutstandingExcludeUnbilledAmount'] = number_format($array['OutstandingExcludeUnbilledAmount'], $RoundChargesAmount);
 			$array['OutstandingIncludeUnbilledAmount'] = AccountBalance::getBalanceAmount($AccountID);
+			$array['OutstandingIncludeUnbilledAmount'] = number_format($array['OutstandingIncludeUnbilledAmount'], $RoundChargesAmount);
 			$array['BalanceThreshold'] 				   = AccountBalance::getBalanceThreshold($AccountID);		
 		   if(!empty(user::get_userID())){
 			   $UserData = user::find(user::get_userID());

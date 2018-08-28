@@ -309,6 +309,7 @@ class Account extends Model
 		}
 	}
     public static function create_replace_array($Account,$extra_settings,$JobLoggedUser=array()){
+        $RoundChargesAmount				=	 getCompanyDecimalPlaces();
         $replace_array = array();
 		if(isset($Account) && !empty($Account)){
 			$replace_array['FirstName'] = $Account->FirstName;
@@ -322,6 +323,7 @@ class Account extends Model
 			$replace_array['PostCode'] = $Account->PostCode;
 			$replace_array['Country'] = $Account->Country;
 			$replace_array['OutstandingIncludeUnbilledAmount'] = AccountBalance::getBalanceAmount($Account->AccountID);
+			$replace_array['OutstandingIncludeUnbilledAmount'] = number_format($replace_array['OutstandingIncludeUnbilledAmount'], $RoundChargesAmount);
 			$replace_array['BalanceThreshold'] = AccountBalance::getBalanceThreshold($Account->AccountID);
 			$replace_array['Currency'] = Currency::getCurrencyCode($Account->CurrencyId);
 			$replace_array['CurrencySign'] = Currency::getCurrencySymbol($Account->CurrencyId);
@@ -330,6 +332,7 @@ class Account extends Model
 		    $replace_array['CompanyAddress'] = Company::getCompanyFullAddress($Account->CompanyId);
 			
 			$replace_array['OutstandingExcludeUnbilledAmount'] = AccountBalance::getOutstandingAmount($Account->CompanyId,$Account->AccountID);
+			$replace_array['OutstandingExcludeUnbilledAmount'] = number_format($replace_array['OutstandingExcludeUnbilledAmount'], $RoundChargesAmount);
 		}
         $Signature = '';
         if(!empty($JobLoggedUser)){

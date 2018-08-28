@@ -37,6 +37,7 @@ class TicketEmails{
 	protected $Comment;
 	protected $NoteUser;
 	protected $EmailSenderFrom;
+	protected $EmailSenderTo;
 	protected $arrOtherData;
 
 	 public function __construct($data = array()){
@@ -184,7 +185,7 @@ class TicketEmails{
 			'{{NoteUser}}'
 			
 		];
-	
+
 		foreach($extra as $item){
 			$item_name = str_replace(array('{','}'),array('',''),$item);
 			if(array_key_exists($item_name,$replace_array)) {
@@ -671,8 +672,8 @@ class TicketEmails{
 		}
 		*/
 		//log::info(print_r($this->TicketData,true));
-		if(isset($this->TicketData->Requester) && !empty($this->TicketData->Requester)){
-			$emailto = explode(",",$this->TicketData->Requester);
+		if(isset($this->EmailSenderTo) && !empty($this->EmailSenderTo)){
+			$emailto = explode(",",$this->EmailSenderTo);
 		}else{
 			return;
 		}
