@@ -77,6 +77,7 @@ class AmazonS3 {
         $AMAZONS3_KEY  = '';
         $AMAZONS3_SECRET = '';
         $AWS_REGION = '';
+        $AWS_SIGNATURE='';
 
         $amazon = self::getAmazonSettings();
         if(isset($amazon['AMAZONS3_KEY']) && isset($amazon['AMAZONS3_SECRET']) && $amazon['AWS_REGION'] && $amazon['AWS_REGION']){
@@ -85,19 +86,26 @@ class AmazonS3 {
             $AMAZONS3_SECRET = $amazon['AMAZONS3_SECRET'];
             $AWS_REGION = $amazon['AWS_REGION'];
         }
+        if(isset($amazon['SignatureVersion']) && $amazon['SignatureVersion']!=''){
+            $AWS_SIGNATURE=$amazon['SignatureVersion'];
+        }
 
         if(empty($AMAZONS3_KEY) || empty($AMAZONS3_SECRET) || empty($AWS_REGION) ){
             self::$isAmazonS3='NoAmazon';
             return 'NoAmazon';
         }else {
             self::$isAmazonS3='Amazon';
-            return $s3Client = S3Client::factory(array(
+            $Amazone=array(
                 'region' => $AWS_REGION,
                 'credentials' => array(
                     'key' => $AMAZONS3_KEY,
                     'secret' => $AMAZONS3_SECRET
                 ),
-            ));
+            );
+            if($AWS_SIGNATURE!=''){
+                $Amazone['signature']=$AWS_SIGNATURE;
+            }
+            return $s3Client = S3Client::factory($Amazone);
         }
     }
 
