@@ -157,7 +157,12 @@ private $validlicense;
 					$MatchArrayTitle  		=      $imap->findEmailAddress($RequesterEmail);
 					$RequesterName			=		isset($MatchArrayTitle['AccountTitle'])?$MatchArrayTitle['AccountTitle']:'';
 			}
-			
+
+		    $Ticketfields['cc']		=  isset($Ticketfields['cc'])?$Ticketfields['cc']:'';
+			$Ticketfields['cc']		=  TicketsTable::filterEmailAddressFromName($Ticketfields['cc']);
+			$Ticketfields['cc']		=  TicketEmails::remove_group_emails_from_array($CompanyID, explode(',', $Ticketfields['cc']));
+			$Ticketfields['cc']		=  implode(",", $Ticketfields['cc']);
+		  
 			if($data['LoginType']=='user')
 			{	
 				$email_from		   =  TicketGroups::where(["GroupID"=>$Ticketfields['default_group']])->pluck('GroupReplyAddress');
@@ -166,7 +171,7 @@ private $validlicense;
 					"CompanyID"=>$CompanyID,
 					"Requester"=>$RequesterEmail,
 					"RequesterName"=>$RequesterName,
-					"RequesterCC"=>TicketsTable::filterEmailAddressFromName($Ticketfields['cc']),
+					"RequesterCC"=>$Ticketfields['cc'],
 					"Subject"=>$Ticketfields['default_subject'],
 					"Type"=>$Ticketfields['default_ticket_type'],
 					"Status"=>$Ticketfields['default_status'],
@@ -184,7 +189,7 @@ private $validlicense;
 					"Requester"=>$RequesterEmail,
 					"RequesterName"=>$RequesterName,
 					"AccountID"=>$data['TicketAccount'],
-					"RequesterCC"=>isset($Ticketfields['cc'])?$Ticketfields['cc']:'',
+					"RequesterCC"=>$Ticketfields['cc'],
 					"Subject"=>isset($Ticketfields['default_subject'])?$Ticketfields['default_subject']:'',
 					"Type"=>isset($Ticketfields['default_ticket_type'])?$Ticketfields['default_ticket_type']:0,
 					"Status"=>isset($Ticketfields['default_status'])?$Ticketfields['default_status']:TicketsTable::getDefaultStatus(),
