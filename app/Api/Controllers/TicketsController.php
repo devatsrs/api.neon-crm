@@ -653,6 +653,7 @@ private $validlicense;
 			if($ticket_type=='parent'){
 				$postdata['response_data']      =     TicketsTable::find($ticket_number);
 				//$postdata['conversation']      =      TicketsTable::GetConversation($ticket_number);
+				$postdata['response_data']['AttachmentPaths']	 =	    AccountEmailLog::where("TicketID",$postdata['response_data']->TicketID)->orderBy('AccountEmailLogID', 'DESC')->pluck("AttachmentPaths");
 				$postdata['conversation']      =      TicketsTable::GetLatestConversation($ticket_number);
 				$postdata['AccountEmail'] 		= 	  $postdata['response_data']->Requester;
 				$postdata['Cc'] 				= 	  $postdata['response_data']->RequesterCC;	
