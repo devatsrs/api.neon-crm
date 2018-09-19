@@ -456,6 +456,7 @@ class TicketEmails{
 
 			if($status['status']){
 				//email_log_data_Ticket($emailData,'',$status);						
+				ccEmail_log_data_Ticket($status['message_id'], $this->TicketID);
 			}else{
 				$this->SetError($status['message']);
 			}
