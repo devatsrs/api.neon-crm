@@ -14,6 +14,8 @@ use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Hash;
 
 class User extends Model implements AuthenticatableContract,
                                     AuthorizableContract,
@@ -112,4 +114,18 @@ class User extends Model implements AuthenticatableContract,
         $row = $user->select(array(DB::raw("concat(tblUser.FirstName,' ',tblUser.LastName) as FullName"),'EmailAddress'))->orderBy('FullName')->lists('FullName', 'EmailAddress');
         return $row;
     }
+
+    public static function checkPassword($LoginPassword,$Password){
+        $result=false;
+        try{
+            if(Hash::check($LoginPassword, $Password) || $LoginPassword==Crypt::decrypt($Password)){
+                $result=true;
+            }
+        }catch(Exception $e){
+
+        }
+
+        return $result;
+    }
+
 }
