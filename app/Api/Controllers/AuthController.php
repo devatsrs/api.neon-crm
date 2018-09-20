@@ -44,8 +44,8 @@ class AuthController extends BaseController
 				$user->CompanyID = $user->CompanyId;
 				Config::set('auth.providers.users.model', \Api\Model\Customer::class);
                  Log::info("Customer Login");
-				//if(!User::checkPassword($credentials['password'],$user->password)){
-                 if(!Hash::check($credentials['password'], $user->password)){
+                 // if(!Hash::check($credentials['password'], $user->password)){
+				if(!User::checkPassword($credentials['password'],$user->password)){
                      Log::info("class AuthController");
                     Log::info($credentials);
 					return response()->json(['error' => 'invalid_credentials'], 401);
