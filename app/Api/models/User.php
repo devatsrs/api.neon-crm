@@ -119,9 +119,10 @@ class User extends Model implements AuthenticatableContract,
         $result=false;
         try{
             if(Hash::check($LoginPassword, $Password) || $LoginPassword==Crypt::decrypt($Password)){
+                Log::info("======= Password Match in api checkPassword() ============");
                 $result=true;
             }
-        }catch(Exception $e){
+        }catch(\Exception $e){
 
         }
 
