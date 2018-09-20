@@ -340,6 +340,22 @@ function email_log_data_Ticket($data,$view = '',$status){
     return $data;
 }
 
+function ccEmail_log_data_Ticket($message_id, $ticketID){
+    if(empty($message_id) || empty($ticketID)){
+        return false;
+    }
+
+    $AccountEmailLogID = \Api\Model\AccountEmailLog::where("TicketID", $ticketID)->min('AccountEmailLogID');
+
+    $AccountEmailLog = \Api\Model\AccountEmailLog::find($AccountEmailLogID);
+    if(!empty($AccountEmailLog->CcMessageID)){
+        $message_id= $AccountEmailLog->CcMessageID.",".$message_id;
+    }
+    $return =  \Api\Model\AccountEmailLog::where(["TicketID"=>$ticketID, "AccountEmailLogID"=>$AccountEmailLogID])->update(["CcMessageID"=>$message_id]);
+
+    return $return;
+}
+
 function email_log_data($data,$view = ''){
     $status = array('status' => 0, 'message' => 'Something wrong with Saving log.');
     if(!isset($data['EmailTo']) && empty($data['EmailTo'])){
