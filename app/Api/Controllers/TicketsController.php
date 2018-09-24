@@ -45,7 +45,7 @@ private $validlicense;
     }
 	 
 
-	  function GetResult(){ 
+	  function GetResult(){
 		   $data 					= 	Input::all(); 
 		   $CompanyID 				= 	User::get_companyID(); 
 		   $search		 			=	isset($data['Search'])?$data['Search']:'';	   		   
@@ -90,7 +90,7 @@ private $validlicense;
 			$resultdata   	=  DataTableSql::of($query)->getProcResult(array('ResultCurrentPage','TotalResults','GroupsData'));	
 			$resultpage  	=  DataTableSql::of($query)->make(false);				
 			$groupData = isset($resultdata->data['GroupsData'])?$resultdata->data['GroupsData']:array(); 
-						
+
 			if($data['Export'])
 			{
 				$result = ["resultpage"=>$resultpage,"iTotalRecords"=>$resultdata->iTotalRecords,"iTotalDisplayRecords"=>$resultdata->iTotalDisplayRecords,"ResultCurrentPage"=>$resultdata->data['ResultCurrentPage'],"GroupsData"=>$groupData];
@@ -157,7 +157,12 @@ private $validlicense;
 					$MatchArrayTitle  		=      $imap->findEmailAddress($RequesterEmail);
 					$RequesterName			=		isset($MatchArrayTitle['AccountTitle'])?$MatchArrayTitle['AccountTitle']:'';
 			}
-			
+
+		    $Ticketfields['cc']		=  isset($Ticketfields['cc'])?$Ticketfields['cc']:'';
+			$Ticketfields['cc']		=  TicketsTable::filterEmailAddressFromName($Ticketfields['cc']);
+			$Ticketfields['cc']		=  TicketEmails::remove_group_emails_from_array($CompanyID, explode(',', $Ticketfields['cc']));
+			$Ticketfields['cc']		=  implode(",", $Ticketfields['cc']);
+		  
 			if($data['LoginType']=='user')
 			{	
 				$email_from		   =  TicketGroups::where(["GroupID"=>$Ticketfields['default_group']])->pluck('GroupReplyAddress');
@@ -166,7 +171,7 @@ private $validlicense;
 					"CompanyID"=>$CompanyID,
 					"Requester"=>$RequesterEmail,
 					"RequesterName"=>$RequesterName,
-					"RequesterCC"=>TicketsTable::filterEmailAddressFromName($Ticketfields['cc']),
+					"RequesterCC"=>$Ticketfields['cc'],
 					"Subject"=>$Ticketfields['default_subject'],
 					"Type"=>$Ticketfields['default_ticket_type'],
 					"Status"=>$Ticketfields['default_status'],
@@ -184,7 +189,7 @@ private $validlicense;
 					"Requester"=>$RequesterEmail,
 					"RequesterName"=>$RequesterName,
 					"AccountID"=>$data['TicketAccount'],
-					"RequesterCC"=>isset($Ticketfields['cc'])?$Ticketfields['cc']:'',
+					"RequesterCC"=>$Ticketfields['cc'],
 					"Subject"=>isset($Ticketfields['default_subject'])?$Ticketfields['default_subject']:'',
 					"Type"=>isset($Ticketfields['default_ticket_type'])?$Ticketfields['default_ticket_type']:0,
 					"Status"=>isset($Ticketfields['default_status'])?$Ticketfields['default_status']:TicketsTable::getDefaultStatus(),
@@ -647,7 +652,9 @@ private $validlicense;
 			
 			if($ticket_type=='parent'){
 				$postdata['response_data']      =     TicketsTable::find($ticket_number);
-				$postdata['conversation']      =      TicketsTable::GetConversation($ticket_number);
+				//$postdata['conversation']      =      TicketsTable::GetConversation($ticket_number);
+				$postdata['response_data']['AttachmentPaths']	 =	    AccountEmailLog::where("TicketID",$postdata['response_data']->TicketID)->orderBy('AccountEmailLogID', 'DESC')->pluck("AttachmentPaths");
+				$postdata['conversation']      =      TicketsTable::GetLatestConversation($ticket_number);
 				$postdata['AccountEmail'] 		= 	  $postdata['response_data']->Requester;
 				$postdata['Cc'] 				= 	  $postdata['response_data']->RequesterCC;	
 				$postdata['Bcc'] 				= 	  $postdata['response_data']->RequesterBCC;	
@@ -781,7 +788,11 @@ private $validlicense;
 								$ticketdata->update(["Agent"=>User::get_userID()]);
 							}
 						}
-						
+
+						if(isset($data["ticketStatus"]) && !empty($data["ticketStatus"])){
+							$ticketdata->update(["Status"=>$data["ticketStatus"]]);
+						}
+
 						$ticketdataAll		=	 TicketsTable::find($ticketdata->TicketID);
 						//if($ticketdata->Agent==User::get_userID()){ //removed as mam said
 							$ticketdataAll->update(["AgentRepliedDate"=>date('Y-m-d H:i:s')]);
@@ -988,14 +999,14 @@ private $validlicense;
 			}
 			
 			//$RequesterEmail	  		=  	trim($data['email-to']);		
-			if (strpos($data['email-to'], '<') !== false && strpos($data['email-to'], '>') !== false)
+			if (strpos($data['email-from'], '<') !== false && strpos($data['email-from'], '>') !== false)
 			{
-				$RequesterData 	   =  explode(" <",$data['email-to']);
+				$RequesterData 	   =  explode(" <",$data['email-from']);
 				$RequesterName	   =  $RequesterData[0];
 				$RequesterEmail	   =  substr($RequesterData[1],0,strlen($RequesterData[1])-1);	
 			}else{
 				$RequesterName	   =  '';
-				$RequesterEmail	   =  trim($data['email-to']);					
+				$RequesterEmail	   =  trim($data['email-from']);
 			}			
 			
 			if($data['LoginType']=='user')
@@ -1084,7 +1095,14 @@ private $validlicense;
 
 				/* Ticket Email Send Section */
 				log::info("--Email send --");
-				$TicketEmails 		=  new TicketEmails(array("TicketID"=>$TicketID,"TriggerType"=>"CCEmailTicketCreated","EmailSenderFrom"=>$data['email-from']));
+				if (strpos($data['email-to'], '<') !== false && strpos($data['email-to'], '>') !== false)
+				{
+					$senderData 	   =  explode(" <",$data['email-to']);
+					$senderEmail	   =  substr($senderData[1],0,strlen($senderData[1])-1);
+				}else{
+					$senderEmail	   =  trim($data['email-to']);
+				}
+				$TicketEmails 		=  new TicketEmails(array("TicketID"=>$TicketID,"TriggerType"=>"CCEmailTicketCreated","EmailSenderFrom"=>$data['email-from'],"EmailSenderTo"=>$senderEmail));
 
 				log::info("--Email over --");
 				/* Ticket Email Send Section over*/

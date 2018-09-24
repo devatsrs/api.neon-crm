@@ -37,6 +37,7 @@ class TicketEmails{
 	protected $Comment;
 	protected $NoteUser;
 	protected $EmailSenderFrom;
+	protected $EmailSenderTo;
 	protected $arrOtherData;
 
 	 public function __construct($data = array()){
@@ -184,7 +185,7 @@ class TicketEmails{
 			'{{NoteUser}}'
 			
 		];
-	
+
 		foreach($extra as $item){
 			$item_name = str_replace(array('{','}'),array('',''),$item);
 			if(array_key_exists($item_name,$replace_array)) {
@@ -455,6 +456,7 @@ class TicketEmails{
 
 			if($status['status']){
 				//email_log_data_Ticket($emailData,'',$status);						
+				ccEmail_log_data_Ticket($status['message_id'], $this->TicketID);
 			}else{
 				$this->SetError($status['message']);
 			}
@@ -550,6 +552,7 @@ class TicketEmails{
 		$emailData['TicketID'] 		= 		$this->TicketID;
 		$emailData['Message-ID']	= 		$this->TicketID;
 		$emailData['Auto-Submitted']= 		"auto-generated";
+		$emailData['AttachmentPaths']	= 	unserialize($this->TicketData->AttachmentPaths);
 		$status 					= 		sendMail($finalBody,$emailData,0);
 		$emailData['EmailParent']	=		0;
 		
@@ -671,8 +674,8 @@ class TicketEmails{
 		}
 		*/
 		//log::info(print_r($this->TicketData,true));
-		if(isset($this->TicketData->Requester) && !empty($this->TicketData->Requester)){
-			$emailto = explode(",",$this->TicketData->Requester);
+		if(isset($this->EmailSenderTo) && !empty($this->EmailSenderTo)){
+			$emailto = explode(",",$this->EmailSenderTo);
 		}else{
 			return;
 		}
@@ -767,7 +770,13 @@ class TicketEmails{
 		$emailData['TicketID'] 		= 		$this->TicketID;
 		$emailData['Message-ID']	= 		$this->TicketID;
 		$emailData['Auto-Submitted']= 		"auto-generated";
-		$emailData['AttachmentPaths']	= 	unserialize($this->TicketData->AttachmentPaths);
+
+		$AttachmentPaths			=		array();
+		if(array_key_exists('AttachmentPaths', $this->arrOtherData)){
+			$AttachmentPaths 	= 		$this->arrOtherData['AttachmentPaths'];
+		}
+
+		$emailData['AttachmentPaths']	= 	$AttachmentPaths;
 		$status 					= 		sendMail($finalBody,$emailData,0);
 
 		if($status['status']){
