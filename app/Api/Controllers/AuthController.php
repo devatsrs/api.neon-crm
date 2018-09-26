@@ -42,9 +42,11 @@ class AuthController extends BaseController
 				//$user = Account::where(['BillingEmail'=>$credentials['LoggedEmailAddress']])->first(); 
 				$user = Account::whereRaw(" Status=1 AND FIND_IN_SET('".$credentials['LoggedEmailAddress']."',BillingEmail) !=0")->first();
 				$user->CompanyID = $user->CompanyId;
-				Config::set('auth.providers.users.model', \Api\Model\Customer::class);			   
-				if(!Hash::check($credentials['password'], $user->password)){
-                    Log::info("class AuthController");
+				Config::set('auth.providers.users.model', \Api\Model\Customer::class);
+                 Log::info("Customer Login");
+                 // if(!Hash::check($credentials['password'], $user->password)){
+				if(!User::checkPassword($credentials['password'],$user->password)){
+                     Log::info("class AuthController");
                     Log::info($credentials);
 					return response()->json(['error' => 'invalid_credentials'], 401);
 				 } 

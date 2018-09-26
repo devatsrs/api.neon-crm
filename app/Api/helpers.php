@@ -340,6 +340,22 @@ function email_log_data_Ticket($data,$view = '',$status){
     return $data;
 }
 
+function ccEmail_log_data_Ticket($message_id, $ticketID){
+    if(empty($message_id) || empty($ticketID)){
+        return false;
+    }
+
+    $AccountEmailLogID = \Api\Model\AccountEmailLog::where("TicketID", $ticketID)->min('AccountEmailLogID');
+
+    $AccountEmailLog = \Api\Model\AccountEmailLog::find($AccountEmailLogID);
+    if(!empty($AccountEmailLog->CcMessageID)){
+        $message_id= $AccountEmailLog->CcMessageID.",".$message_id;
+    }
+    $return =  \Api\Model\AccountEmailLog::where(["TicketID"=>$ticketID, "AccountEmailLogID"=>$AccountEmailLogID])->update(["CcMessageID"=>$message_id]);
+
+    return $return;
+}
+
 function email_log_data($data,$view = ''){
     $status = array('status' => 0, 'message' => 'Something wrong with Saving log.');
     if(!isset($data['EmailTo']) && empty($data['EmailTo'])){
@@ -806,6 +822,7 @@ function template_var_replace($EmailMessage,$replace_array){
     }
     return $EmailMessage;
 }
+
 function next_run_time($data){
 
     $Interval = $data['Interval'];
@@ -892,4 +909,19 @@ function get_image_data($path){
     }
 
     return $base64;
+}
+
+function getCompanyDecimalPlaces($value=""){
+    $RoundChargesAmount = \Api\Model\CompanySetting::getKeyVal('RoundChargesAmount');
+    $RoundChargesAmount=($RoundChargesAmount !='Invalid Key')?$RoundChargesAmount:2;
+
+    if(!empty($value) && is_numeric($value)){
+        $formatedValue=number_format($value, $RoundChargesAmount);
+        if($formatedValue){
+            return $formatedValue;
+        }
+        return $value;
+    }else{
+        return $RoundChargesAmount;
+    }
 }
