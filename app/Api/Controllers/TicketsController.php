@@ -589,7 +589,8 @@ private $validlicense;
 		   $data['Agents']				 = 	 	$row =  array("0"=> "Select")+json_decode(json_encode($Agents),true);   
 		   $data['CloseStatus'] 		 =  	TicketsTable::getClosedTicketStatus();  //close status id for ticket 
 		   $data['ticketdata']			 =	    TicketsTable::find($postdata['id']);
-		   $data['ticketdetaildata']	 =	    TicketsDetails::where(["TicketID"=>$postdata['id']])->get();	
+		   $data['ticketemail']			 =	    AccountEmailLog::where(["TicketID"=>$postdata['id'], "EmailParent"=>0])->first();
+		   $data['ticketdetaildata']	 =	    TicketsDetails::where(["TicketID"=>$postdata['id']])->get();
 		   $customer 					 = 		0;	   							
 		   if(isset($postdata['LoginType']) && $postdata['LoginType']=='customer'){		
 				$data['Ticketfields']	=	DB::table('tblTicketfields')->Where(['CustomerDisplay'=>1])->orderBy('FieldOrder', 'asc')->get(); 
@@ -999,14 +1000,14 @@ private $validlicense;
 			}
 			
 			//$RequesterEmail	  		=  	trim($data['email-to']);		
-			if (strpos($data['email-from'], '<') !== false && strpos($data['email-from'], '>') !== false)
+			if (strpos($data['email-to'], '<') !== false && strpos($data['email-to'], '>') !== false)
 			{
-				$RequesterData 	   =  explode(" <",$data['email-from']);
+				$RequesterData 	   =  explode(" <",$data['email-to']);
 				$RequesterName	   =  $RequesterData[0];
 				$RequesterEmail	   =  substr($RequesterData[1],0,strlen($RequesterData[1])-1);	
 			}else{
 				$RequesterName	   =  '';
-				$RequesterEmail	   =  trim($data['email-from']);
+				$RequesterEmail	   =  trim($data['email-to']);
 			}			
 			
 			if($data['LoginType']=='user')
