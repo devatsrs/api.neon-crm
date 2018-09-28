@@ -52,7 +52,8 @@ class AuthController extends BaseController
 				 } 
 			 }elseif(!empty($LoginType) && $LoginType['LoginType']=='reseller') {
                  $user = User::where(['EmailAddress'=>$credentials['LoggedEmailAddress'],'Status'=>1])->first();
-                 if(!Hash::check($credentials['password'], $user->password)){
+                 //if(!Hash::check($credentials['password'], $user->password)){
+                 if(!User::checkPassword($credentials['password'],$user->password)){
                      Log::info("class AuthController");
                      Log::info($credentials);
                      Log::info("password " . $user->password);
@@ -65,7 +66,8 @@ class AuthController extends BaseController
 
                 }else {
 					$user = User::where(['EmailAddress'=>$credentials['LoggedEmailAddress'],'Status'=>1])->first();
-					if(!Hash::check($credentials['password'], $user->password)){
+					//if(!Hash::check($credentials['password'], $user->password)){
+                    if(!User::checkPassword($credentials['password'],$user->password)){
                         Log::info("class AuthController");
                         Log::info($credentials);
                         Log::info("password " . $user->password);
