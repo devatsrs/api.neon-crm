@@ -63,15 +63,16 @@ class InvoicesController extends BaseController
         $data['InvoiceType']        = 1;
         $sort_column                = $columns[$data['iSortCol_0']];
         $userID                     = 0;
+        $data['tag']      = !empty($data['tag']) ? $data['tag'] : "";
         /*if(User::is('AccountManager')) { // Account Manager
             $userID = User::get_userID();
         }*/
 
         $query = "call prc_getInvoice (".$companyID.",".intval($data['AccountID']).",'".$data['InvoiceNumber']."','".$data['IssueDateStart']."','".$data['IssueDateEnd']."',".intval($data['InvoiceType']).",'".$data['InvoiceStatus']."',".$data['Overdue'].",".( ceil($data['iDisplayStart']/$data['iDisplayLength']) )." ,".$data['iDisplayLength'].",'".$sort_column."','".$data['sSortDir_0']."',".intval($data['CurrencyID'])."";
         if(isset($data['zerovalueinvoice']) && $data['zerovalueinvoice'] == 1){
-            $query = $query.',3,0,1,"",'.$userID.')'; //3=api
+            $query = $query.',3,0,1,"",'.$userID.',"'.$data['tag'].'")'; //3=api
         }else{
-            $query .=',3,0,0,"",'.$userID.')'; //3=api
+            $query .=',3,0,0,"",'.$userID.',"'.$data['tag'].'")'; //3=api
         }
 
         try{
@@ -125,15 +126,16 @@ class InvoicesController extends BaseController
         $data['InvoiceType']        = 2;
         $userID                     = 0;
         $sort_column                = $columns[$data['iSortCol_0']];
+        $data['tag']      = !empty($data['tag']) ? $data['tag'] : "";
         /*if(User::is('AccountManager')) { // Account Manager
             $userID = User::get_userID();
         }*/
 
         $query = "call prc_getInvoice (".$companyID.",".intval($data['AccountID']).",'".$data['InvoiceNumber']."','".$data['IssueDateStart']."','".$data['IssueDateEnd']."',".intval($data['InvoiceType']).",'".$data['InvoiceStatus']."',".$data['Overdue'].",".( ceil($data['iDisplayStart']/$data['iDisplayLength']) )." ,".$data['iDisplayLength'].",'".$sort_column."','".$data['sSortDir_0']."',".intval($data['CurrencyID'])."";
         if(isset($data['zerovalueinvoice']) && $data['zerovalueinvoice'] == 1){
-            $query = $query.',3,0,1,"",'.$userID.')';
+            $query = $query.',3,0,1,"",'.$userID.',"'.$data['tag'].'")';
         }else{
-            $query .=',3,0,0,"",'.$userID.')';
+            $query .=',3,0,0,"",'.$userID.',"'.$data['tag'].'")';
         }
 
         try{
