@@ -314,6 +314,7 @@ class Account extends Model
 		if(isset($Account) && !empty($Account)){
 			$replace_array['FirstName'] = $Account->FirstName;
 			$replace_array['LastName'] = $Account->LastName;
+            $replace_array['AccountName'] =	$Account->AccountName;
 			$replace_array['Email'] = $Account->Email;
 			$replace_array['Address1'] = $Account->Address1;
 			$replace_array['Address2'] = $Account->Address2;
