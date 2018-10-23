@@ -21,6 +21,7 @@ class Contact extends \Eloquent {
 		if(isset($contact) && !empty($contact)){
 			$replace_array['FirstName'] 			= 	$contact->FirstName;
 			$replace_array['LastName'] 				= 	$contact->LastName;
+			$replace_array['AccountName'] 			= 	$contact->AccountName;
 			$replace_array['Email'] 				= 	$contact->Email;
 			$replace_array['Address1'] 				= 	$contact->Address1;
 			$replace_array['Address2'] 				= 	$contact->Address2;

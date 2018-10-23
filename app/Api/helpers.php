@@ -794,6 +794,7 @@ function template_var_replace($EmailMessage,$replace_array){
     $extra = [
         '{{FirstName}}',
         '{{LastName}}',
+        '{{AccountName}}',
         '{{Email}}',
         '{{Address1}}',
         '{{Address2}}',
