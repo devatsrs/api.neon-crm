@@ -59,8 +59,8 @@ private $validlicense;
 		   $AccessPermission		=	isset($data['AccessPermission'])?$data['AccessPermission']:0;
 		   $data['iDisplayStart']   +=	1;
 		   $data['Export']  		=	isset($data['Export'])?$data['Export']:0;
-		   $StartDate		 		=	empty($data['StartDate'])?'0000-00-00 00:00:00':$data['StartDate'];
-		   $EndDate		 			=	empty($data['EndDate'])?'0000-00-00 00:00:00':$data['EndDate'];
+		   $StartDate		 		=	$data['StartDate'];
+		   $EndDate		 			=	$data['EndDate'];
 
 		  $is_StartDateNull=1;
 		  $is_EndDateNull=1;
