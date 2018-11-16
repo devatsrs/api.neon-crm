@@ -62,17 +62,17 @@ private $validlicense;
 		   $StartDate		 		=	empty($data['StartDate'])?'0000-00-00 00:00:00':$data['StartDate'];
 		   $EndDate		 			=	empty($data['EndDate'])?'0000-00-00 00:00:00':$data['EndDate'];
 
-		  $is_StartDateNull=0;
-		  $is_EndDateNull=0;
+		  $is_StartDateNull=1;
+		  $is_EndDateNull=1;
 
 		  if(empty($data['StartDate'])){
 			  $StartDate=date('Y-m-d h:i:s');
-			  $is_StartDateNull=1;
+			  $is_StartDateNull=0;
 		  }
 
 		  if(empty($data['EndDate'])){
 			  $EndDate=date('Y-m-d h:i:s');
-			  $is_EndDateNull=1;
+			  $is_EndDateNull=0;
 		  }
 
 		   if($AccessPermission == TicketsTable::TICKETGLOBALACCESS){
