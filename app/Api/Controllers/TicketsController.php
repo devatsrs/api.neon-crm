@@ -61,7 +61,20 @@ private $validlicense;
 		   $data['Export']  		=	isset($data['Export'])?$data['Export']:0;
 		   $StartDate		 		=	empty($data['StartDate'])?'0000-00-00 00:00:00':$data['StartDate'];
 		   $EndDate		 			=	empty($data['EndDate'])?'0000-00-00 00:00:00':$data['EndDate'];
-		   
+
+		  $is_StartDateNull=0;
+		  $is_EndDateNull=0;
+
+		  if(empty($data['StartDate'])){
+			  $StartDate=date('Y-m-d h:i:s');
+			  $is_StartDateNull=1;
+		  }
+
+		  if(empty($data['EndDate'])){
+			  $EndDate=date('Y-m-d h:i:s');
+			  $is_EndDateNull=1;
+		  }
+
 		   if($AccessPermission == TicketsTable::TICKETGLOBALACCESS){
 		   	// no restrictions
 		   }else if($AccessPermission == TicketsTable::TICKETGROUPACCESS){ //group access
@@ -86,7 +99,7 @@ private $validlicense;
 				 
 		   }else
 		   {			 	  		   			   
-			  	  $query 		= 	"call prc_GetSystemTicket ('".$CompanyID."','".$search."','".$status."','".$priority."','".$Group."','".$agent."','".$DueBy."','".date('Y-m-d H:i')."',".( ceil($data['iDisplayStart']/$data['iDisplayLength']) )." ,".$data['iDisplayLength'].",'".$sort_column."','".$data['sSortDir_0']."',".$data['Export'].",'".$StartDate."','".$EndDate."')";
+			  	  $query 		= 	"call prc_GetSystemTicket ('".$CompanyID."','".$search."','".$status."','".$priority."','".$Group."','".$agent."','".$DueBy."','".date('Y-m-d H:i')."',".( ceil($data['iDisplayStart']/$data['iDisplayLength']) )." ,".$data['iDisplayLength'].",'".$sort_column."','".$data['sSortDir_0']."',".$data['Export'].",'".$StartDate."','".$EndDate."',".$is_StartDateNull.",".$is_EndDateNull.")";
 			} 
 			Log::info($query);
 			$resultdata   	=  DataTableSql::of($query)->getProcResult(array('ResultCurrentPage','TotalResults','GroupsData'));	
