@@ -5,6 +5,7 @@ namespace Api\Controllers;
 use Dingo\Api\Http\Request;
 use Api\Model\AccountBalance;
 use Api\Model\AccountBalanceHistory;
+use Api\Model\AccountBalanceThreshold;
 use Api\Model\DataTableSql;
 use Api\Model\User;
 use Api\Model\Account;
@@ -722,6 +723,9 @@ class AccountController extends BaseController
         }
         
         $AccountBalancedata['EmailToCustomer'] = isset($post_data['EmailToCustomer'])?1:0;
+        
+        
+        
 
         try {
             if (!empty($AccountBalancedata) && AccountBalance::where('AccountID', $post_data['AccountID'])->count()) {
@@ -733,6 +737,11 @@ class AccountController extends BaseController
             }
             unset($AccountBalancedata['EmailToCustomer']);
             AccountBalanceHistory::addHistory($AccountBalancedata);
+            
+            //Update Account Thread HOld
+            //AccountBalanceThreshold::
+            AccountBalanceThreshold::where('AccountID', $post_data['AccountID'])->delete();
+            AccountBalanceThreshold::saveAccountBalanceThreshold($post_data['AccountID'],$post_data);
             return generateResponse('Account Successfully Updated');
         } catch (\Exception $e) {
             Log::info($e);
