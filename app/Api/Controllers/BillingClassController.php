@@ -45,13 +45,13 @@ class BillingClassController extends BaseController
             if (isset($post_data['Name'])) {
                 $Name = $post_data['Name'];
             }
-            $ResellerOwner = 0;
-            if (isset($post_data['ResellerOwner']) && !empty($post_data['ResellerOwner'])) {
-                $ResellerOwner = $post_data['ResellerOwner'];
-            }
+//            $ResellerOwner = 0;
+//            if (isset($post_data['ResellerOwner']) && !empty($post_data['ResellerOwner'])) {
+//                $ResellerOwner = $post_data['ResellerOwner'];
+//            }
             
             $sort_column = $columns[$post_data['iSortCol_0']];
-            $query = "call prc_getBillingClass(" . $CompanyID . ",'" . $Name . "','".$ResellerOwner." '," . (ceil($post_data['iDisplayStart'] / $post_data['iDisplayLength'])) . " ," . $post_data['iDisplayLength'] . ",'" . $sort_column . "','" . $post_data['sSortDir_0'] . "'";
+            $query = "call prc_getBillingClass(" . $CompanyID . ",'" . $Name . "'," . (ceil($post_data['iDisplayStart'] / $post_data['iDisplayLength'])) . " ," . $post_data['iDisplayLength'] . ",'" . $sort_column . "','" . $post_data['sSortDir_0'] . "'";
             if (isset($post_data['Export']) && $post_data['Export'] == 1) {
                 $result = DB::select($query . ',1)');
             } else {

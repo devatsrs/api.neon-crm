@@ -15,7 +15,7 @@ class BillingClass extends Model
         'CompanyID','PaymentDueInDays','RoundChargesAmount','RoundChargesCDR','CDRType','InvoiceTemplateID',
         'BillingType','Name','Description','TaxRateID','BillingTimezone',
         'SendInvoiceSetting','DeductCallChargeInAdvance','SuspendAccount','AutoPaymentSetting','AutoPayMethod','PaymentReminderStatus','PaymentReminderSettings','LowBalanceReminderStatus','LowBalanceReminderSettings',
-        'InvoiceReminderStatus','InvoiceReminderSettings','BalanceWarningStatus','BalanceWarningSettings','created_at','updated_at','UpdatedBy','CreatedBy','ResellerOwner'
+        'InvoiceReminderStatus','InvoiceReminderSettings','BalanceWarningStatus','BalanceWarningSettings','created_at','updated_at','UpdatedBy','CreatedBy'
     );
 
     public static $rules = array(
