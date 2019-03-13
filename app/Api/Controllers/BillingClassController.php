@@ -30,7 +30,10 @@ class BillingClassController extends BaseController
     {
         $post_data = Input::all();
         try {
-            $CompanyID = User::get_companyID();
+            $CompanyID = '';
+            if (isset($post_data['ResellerOwner']) && !empty($post_data['ResellerOwner'])) {
+                $CompanyID = $post_data['ResellerOwner'];
+            }
             $rules['iDisplayStart'] = 'required|Min:1';
             $rules['iDisplayLength'] = 'required';
             $rules['iDisplayLength'] = 'required';
@@ -51,11 +54,13 @@ class BillingClassController extends BaseController
 //            }
             
             $sort_column = $columns[$post_data['iSortCol_0']];
-            $query = "call prc_getBillingClass(" . $CompanyID . ",'" . $Name . "'," . (ceil($post_data['iDisplayStart'] / $post_data['iDisplayLength'])) . " ," . $post_data['iDisplayLength'] . ",'" . $sort_column . "','" . $post_data['sSortDir_0'] . "'";
+            $query = "call prc_getBillingClass('" . $CompanyID . "','" . $Name . "'," . (ceil($post_data['iDisplayStart'] / $post_data['iDisplayLength'])) . " ," . $post_data['iDisplayLength'] . ",'" . $sort_column . "','" . $post_data['sSortDir_0'] . "'";
             if (isset($post_data['Export']) && $post_data['Export'] == 1) {
+                Log::info($query . ',1)');
                 $result = DB::select($query . ',1)');
             } else {
                 $query .= ',0)';
+                Log::info($query);
                 $result = DataTableSql::of($query)->make();
             }
             return generateResponse('',false,false,$result);
@@ -89,7 +94,7 @@ class BillingClassController extends BaseController
             $insertdata = array();
             $insertdata =  $post_data;
             $insertdata = self::convert_data($post_data)+$insertdata;
-            $insertdata['CompanyID'] = $CompanyID;
+            $insertdata['CompanyID'] = $post_data['ResellerOwner'];;
             $insertdata['CreatedBy'] = User::get_user_full_name();
             $insertdata['created_at'] = get_currenttime();
             $BillingClass = BillingClass::create($insertdata);
