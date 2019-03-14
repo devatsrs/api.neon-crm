@@ -80,7 +80,7 @@ class BillingClassController extends BaseController
         $post_data = Input::all();
         $CompanyID = User::get_companyID();
 
-        $rules['Name'] = 'required|unique:tblBillingClass,Name,NULL,CompanyID,CompanyID,' . $CompanyID;
+        $rules['Name'] = 'required|unique:tblBillingClass,Name';
         $rules = $rules + BillingClass::$rules;
         $validator = Validator::make($post_data, $rules,BillingClass::$messages);
         if ($validator->fails()) {
@@ -94,7 +94,11 @@ class BillingClassController extends BaseController
             $insertdata = array();
             $insertdata =  $post_data;
             $insertdata = self::convert_data($post_data)+$insertdata;
-            $insertdata['CompanyID'] = $post_data['ResellerOwner'];;
+            $CompanyID = 1;
+            if (isset($post_data['ResellerOwner']) && !empty($post_data['ResellerOwner'])) {
+                $CompanyID = $post_data['ResellerOwner'];
+            }
+            $insertdata['CompanyID'] = $CompanyID;
             $insertdata['CreatedBy'] = User::get_user_full_name();
             $insertdata['created_at'] = get_currenttime();
             $BillingClass = BillingClass::create($insertdata);
