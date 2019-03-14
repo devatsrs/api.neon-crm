@@ -30,9 +30,10 @@ class BillingClassController extends BaseController
     {
         $post_data = Input::all();
         try {
-            $CompanyID = '';
+            $CompanyID = User::get_companyID();;
+            $p_resellerComapyId='';
             if (isset($post_data['ResellerOwner']) && !empty($post_data['ResellerOwner'])) {
-                $CompanyID = $post_data['ResellerOwner'];
+                $p_resellerComapyId = $post_data['ResellerOwner'];
             }
             $rules['iDisplayStart'] = 'required|Min:1';
             $rules['iDisplayLength'] = 'required';
@@ -54,7 +55,7 @@ class BillingClassController extends BaseController
 //            }
             
             $sort_column = $columns[$post_data['iSortCol_0']];
-            $query = "call prc_getBillingClass('" . $CompanyID . "','" . $Name . "'," . (ceil($post_data['iDisplayStart'] / $post_data['iDisplayLength'])) . " ," . $post_data['iDisplayLength'] . ",'" . $sort_column . "','" . $post_data['sSortDir_0'] . "'";
+            $query = "call prc_getBillingClass('" . $CompanyID . "','" . $Name . "','" . $p_resellerComapyId . "'," . (ceil($post_data['iDisplayStart'] / $post_data['iDisplayLength'])) . " ," . $post_data['iDisplayLength'] . ",'" . $sort_column . "','" . $post_data['sSortDir_0'] . "'";
             if (isset($post_data['Export']) && $post_data['Export'] == 1) {
                 Log::info($query . ',1)');
                 $result = DB::select($query . ',1)');
