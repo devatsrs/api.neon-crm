@@ -95,11 +95,12 @@ class BillingClassController extends BaseController
             $insertdata = array();
             $insertdata =  $post_data;
             $insertdata = self::convert_data($post_data)+$insertdata;
-            $CompanyID = 1;
+            
             if (isset($post_data['ResellerOwner']) && !empty($post_data['ResellerOwner'])) {
-                $CompanyID = $post_data['ResellerOwner'];
+                $insertdata['ResellerID'] = $post_data['ResellerOwner'];
             }
-            $insertdata['CompanyID'] = $CompanyID;
+           
+            $insertdata['CompanyID'] = $post_data['CompanyID'];
             $insertdata['CreatedBy'] = User::get_user_full_name();
             $insertdata['created_at'] = get_currenttime();
             $BillingClass = BillingClass::create($insertdata);
