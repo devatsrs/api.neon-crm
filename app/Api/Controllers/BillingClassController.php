@@ -80,7 +80,7 @@ class BillingClassController extends BaseController
     {
         $post_data = Input::all();
         $CompanyID = User::get_companyID();
-
+        Log::info($post_data);
         $rules['Name'] = 'required|unique:tblBillingClass,Name';
         $rules = $rules + BillingClass::$rules;
         $validator = Validator::make($post_data, $rules,BillingClass::$messages);
@@ -91,11 +91,12 @@ class BillingClassController extends BaseController
         if(!empty($error_message)){
             return generateResponse($error_message, true, true);
         }
+        Log::info('valid ok');
         try {
             $insertdata = array();
             $insertdata =  $post_data;
             $insertdata = self::convert_data($post_data)+$insertdata;
-            
+
             if (isset($post_data['ResellerOwner']) && !empty($post_data['ResellerOwner'])) {
                 $insertdata['ResellerID'] = $post_data['ResellerOwner'];
             }
@@ -226,6 +227,7 @@ class BillingClassController extends BaseController
         $class_data['LowBalanceReminderStatus'] = isset($post_data['LowBalanceReminderStatus'])?1:0;
         $class_data['InvoiceReminderStatus'] = isset($post_data['InvoiceReminderStatus'])?1:0;
         $class_data['BalanceWarningStatus'] = isset($post_data['BalanceWarningStatus'])?1:0;
+        $class_data['ZeroBalanceWarningStatus'] = isset($post_data['ZeroBalanceWarningStatus'])?1:0;
         if(!empty($BillingClass)){
             $PaymentReminderSettings = json_decode($BillingClass->PaymentReminderSettings);
             if(isset($PaymentReminderSettings->LastRunTime)){
@@ -250,6 +252,13 @@ class BillingClassController extends BaseController
             if(isset($BalanceWarningSettings->NextRunTime)){
                 $post_data['BalanceWarning']['NextRunTime'] = $BalanceWarningSettings->NextRunTime;
             }
+            $ZeroBalanceWarningSettings = json_decode($BillingClass->ZeroBalanceWarningSettings);
+            if(isset($ZeroBalanceWarningSettings->LastRunTime)){
+                $post_data['ZeroBalanceWarning']['LastRunTime'] = $ZeroBalanceWarningSettings->LastRunTime;
+            }
+            if(isset($ZeroBalanceWarningSettings->NextRunTime)){
+                $post_data['ZeroBalanceWarning']['NextRunTime'] = $ZeroBalanceWarningSettings->NextRunTime;
+            }
 
         }
         if (isset($post_data['TaxRateID'])) {
@@ -268,6 +277,9 @@ class BillingClassController extends BaseController
         }
         if (isset($post_data['BalanceWarning'])) {
             $class_data['BalanceWarningSettings'] = json_encode($post_data['BalanceWarning']);
+        }
+        if (isset($post_data['ZeroBalanceWarning'])) {
+            $class_data['ZeroBalanceWarningSettings'] = json_encode($post_data['ZeroBalanceWarning']);
         }
         return $class_data;
     }
@@ -299,9 +311,9 @@ class BillingClassController extends BaseController
             if(empty($post_data['LowBalanceReminder']['Time'])) {
                 $error_message = 'Low Balance Reminder Time is required.';
             }
-            if(empty($post_data['LowBalanceReminder']['TemplateID'])) {
+            /*if(empty($post_data['LowBalanceReminder']['TemplateID'])) {
                 $error_message = 'Low Balance Reminder Template is required.';
-            }
+            }*/
         }
         if(isset($post_data['PaymentReminderStatus'])){
             if(empty($post_data['PaymentReminder']['Interval'])) {
@@ -310,9 +322,9 @@ class BillingClassController extends BaseController
             if(empty($post_data['PaymentReminder']['Time'])) {
                 $error_message = 'Account Payment Reminder Time is required.';
             }
-            if(empty($post_data['PaymentReminder']['TemplateID'])) {
+            /*if(empty($post_data['PaymentReminder']['TemplateID'])) {
                 $error_message = 'Account Payment Reminder Template is required.';
-            }
+            }*/
         }
 
         return $error_message;
