@@ -30,11 +30,13 @@ class BillingClassController extends BaseController
     {
         $post_data = Input::all();
         try {
-            $CompanyID = User::get_companyID();;
-            $p_resellerComapyId='';
-            if (isset($post_data['ResellerOwner']) && !empty($post_data['ResellerOwner'])) {
-                $p_resellerComapyId = $post_data['ResellerOwner'];
-            }
+            $CompanyID = $post_data['CompanyID'];
+            $is_IsGlobal = $post_data['is_IsGlobal'];
+            //$CompanyID = User::get_companyID();;
+            //$p_resellerComapyId='';
+            //if (isset($post_data['ResellerOwner']) && !empty($post_data['ResellerOwner'])) {
+              //  $p_resellerComapyId = $post_data['ResellerOwner'];
+            //}
             $rules['iDisplayStart'] = 'required|Min:1';
             $rules['iDisplayLength'] = 'required';
             $rules['iDisplayLength'] = 'required';
@@ -55,7 +57,7 @@ class BillingClassController extends BaseController
 //            }
             
             $sort_column = $columns[$post_data['iSortCol_0']];
-            $query = "call prc_getBillingClass('" . $CompanyID . "','" . $Name . "','".$post_data['is_reseller']."','" . $p_resellerComapyId . "'," . (ceil($post_data['iDisplayStart'] / $post_data['iDisplayLength'])) . " ," . $post_data['iDisplayLength'] . ",'" . $sort_column . "','" . $post_data['sSortDir_0'] . "'";
+            $query = "call prc_getBillingClass(" . $CompanyID . ",'" . $Name . "',".$post_data['is_reseller']."," . $is_IsGlobal . "," . (ceil($post_data['iDisplayStart'] / $post_data['iDisplayLength'])) . " ," . $post_data['iDisplayLength'] . ",'" . $sort_column . "','" . $post_data['sSortDir_0'] . "'";
             if (isset($post_data['Export']) && $post_data['Export'] == 1) {
                 Log::info($query . ',1)');
                 $result = DB::select($query . ',1)');
@@ -79,9 +81,9 @@ class BillingClassController extends BaseController
     public function Store()
     {
         $post_data = Input::all();
-        $CompanyID = User::get_companyID();
+        //$CompanyID = User::get_companyID();
         Log::info($post_data);
-        $rules['Name'] = 'required|unique:tblBillingClass,Name';
+        $rules['Name'] = 'required|unique:tblBillingClass,Name,NULL,CompanyID,CompanyID,'.$post_data['CompanyID']; //need to change
         $rules = $rules + BillingClass::$rules;
         $validator = Validator::make($post_data, $rules,BillingClass::$messages);
         if ($validator->fails()) {
@@ -97,13 +99,14 @@ class BillingClassController extends BaseController
             $insertdata =  $post_data;
             $insertdata = self::convert_data($post_data)+$insertdata;
 
-            if (isset($post_data['ResellerOwner']) && !empty($post_data['ResellerOwner'])) {
+            /*if (isset($post_data['ResellerOwner']) && !empty($post_data['ResellerOwner'])) {
                 $insertdata['ResellerID'] = $post_data['ResellerOwner'];
-            }
+            }*/
            
             $insertdata['CompanyID'] = $post_data['CompanyID'];
             $insertdata['CreatedBy'] = User::get_user_full_name();
             $insertdata['created_at'] = get_currenttime();
+            $insertdata['IsGlobal'] = $post_data['IsGlobal'];
             $BillingClass = BillingClass::create($insertdata);
 
             return generateResponse('Billing Class added successfully',false,false,$BillingClass);
@@ -157,7 +160,7 @@ class BillingClassController extends BaseController
     {
         if ($BillingClassID > 0) {
             $post_data = Input::all();
-            $CompanyID = User::get_companyID();
+            $CompanyID = $post_data['CompanyID'];
             $post_data['DeductCallChargeInAdvance'] = empty($post_data['DeductCallChargeInAdvance']) ? 0 : 1;
             $post_data['SuspendAccount'] = empty($post_data['SuspendAccount']) ? 0 : 1;
             $rules['Name'] = 'required|unique:tblBillingClass,Name,' . $BillingClassID . ',BillingClassID,CompanyID,' . $CompanyID;
@@ -185,6 +188,7 @@ class BillingClassController extends BaseController
                 $updatedata =  $post_data;
                 $updatedata = self::convert_data($post_data,$BillingClass)+$updatedata;
                 $updatedata['UpdatedBy'] = User::get_user_full_name();
+                log::info(print_r($updatedata,true));
                 $BillingClass->update($updatedata);
 
                 return generateResponse('Billing Class updated successfully');
