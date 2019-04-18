@@ -30,7 +30,13 @@ class BillingClassController extends BaseController
     {
         $post_data = Input::all();
         try {
-            $CompanyID = User::get_companyID();
+            $CompanyID = $post_data['CompanyID'];
+            $is_IsGlobal = $post_data['is_IsGlobal'];
+            //$CompanyID = User::get_companyID();;
+            //$p_resellerComapyId='';
+            //if (isset($post_data['ResellerOwner']) && !empty($post_data['ResellerOwner'])) {
+              //  $p_resellerComapyId = $post_data['ResellerOwner'];
+            //}
             $rules['iDisplayStart'] = 'required|Min:1';
             $rules['iDisplayLength'] = 'required';
             $rules['iDisplayLength'] = 'required';
@@ -45,13 +51,19 @@ class BillingClassController extends BaseController
             if (isset($post_data['Name'])) {
                 $Name = $post_data['Name'];
             }
-
+//            $ResellerOwner = 0;
+//            if (isset($post_data['ResellerOwner']) && !empty($post_data['ResellerOwner'])) {
+//                $ResellerOwner = $post_data['ResellerOwner'];
+//            }
+            
             $sort_column = $columns[$post_data['iSortCol_0']];
-            $query = "call prc_getBillingClass(" . $CompanyID . ",'" . $Name . "'," . (ceil($post_data['iDisplayStart'] / $post_data['iDisplayLength'])) . " ," . $post_data['iDisplayLength'] . ",'" . $sort_column . "','" . $post_data['sSortDir_0'] . "'";
+            $query = "call prc_getBillingClass(" . $CompanyID . ",'" . $Name . "',".$post_data['is_reseller']."," . $is_IsGlobal . "," . (ceil($post_data['iDisplayStart'] / $post_data['iDisplayLength'])) . " ," . $post_data['iDisplayLength'] . ",'" . $sort_column . "','" . $post_data['sSortDir_0'] . "'";
             if (isset($post_data['Export']) && $post_data['Export'] == 1) {
+                Log::info($query . ',1)');
                 $result = DB::select($query . ',1)');
             } else {
                 $query .= ',0)';
+                Log::info($query);
                 $result = DataTableSql::of($query)->make();
             }
             return generateResponse('',false,false,$result);
@@ -69,9 +81,9 @@ class BillingClassController extends BaseController
     public function Store()
     {
         $post_data = Input::all();
-        $CompanyID = User::get_companyID();
-
-        $rules['Name'] = 'required|unique:tblBillingClass,Name,NULL,CompanyID,CompanyID,' . $CompanyID;
+        //$CompanyID = User::get_companyID();
+        Log::info($post_data);
+        $rules['Name'] = 'required|unique:tblBillingClass,Name,NULL,CompanyID,CompanyID,'.$post_data['CompanyID']; //need to change
         $rules = $rules + BillingClass::$rules;
         $validator = Validator::make($post_data, $rules,BillingClass::$messages);
         if ($validator->fails()) {
@@ -81,13 +93,20 @@ class BillingClassController extends BaseController
         if(!empty($error_message)){
             return generateResponse($error_message, true, true);
         }
+        Log::info('valid ok');
         try {
             $insertdata = array();
             $insertdata =  $post_data;
             $insertdata = self::convert_data($post_data)+$insertdata;
-            $insertdata['CompanyID'] = $CompanyID;
+
+            /*if (isset($post_data['ResellerOwner']) && !empty($post_data['ResellerOwner'])) {
+                $insertdata['ResellerID'] = $post_data['ResellerOwner'];
+            }*/
+           
+            $insertdata['CompanyID'] = $post_data['CompanyID'];
             $insertdata['CreatedBy'] = User::get_user_full_name();
             $insertdata['created_at'] = get_currenttime();
+            $insertdata['IsGlobal'] = $post_data['IsGlobal'];
             $BillingClass = BillingClass::create($insertdata);
 
             return generateResponse('Billing Class added successfully',false,false,$BillingClass);
@@ -141,7 +160,7 @@ class BillingClassController extends BaseController
     {
         if ($BillingClassID > 0) {
             $post_data = Input::all();
-            $CompanyID = User::get_companyID();
+            $CompanyID = $post_data['CompanyID'];
             $post_data['DeductCallChargeInAdvance'] = empty($post_data['DeductCallChargeInAdvance']) ? 0 : 1;
             $post_data['SuspendAccount'] = empty($post_data['SuspendAccount']) ? 0 : 1;
             $rules['Name'] = 'required|unique:tblBillingClass,Name,' . $BillingClassID . ',BillingClassID,CompanyID,' . $CompanyID;
@@ -169,6 +188,7 @@ class BillingClassController extends BaseController
                 $updatedata =  $post_data;
                 $updatedata = self::convert_data($post_data,$BillingClass)+$updatedata;
                 $updatedata['UpdatedBy'] = User::get_user_full_name();
+                log::info(print_r($updatedata,true));
                 $BillingClass->update($updatedata);
 
                 return generateResponse('Billing Class updated successfully');
@@ -211,6 +231,7 @@ class BillingClassController extends BaseController
         $class_data['LowBalanceReminderStatus'] = isset($post_data['LowBalanceReminderStatus'])?1:0;
         $class_data['InvoiceReminderStatus'] = isset($post_data['InvoiceReminderStatus'])?1:0;
         $class_data['BalanceWarningStatus'] = isset($post_data['BalanceWarningStatus'])?1:0;
+        $class_data['ZeroBalanceWarningStatus'] = isset($post_data['ZeroBalanceWarningStatus'])?1:0;
         if(!empty($BillingClass)){
             $PaymentReminderSettings = json_decode($BillingClass->PaymentReminderSettings);
             if(isset($PaymentReminderSettings->LastRunTime)){
@@ -235,6 +256,13 @@ class BillingClassController extends BaseController
             if(isset($BalanceWarningSettings->NextRunTime)){
                 $post_data['BalanceWarning']['NextRunTime'] = $BalanceWarningSettings->NextRunTime;
             }
+            $ZeroBalanceWarningSettings = json_decode($BillingClass->ZeroBalanceWarningSettings);
+            if(isset($ZeroBalanceWarningSettings->LastRunTime)){
+                $post_data['ZeroBalanceWarning']['LastRunTime'] = $ZeroBalanceWarningSettings->LastRunTime;
+            }
+            if(isset($ZeroBalanceWarningSettings->NextRunTime)){
+                $post_data['ZeroBalanceWarning']['NextRunTime'] = $ZeroBalanceWarningSettings->NextRunTime;
+            }
 
         }
         if (isset($post_data['TaxRateID'])) {
@@ -253,6 +281,9 @@ class BillingClassController extends BaseController
         }
         if (isset($post_data['BalanceWarning'])) {
             $class_data['BalanceWarningSettings'] = json_encode($post_data['BalanceWarning']);
+        }
+        if (isset($post_data['ZeroBalanceWarning'])) {
+            $class_data['ZeroBalanceWarningSettings'] = json_encode($post_data['ZeroBalanceWarning']);
         }
         return $class_data;
     }
@@ -284,9 +315,9 @@ class BillingClassController extends BaseController
             if(empty($post_data['LowBalanceReminder']['Time'])) {
                 $error_message = 'Low Balance Reminder Time is required.';
             }
-            if(empty($post_data['LowBalanceReminder']['TemplateID'])) {
+            /*if(empty($post_data['LowBalanceReminder']['TemplateID'])) {
                 $error_message = 'Low Balance Reminder Template is required.';
-            }
+            }*/
         }
         if(isset($post_data['PaymentReminderStatus'])){
             if(empty($post_data['PaymentReminder']['Interval'])) {
@@ -295,9 +326,9 @@ class BillingClassController extends BaseController
             if(empty($post_data['PaymentReminder']['Time'])) {
                 $error_message = 'Account Payment Reminder Time is required.';
             }
-            if(empty($post_data['PaymentReminder']['TemplateID'])) {
+            /*if(empty($post_data['PaymentReminder']['TemplateID'])) {
                 $error_message = 'Account Payment Reminder Template is required.';
-            }
+            }*/
         }
 
         return $error_message;

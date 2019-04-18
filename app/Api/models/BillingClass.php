@@ -15,19 +15,19 @@ class BillingClass extends Model
         'CompanyID','PaymentDueInDays','RoundChargesAmount','RoundChargesCDR','CDRType','InvoiceTemplateID',
         'BillingType','Name','Description','TaxRateID','BillingTimezone',
         'SendInvoiceSetting','DeductCallChargeInAdvance','SuspendAccount','AutoPaymentSetting','AutoPayMethod','PaymentReminderStatus','PaymentReminderSettings','LowBalanceReminderStatus','LowBalanceReminderSettings',
-        'InvoiceReminderStatus','InvoiceReminderSettings','BalanceWarningStatus','BalanceWarningSettings','created_at','updated_at','UpdatedBy','CreatedBy'
+        'InvoiceReminderStatus','InvoiceReminderSettings','BalanceWarningStatus','BalanceWarningSettings','created_at','updated_at','UpdatedBy','CreatedBy','ResellerID','ZeroBalanceWarningStatus','ZeroBalanceWarningSettings','IsGlobal','ParentBillingClassID'
     );
 
     public static $rules = array(
         'RoundChargesAmount'=>'required',
         'PaymentDueInDays'=>'required',
         'BillingTimezone' => 'required',
-        'InvoiceTemplateID' => 'required',
+        //'InvoiceTemplateID' => 'required',
         'SendInvoiceSetting'=>'required'
     );
     public static $messages = array(
         'RoundChargesAmount.required' =>'The currency field is required',
-        'InvoiceTemplateID.required' =>'Invoice Template  field is required',
+        //'InvoiceTemplateID.required' =>'Invoice Template  field is required',
     );
 
     public static function checkForeignKeyById($id) {
