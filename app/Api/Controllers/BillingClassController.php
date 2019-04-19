@@ -115,7 +115,6 @@ class BillingClassController extends BaseController
             return $this->response->errorInternal('Internal Server');
         }
     }
-
     /**
      * Delete Billing Class
      *
@@ -299,7 +298,7 @@ class BillingClassController extends BaseController
             if($duplicatedays == false) {
                 $error_message  = 'Duplicate Days are not allowed.';
             }
-            $allTemplates = $post_data['InvoiceReminder']['TemplateID'] === array_filter($post_data['InvoiceReminder']['TemplateID'], 'is_numeric');
+            $allTemplates = $post_data['InvoiceReminder']['TemplateID'] === array_filter($post_data['InvoiceReminder']['TemplateID']); //'is_numeric');
             if($allTemplates == false) {
                 $error_message  = 'Please Select Template in All Payment Reminder.';
             }
@@ -330,7 +329,6 @@ class BillingClassController extends BaseController
                 $error_message = 'Account Payment Reminder Template is required.';
             }*/
         }
-
         return $error_message;
     }
 
