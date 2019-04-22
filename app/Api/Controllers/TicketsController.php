@@ -46,14 +46,17 @@ private $validlicense;
 	 
 
 	  function GetResult(){
-		   $data 					= 	Input::all(); 
+		   $data 					= 	Input::all();
+		  Log::info(print_r($data,true));
 		   $CompanyID 				= 	User::get_companyID(); 
 		   $search		 			=	isset($data['Search'])?$data['Search']:'';	   		   
 		   $status					=	isset($data['status'])?is_array($data['status'])?implode(",",$data['status']):$data['status']:'';		   
 		   $priority				=	isset($data['priority'])?is_array($data['priority'])?implode(",",$data['priority']):$data['priority']:'';
 		   $Group					=	isset($data['group'])?is_array($data['group'])?implode(",",$data['group']):$data['group']:'';		  
 		   $agent					=	isset($data['agent'])?$data['agent']:'';	
-		   $DueBy					=	isset($data['DueBy'])?is_array($data['DueBy'])?implode(",",$data['DueBy']):$data['DueBy']:'';		
+		   $requester				=	isset($data['requester'])?$data['requester']:'';
+		   $LastReply				=	isset($data['LastReply'])?$data['LastReply']:'';
+		   $DueBy					=	isset($data['DueBy'])?is_array($data['DueBy'])?implode(",",$data['DueBy']):$data['DueBy']:'';
 		   $columns 	 			= 	array('TicketID','Subject','Requester','Type','Status','Priority','Group','Agent','created_at');		
 		   $sort_column 			= 	$data['iSortCol_0'];
 		   $AccessPermission		=	isset($data['AccessPermission'])?$data['AccessPermission']:0;
@@ -81,6 +84,7 @@ private $validlicense;
 			   	$Group = TicketGroups::Get_User_Groups(User::get_userID());
 		   }else if($AccessPermission == TicketsTable::TICKETRESTRICTEDACCESS){ //assigned ticket access
 			   	$agent = User::get_userID();
+			   	$requester = User::get_userID();
 		   }
           if(!empty($status)) {
               $statusArray	= TicketsTable::getTicketStatus(0);
@@ -94,12 +98,12 @@ private $validlicense;
 		   if(isset($data['LoginType']) && $data['LoginType']=='customer')
 		   {		
 				   $agent		=	'';
-				   $emails 		=	Account::GetAccountAllEmails(User::get_userID());				 
+				   $emails 		=	Account::GetAccountAllEmails(User::get_userID());
 				   $query 		= 	"call prc_GetSystemTicketCustomer ('".$CompanyID."','".$search."','".$status."','".$priority."','".$Group."','".$agent."','".$emails."',".( ceil($data['iDisplayStart']/$data['iDisplayLength']) )." ,".$data['iDisplayLength'].",'".$sort_column."','".$data['sSortDir_0']."',".$data['Export'].")";  
 				 
 		   }else
 		   {			 	  		   			   
-			  	  $query 		= 	"call prc_GetSystemTicket ('".$CompanyID."','".$search."','".$status."','".$priority."','".$Group."','".$agent."','".$DueBy."','".date('Y-m-d H:i')."',".( ceil($data['iDisplayStart']/$data['iDisplayLength']) )." ,".$data['iDisplayLength'].",'".$sort_column."','".$data['sSortDir_0']."',".$data['Export'].",'".$StartDate."','".$EndDate."',".$is_StartDateNull.",".$is_EndDateNull.")";
+			  	  $query 		= 	"call prc_GetSystemTicket ('".$CompanyID."','".$search."','".$status."','".$priority."','".$Group."','".$agent."','".$DueBy."','".date('Y-m-d H:i')."',".( ceil($data['iDisplayStart']/$data['iDisplayLength']) )." ,".$data['iDisplayLength'].",'".$sort_column."','".$data['sSortDir_0']."',".$data['Export'].",'".$StartDate."','".$EndDate."',".$is_StartDateNull.",".$is_EndDateNull.",'".$requester."',".$LastReply.")";
 			} 
 			Log::info($query);
 			$resultdata   	=  DataTableSql::of($query)->getProcResult(array('ResultCurrentPage','TotalResults','GroupsData'));	
