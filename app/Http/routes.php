@@ -47,6 +47,7 @@ $api->version('v1', function ($api) {
             $api->get('account/GetAccountLeadByContactNumber', 'AccountController@GetAccountLeadByContactNumber');
 
             $api->post('emailattachment/{id}/getattachment/{attachmentID}', 'AccountActivityController@getAttachment');
+            $api->post('noteattachment/{id}/getattachment/{attachmentID}', 'AccountController@getAttachment');
 
 			//dashboard
 			$api->post('dashboard/GetUsersTasks', 'DashboardController@GetUsersTasks');
