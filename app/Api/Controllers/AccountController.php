@@ -200,6 +200,13 @@ class AccountController extends BaseController
         if ($validator->fails()) {
             return generateResponse($validator->errors(),true);
         }
+         $files = '';
+         if (isset($data['file']) && !empty($data['file'])) {
+             $data['AttachmentPaths'] = json_decode($data['file'],true);
+             $files = serialize(json_decode($data['file'],true));
+         }
+
+         $data['AttachmentPaths'] = $files;
 
 		try{
 			$data = cleanarray($data,[]);
