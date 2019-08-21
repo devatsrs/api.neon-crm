@@ -200,6 +200,17 @@ class AccountController extends BaseController
         if ($validator->fails()) {
             return generateResponse($validator->errors(),true);
         }
+         $files = '';
+         if (isset($data['file']) && !empty($data['file'])) {
+             $data['AttachmentPaths'] = json_decode($data['file'],true);
+             $files = serialize(json_decode($data['file'],true));
+         }
+
+         $data['NoteAttachmentPaths'] = $files;
+         unset($data['note_send']);
+         unset($data['noteattachment_sent']);
+         unset($data['attachmentsinfo']);
+         unset($data['file']);
 
 		try{
 			$data = cleanarray($data,[]);
@@ -208,6 +219,21 @@ class AccountController extends BaseController
         }catch (\Exception $ex){
             Log::info($ex);
             return $this->response->errorInternal($ex->getMessage());
+        }
+    }
+
+    public function getAttachment($noteID,$attachmentID){
+        if(intval($noteID)>0) {
+            $note = Note::find($noteID);
+            $attachments = unserialize($note->AttachmentPaths);
+            $attachment = $attachments[$attachmentID];
+            if(!empty($attachment)){
+                return generateResponse('',false,false,$attachment);
+            }else{
+                return generateResponse('Not found',true,true);
+            }
+        }else{
+            return generateResponse('Not found',true,true);
         }
     }
 
