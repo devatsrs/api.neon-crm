@@ -59,6 +59,7 @@ function sendMail($view,$data,$ViewType=1)
 	}
 	else{
 		$config = \Api\Model\Company::select('SMTPServer','SMTPUsername','CompanyName','SMTPPassword','Port','IsSSL','EmailFrom')->where("CompanyID", '=', $companyID)->first();
+        if($config != false) $config->SMTPPassword = Crypt::decrypt($config->SMTPPassword);
 		$status = 	 \App\PHPMAILERIntegtration::SendMail($view,$data,$config,$companyID,$body);
 	}
    /* $status = array('status' => 0, 'message' => 'Something wrong with sending mail.');
