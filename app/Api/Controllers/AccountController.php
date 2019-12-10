@@ -732,7 +732,10 @@ class AccountController extends BaseController
                 AccountBalance::create($AccountBalancedata);
             }
             unset($AccountBalancedata['EmailToCustomer']);
-            AccountBalanceHistory::addHistory($AccountBalancedata);
+            $CheckHistory = AccountBalanceHistory::where('AccountID',$post_data['AccountID'])->orderBy('id', 'desc')->first();
+            if($CheckHistory->PermanentCredit != $post_data['PermanentCredit']){
+                AccountBalanceHistory::addHistory($AccountBalancedata);
+            }
             return generateResponse('Account Successfully Updated');
         } catch (\Exception $e) {
             Log::info($e);
