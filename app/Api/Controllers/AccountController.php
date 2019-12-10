@@ -732,7 +732,7 @@ class AccountController extends BaseController
                 AccountBalance::create($AccountBalancedata);
             }
             unset($AccountBalancedata['EmailToCustomer']);
-            $CheckHistory = AccountBalanceHistory::where('AccountID',$post_data['AccountID'])->orderBy('id', 'desc')->first();
+            $CheckHistory = AccountBalanceHistory::where('AccountID',$post_data['AccountID'])->orderBy('AccountBalanceHistoryID', 'desc')->first();
             if($CheckHistory->PermanentCredit != $post_data['PermanentCredit']){
                 AccountBalanceHistory::addHistory($AccountBalancedata);
             }
