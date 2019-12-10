@@ -733,7 +733,11 @@ class AccountController extends BaseController
             }
             unset($AccountBalancedata['EmailToCustomer']);
             $CheckHistory = AccountBalanceHistory::where('AccountID',$post_data['AccountID'])->orderBy('AccountBalanceHistoryID', 'desc')->first();
-            if($CheckHistory->PermanentCredit != $post_data['PermanentCredit']){
+            if($CheckHistory){
+                if($CheckHistory->PermanentCredit != $post_data['PermanentCredit']){
+                    AccountBalanceHistory::addHistory($AccountBalancedata);
+                }
+            }else{
                 AccountBalanceHistory::addHistory($AccountBalancedata);
             }
             return generateResponse('Account Successfully Updated');
