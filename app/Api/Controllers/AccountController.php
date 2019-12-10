@@ -760,7 +760,7 @@ class AccountController extends BaseController
                 return generateResponse($validator->errors(),true);
             }
             $post_data['iDisplayStart'] += 1;
-            $columns = ['PermanentCredit', 'TemporaryCredit', 'Threshold', 'CreatedBy','created_at'];
+            $columns = ['PermanentCredit','CreatedBy','created_at'];
             $sort_column = $columns[$post_data['iSortCol_0']];
             $query = "call prc_GetAccountBalanceHistory (" . $companyID . "," . $post_data['AccountID'] . "," . (ceil($post_data['iDisplayStart'] / $post_data['iDisplayLength'])) . " ," . $post_data['iDisplayLength'] . ",'" . $sort_column . "','" . $post_data['sSortDir_0'] . "'";
             if (isset($post_data['Export']) && $post_data['Export'] == 1) {
