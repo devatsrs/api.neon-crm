@@ -732,7 +732,14 @@ class AccountController extends BaseController
                 AccountBalance::create($AccountBalancedata);
             }
             unset($AccountBalancedata['EmailToCustomer']);
-            AccountBalanceHistory::addHistory($AccountBalancedata);
+            $CheckHistory = AccountBalanceHistory::where('AccountID',$post_data['AccountID'])->orderBy('AccountBalanceHistoryID', 'desc')->first();
+            if($CheckHistory){
+                if($CheckHistory->PermanentCredit != floor($post_data['PermanentCredit'])){
+                    AccountBalanceHistory::addHistory($AccountBalancedata);
+                }
+            }else{
+                AccountBalanceHistory::addHistory($AccountBalancedata);
+            }
             return generateResponse('Account Successfully Updated');
         } catch (\Exception $e) {
             Log::info($e);
@@ -753,7 +760,7 @@ class AccountController extends BaseController
                 return generateResponse($validator->errors(),true);
             }
             $post_data['iDisplayStart'] += 1;
-            $columns = ['PermanentCredit', 'TemporaryCredit', 'Threshold', 'CreatedBy','created_at'];
+            $columns = ['PermanentCredit','CreatedBy','created_at'];
             $sort_column = $columns[$post_data['iSortCol_0']];
             $query = "call prc_GetAccountBalanceHistory (" . $companyID . "," . $post_data['AccountID'] . "," . (ceil($post_data['iDisplayStart'] / $post_data['iDisplayLength'])) . " ," . $post_data['iDisplayLength'] . ",'" . $sort_column . "','" . $post_data['sSortDir_0'] . "'";
             if (isset($post_data['Export']) && $post_data['Export'] == 1) {
